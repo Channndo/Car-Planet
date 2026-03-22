@@ -1,18 +1,33 @@
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --page-pad-x: 12px;
+  --page-pad-y: 12px;
+
+  /* hard spacing so Safari bottom bar never wins */
+  --controls-lift: 92px;
+  --controls-height: 220px;
+  --dialogue-bottom: 255px;
 }
 
 html,
 body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  height: 100%;
   background-color: #111;
   color: #fff;
   font-family: 'Press Start 2P', cursive;
   touch-action: none;
   user-select: none;
+  -webkit-user-select: none;
   overflow: hidden;
-  min-height: 100%;
 }
 
 body {
@@ -20,26 +35,32 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  min-height: 100svh;
   min-height: 100dvh;
   padding:
-    max(12px, env(safe-area-inset-top))
-    12px
-    max(12px, env(safe-area-inset-bottom))
-    12px;
+    max(var(--page-pad-y), var(--safe-top))
+    var(--page-pad-x)
+    max(var(--page-pad-y), var(--safe-bottom))
+    var(--page-pad-x);
 }
 
+/* Main game shell */
 #game-wrapper {
   position: relative;
   width: min(100%, 800px);
-  height: min(
-    calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px),
-    calc(100vw * 1.6)
-  );
-  max-height: 100%;
   aspect-ratio: 4 / 3;
+  margin: 0 auto;
   background: #000;
   overflow: hidden;
-  margin: 0 auto;
+
+  /* Safari-friendly viewport stack */
+  height: min(
+    calc(100svh - var(--safe-top) - var(--safe-bottom) - 24px),
+    calc(100dvh - var(--safe-top) - var(--safe-bottom) - 24px),
+    calc(100vh - var(--safe-top) - var(--safe-bottom) - 24px)
+  );
+
+  max-height: 100%;
 }
 
 canvas {
@@ -47,6 +68,7 @@ canvas {
   width: 100%;
   height: 100%;
   image-rendering: pixelated;
+  image-rendering: crisp-edges;
   object-fit: contain;
 }
 
@@ -54,9 +76,9 @@ canvas {
 
 #dialogue-container {
   position: absolute;
-  bottom: calc(220px + env(safe-area-inset-bottom));
   left: 5%;
   right: 5%;
+  bottom: calc(var(--dialogue-bottom) + var(--safe-bottom));
   height: 130px;
   display: none;
   flex-direction: row;
@@ -74,6 +96,7 @@ canvas {
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-shrink: 0;
 }
 
 #portrait-canvas {
@@ -182,7 +205,7 @@ canvas {
   border-bottom: none;
 }
 
-/* ---------------- SCREENS ---------------- */
+/* ---------------- TITLE / INTRO ---------------- */
 
 #title-screen {
   position: absolute;
@@ -201,6 +224,7 @@ canvas {
   color: #fff;
   text-shadow: 4px 4px #c00;
   text-align: center;
+  line-height: 1.5;
 }
 
 .blinking-text {
@@ -208,6 +232,7 @@ canvas {
   color: #ccc;
   animation: blink 1s infinite;
   margin-top: 40px;
+  text-align: center;
 }
 
 #intro-screen {
@@ -240,6 +265,12 @@ canvas {
   font-size: 10px;
   padding: 15px;
   cursor: pointer;
+  text-align: left;
+  box-shadow: inset 0 0 0 2px #aaa;
+}
+
+.retro-btn-center {
+  text-align: center;
 }
 
 .retro-input {
@@ -252,52 +283,44 @@ canvas {
   padding: 10px;
   text-transform: uppercase;
   text-align: center;
+  border-radius: 0;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-/* ---------------- CONTROLS (FIXED) ---------------- */
+/* ---------------- CONTROLS ---------------- */
 
 #controls {
   position: absolute;
-  bottom: calc(60px + env(safe-area-inset-bottom));
   left: 0;
+  right: 0;
+  bottom: calc(var(--controls-lift) + var(--safe-bottom));
   width: 100%;
-  height: 200px;
+  height: var(--controls-height);
   pointer-events: none;
   z-index: 100;
 }
 
 .dpad {
   position: absolute;
-  bottom: 80px;
   left: 20px;
+  bottom: 0;
   width: 140px;
   height: 140px;
 }
 
 .action {
   position: absolute;
-  bottom: 80px;
   right: 20px;
-  width: 140px;
-  height: 140px;
+  bottom: 0;
+  width: 170px;
+  height: 170px;
 }
-
-#btn-start {
-  left: 50%;
-  bottom: 90px;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 30px;
-  border-radius: 5px;
-  font-size: 10px;
-}
-
-/* buttons */
 
 .touch-btn {
   position: absolute;
-  background: rgba(255,255,255,0.1);
-  border: 2px solid rgba(255,255,255,0.3);
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   pointer-events: auto;
   border-radius: 10px;
   display: flex;
@@ -305,61 +328,127 @@ canvas {
   align-items: center;
   font-size: 14px;
   backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   color: #fff;
 }
 
 .touch-btn:active {
-  background: rgba(255,255,255,0.4);
+  background: rgba(255, 255, 255, 0.4);
   border-color: #fff;
 }
 
-#btn-up { left:47px; top:0; width:45px; height:45px; }
-#btn-down { left:47px; bottom:0; width:45px; height:45px; }
-#btn-left { left:0; top:47px; width:45px; height:45px; }
-#btn-right { right:0; top:47px; width:45px; height:45px; }
+#btn-up {
+  left: 47px;
+  top: 0;
+  width: 45px;
+  height: 45px;
+}
+
+#btn-down {
+  left: 47px;
+  bottom: 0;
+  width: 45px;
+  height: 45px;
+}
+
+#btn-left {
+  left: 0;
+  top: 47px;
+  width: 45px;
+  height: 45px;
+}
+
+#btn-right {
+  right: 0;
+  top: 47px;
+  width: 45px;
+  height: 45px;
+}
 
 #btn-a {
-  right:0;
-  top:30px;
-  width:60px;
-  height:60px;
-  border-radius:50%;
-  background:rgba(200,0,0,0.3);
-  border-color:#d00;
+  right: 0;
+  top: 10px;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(200, 0, 0, 0.3);
+  border-color: #d00;
 }
 
 #btn-b {
-  left:0;
-  bottom:10px;
-  width:60px;
-  height:60px;
-  border-radius:50%;
-  background:rgba(0,0,200,0.3);
-  border-color:#00d;
+  left: 0;
+  bottom: 10px;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(0, 0, 200, 0.3);
+  border-color: #00d;
+}
+
+#btn-start {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  width: 160px;
+  height: 40px;
+  border-radius: 6px;
+  font-size: 10px;
 }
 
 /* ---------------- DESKTOP ---------------- */
 
 @media (min-width: 800px) {
-  #controls { display: none; }
-  #game-wrapper { height: auto; aspect-ratio: 4 / 3; }
-  #dialogue-container { bottom: 5%; }
+  #controls {
+    display: none;
+  }
+
+  #game-wrapper {
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+
+  #dialogue-container {
+    bottom: 5%;
+  }
 }
 
-/* ---------------- MOBILE TUNING ---------------- */
+/* ---------------- TABLET / SMALL LAPTOP ---------------- */
+
+@media (max-width: 799px) {
+  :root {
+    --controls-lift: 96px;
+    --controls-height: 220px;
+    --dialogue-bottom: 255px;
+  }
+}
+
+/* ---------------- PHONE ---------------- */
 
 @media (max-width: 480px) {
-  .title-text { font-size: 18px; }
-  .blinking-text { font-size: 8px; }
+  :root {
+    --controls-lift: 112px;
+    --controls-height: 210px;
+    --dialogue-bottom: 250px;
+  }
+
+  .title-text {
+    font-size: 18px;
+  }
+
+  .blinking-text {
+    font-size: 8px;
+  }
 
   #dialogue-container {
     left: 3%;
     right: 3%;
-    bottom: calc(185px + env(safe-area-inset-bottom));
-    height: 120px;
+    height: 118px;
   }
 
-  #portrait-box { width: 88px; }
+  #portrait-box {
+    width: 88px;
+  }
 
   #dialogue-name,
   #dialogue-text,
@@ -369,18 +458,71 @@ canvas {
     font-size: 8px;
   }
 
-  .retro-input { font-size: 10px; }
+  .retro-input {
+    font-size: 10px;
+  }
 
-  .dpad,
+  .dpad {
+    left: 12px;
+    transform: scale(0.88);
+    transform-origin: bottom left;
+  }
+
+  .action {
+    right: 12px;
+    transform: scale(0.88);
+    transform-origin: bottom right;
+  }
+
+  #btn-start {
+    width: 140px;
+    height: 36px;
+    font-size: 9px;
+  }
+}
+
+/* ---------------- SHORT PHONES / SAFARI HELL ---------------- */
+
+@media (max-width: 480px) and (max-height: 740px) {
+  :root {
+    --controls-lift: 126px;
+    --controls-height: 195px;
+    --dialogue-bottom: 230px;
+  }
+
+  .dpad {
+    transform: scale(0.82);
+  }
+
   .action {
     transform: scale(0.82);
-    transform-origin: bottom;
+  }
+
+  #btn-start {
+    width: 130px;
+    height: 34px;
+    font-size: 8px;
+  }
+
+  .title-text {
+    font-size: 16px;
+  }
+
+  .blinking-text {
+    font-size: 8px;
+    margin-top: 28px;
   }
 }
 
 /* ---------------- ANIMATIONS ---------------- */
 
 @keyframes blink {
-  0%,49% { opacity:1; }
-  50%,100% { opacity:0.2; }
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.2;
+  }
 }
