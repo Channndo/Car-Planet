@@ -1,0 +1,413 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #111;
+  color: #fff;
+  font-family: 'Press Start 2P', cursive;
+  touch-action: none;
+  user-select: none;
+  overflow: hidden;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#game-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  height: 100dvh;
+  background: #000;
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  object-fit: contain;
+}
+
+#dialogue-container {
+  position: absolute;
+  bottom: 220px;
+  left: 5%;
+  right: 5%;
+  height: 130px;
+  display: none;
+  flex-direction: row;
+  gap: 10px;
+  z-index: 20;
+}
+
+#portrait-box {
+  width: 120px;
+  height: 100%;
+  background: #222;
+  border: 4px solid #333;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 2px #aaa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#portrait-canvas {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  border-radius: 4px;
+}
+
+#dialogue-box {
+  flex: 1;
+  background: #fff;
+  border: 4px solid #333;
+  border-radius: 8px;
+  padding: 12px;
+  position: relative;
+  box-shadow: inset 0 0 0 2px #aaa;
+  cursor: pointer;
+}
+
+#dialogue-name {
+  font-size: 10px;
+  color: #555;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+#dialogue-text {
+  font-size: 10px;
+  color: #000;
+  line-height: 1.6;
+  padding-right: 15px;
+  word-wrap: break-word;
+}
+
+.blinking-arrow {
+  position: absolute;
+  bottom: 10px;
+  right: 15px;
+  color: #d00;
+  font-size: 12px;
+  animation: blink 1s infinite;
+}
+
+#choice-buttons {
+  display: none;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  gap: 10px;
+}
+
+.choice-btn {
+  background: #333;
+  color: #fff;
+  border: 2px solid #aaa;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 8px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.choice-btn:active {
+  background: #555;
+}
+
+#start-menu {
+  position: absolute;
+  top: 10%;
+  right: 5%;
+  width: 150px;
+  background: #fff;
+  border: 4px solid #333;
+  border-radius: 8px;
+  padding: 10px;
+  display: none;
+  z-index: 30;
+  box-shadow: inset 0 0 0 2px #aaa;
+}
+
+#menu-header {
+  color: #000;
+  font-size: 10px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #333;
+  margin-bottom: 5px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.menu-item {
+  color: #000;
+  font-size: 10px;
+  padding: 10px 5px;
+  cursor: pointer;
+  border-bottom: 1px solid #ccc;
+}
+
+.menu-item:hover {
+  background: #eee;
+}
+
+.menu-item:last-child {
+  border-bottom: none;
+}
+
+#title-screen {
+  position: absolute;
+  inset: 0;
+  background: #111;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.title-text {
+  font-size: 24px;
+  color: #fff;
+  text-shadow: 4px 4px #c00;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.blinking-text {
+  font-size: 10px;
+  color: #ccc;
+  animation: blink 1s infinite;
+  margin-top: 40px;
+}
+
+#intro-screen {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 15;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#choice-box,
+#name-box,
+#rival-name-box {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  width: 60%;
+  max-width: 300px;
+  margin-bottom: 220px;
+}
+
+.retro-btn {
+  background: #fff;
+  border: 4px solid #333;
+  color: #000;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  padding: 15px;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: inset 0 0 0 2px #aaa;
+}
+
+.retro-btn-center {
+  text-align: center;
+}
+
+.retro-input {
+  width: 100%;
+  background: #fff;
+  border: 4px solid #333;
+  color: #000;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  padding: 10px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+#controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 200px;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.dpad {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 140px;
+  height: 140px;
+}
+
+.action {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 140px;
+  height: 140px;
+}
+
+.touch-btn {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  pointer-events: auto;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  backdrop-filter: blur(2px);
+  color: #fff;
+}
+
+.touch-btn:active {
+  background: rgba(255, 255, 255, 0.4);
+  border-color: #fff;
+}
+
+#btn-up {
+  left: 47px;
+  top: 0;
+  width: 45px;
+  height: 45px;
+}
+
+#btn-down {
+  left: 47px;
+  bottom: 0;
+  width: 45px;
+  height: 45px;
+}
+
+#btn-left {
+  left: 0;
+  top: 47px;
+  width: 45px;
+  height: 45px;
+}
+
+#btn-right {
+  right: 0;
+  top: 47px;
+  width: 45px;
+  height: 45px;
+}
+
+#btn-a {
+  right: 0;
+  top: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(200, 0, 0, 0.3);
+  border-color: #d00;
+}
+
+#btn-b {
+  left: 0;
+  bottom: 10px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(0, 0, 200, 0.3);
+  border-color: #00d;
+}
+
+#btn-start {
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 30px;
+  border-radius: 5px;
+  font-size: 10px;
+}
+
+@keyframes blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.2;
+  }
+}
+
+@media (min-width: 800px) {
+  #controls {
+    display: none;
+  }
+
+  #game-wrapper {
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+
+  #dialogue-container {
+    bottom: 5%;
+  }
+}
+
+@media (max-width: 480px) {
+  .title-text {
+    font-size: 18px;
+  }
+
+  .blinking-text {
+    font-size: 8px;
+  }
+
+  #dialogue-container {
+    left: 3%;
+    right: 3%;
+    bottom: 190px;
+    height: 120px;
+  }
+
+  #portrait-box {
+    width: 88px;
+  }
+
+  #dialogue-name,
+  #dialogue-text,
+  .menu-item,
+  #menu-header,
+  .retro-btn {
+    font-size: 8px;
+  }
+
+  .retro-input {
+    font-size: 10px;
+  }
+
+  .dpad,
+  .action {
+    transform: scale(0.9);
+    transform-origin: bottom;
+  }
+}
