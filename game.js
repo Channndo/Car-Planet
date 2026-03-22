@@ -1,0 +1,2032 @@
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const pCanvas = document.getElementById('portrait-canvas');
+const pCtx = pCanvas.getContext('2d');
+
+const TILE_SIZE = 16;
+const MAP_COLS = 20;
+const MAP_ROWS = 15;
+
+const keys = {
+  w: false,
+  a: false,
+  s: false,
+  d: false,
+  space: false,
+  enter: false,
+  b: false
+};
+
+let actionTriggered = false;
+let gameState = 'TITLE';
+
+let playerDetails = {
+  name: 'CHANDLER',
+  gender: 'Boy',
+  inUniform: false,
+  rivalName: 'KASEY',
+  hasRunningShoes: false
+};
+
+let currentMapKey = 'drive';
+
+let gameEvents = {
+  firstCustomerTriggered: false,
+  currentDay: 1,
+  dailyWalkIn: false,
+  dailyAptsCompleted: 0,
+  dailyWalkInDone: false,
+  timeMinutes: 420,
+  tick: 0
+};
+
+let questState = {
+  active: false,
+  step: 0,
+  talkedToMike: false,
+  assignedTo: null,
+  roNumber: 600000
+};
+
+let transition = {
+  active: false,
+  alpha: 0,
+  state: 'none',
+  dest: null
+};
+
+let flash = {
+  active: false,
+  alpha: 0,
+  state: 'none'
+};
+
+let currentChoiceType = '';
+let activeDialogue = null;
+let activeLine = 0;
+
+const dContainer = document.getElementById('dialogue-container');
+const dName = document.getElementById('dialogue-name');
+const dText = document.getElementById('dialogue-text');
+const cBox = document.getElementById('choice-buttons');
+const arrow = document.getElementById('diag-arrow');
+
+if (localStorage.getItem('serviceBaySave')) {
+  try {
+    const s = JSON.parse(localStorage.getItem('serviceBaySave'));
+    if (s.playerDetails) playerDetails = s.playerDetails;
+    if (s.currentMapKey) currentMapKey = s.currentMapKey;
+
+    if (s.gameEvents) {
+      gameEvents = s.gameEvents;
+      if (gameEvents.dailyAptsCompleted === undefined) {
+        gameEvents.dailyAptsCompleted = gameEvents.dailyAptDone ? 3 : 0;
+      }
+      if (gameEvents.timeMinutes === undefined) gameEvents.timeMinutes = 420;
+      if (gameEvents.tick === undefined) gameEvents.tick = 0;
+    }
+
+    if (s.questState) questState = s.questState;
+    if (playerDetails.hasRunningShoes === undefined) playerDetails.hasRunningShoes = false;
+    if (!gameEvents.currentDay) gameEvents.currentDay = 1;
+
+    gameState = 'PLAYING';
+    document.getElementById('intro-screen').style.display = 'none';
+    document.getElementById('title-screen').style.display = 'none';
+  } catch (e) {
+    localStorage.removeItem('serviceBaySave');
+  }
+}
+
+const introScript = [
+  { char: 'RICK', text: 'Hello there! Welcome to\nthe world of AUTOMOTIVE REPAIR!' },
+  { char: 'RICK', text: "My name is RICK SELLERS.\nI'm the FIXED OPS MANAGER." },
+  { char: 'RICK', text: 'This world is inhabited by\ncreatures called... TECHNICIANS.' },
+  { char: 'RICK', text: 'Some advisors treat them\nas partners.\nOthers just yell at them.' },
+  { char: 'RICK', text: 'First, tell me a little\nabout yourself.' },
+  { type: 'ACTION', action: '[SHOW_GENDER]' },
+  { char: 'RICK', text: 'And what is your name?' },
+  { type: 'ACTION', action: '[SHOW_NAME]' },
+  { char: 'RICK', text: 'Right! So your name is\n[PLAYER_NAME]!' },
+  { char: 'RICK', text: "The Service Manager's nephew\nis working here as a Lube Tech.\nHe is your rival." },
+  { char: 'RICK', text: '...Erm, what is his name again?' },
+  { type: 'ACTION', action: '[SHOW_RIVAL_NAME]' },
+  { char: 'RICK', text: "Ah, that's right!\nHis name is [RIVAL_NAME]!" },
+  { char: 'RICK', text: '[PLAYER_NAME]! Your dealership\nlegend is about to unfold!' },
+  { char: 'RICK', text: 'A world of flat-rate nightmares\nawaits! Let\'s go!' },
+  { type: 'ACTION', action: '[START_GAME]' }
+];
+
+let introIndex = 0;
+
+function startGameFromTitle() {
+  if (gameState === 'TITLE') {
+    gameState = 'INTRO';
+    document.getElementById('title-screen').style.display = 'none';
+    document.getElementById('intro-screen').style.display = 'flex';
+    dContainer.style.display = 'flex';
+    playIntroLine();
+  }
+}
+
+function generateEmptyMap() {
+  const m = [];
+  for (let y = 0; y < MAP_ROWS; y++) {
+    const r = [];
+    for (let x = 0; x < MAP_COLS; x++) {
+      r.push((y === 0 || y === MAP_ROWS - 1 || x === 0 || x === MAP_COLS - 1) ? 1 : 0);
+    }
+    m.push(r);
+  }
+  return m;
+}
+
+const maps = {
+  drive: {
+    bg: '#aaaaaa',
+    layout: generateEmptyMap(),
+    warps: [
+      { tx: 8, ty: 0, to: 'shop', px: 8, py: 13 },
+      { tx: 9, ty: 0, to: 'shop', px: 9, py: 13 },
+      { tx: 10, ty: 0, to: 'shop', px: 10, py: 13 },
+      { tx: 11, ty: 0, to: 'shop', px: 11, py: 13 },
+      { tx: 18, ty: 0, to: 'office', px: 9, py: 13 },
+      { tx: 2, ty: 14, to: 'showroom', px: 2, py: 1 },
+      { tx: 18, ty: 14, to: 'showroom', px: 15, py: 1 },
+      { tx: 0, ty: 2, to: 'parkinglot', px: 3, py: 4 },
+      { tx: 0, ty: 3, to: 'parkinglot', px: 3, py: 4 },
+      { tx: 0, ty: 4, to: 'parkinglot', px: 3, py: 5 },
+      { tx: 0, ty: 6, to: 'parkinglot', px: 3, py: 7 },
+      { tx: 0, ty: 7, to: 'parkinglot', px: 3, py: 7 },
+      { tx: 0, ty: 8, to: 'parkinglot', px: 3, py: 8 },
+      { tx: 0, ty: 10, to: 'parkinglot', px: 3, py: 10 },
+      { tx: 19, ty: 2, to: 'parkinglot', px: 16, py: 4 },
+      { tx: 19, ty: 3, to: 'parkinglot', px: 16, py: 4 },
+      { tx: 19, ty: 4, to: 'parkinglot', px: 16, py: 5 },
+      { tx: 19, ty: 6, to: 'parkinglot', px: 16, py: 7 },
+      { tx: 19, ty: 7, to: 'parkinglot', px: 16, py: 7 },
+      { tx: 19, ty: 8, to: 'parkinglot', px: 16, py: 8 }
+    ],
+    npcs: [
+      {
+        id: 'mike',
+        tx: 6,
+        ty: 4,
+        color: '#e8b898',
+        shirt: '#2c5a8c',
+        sleeves: 'long',
+        hair: '#111',
+        name: 'MIKE',
+        charCode: 'MIKE',
+        dialogue: ['Are you finally in uniform?\nGet back to the locker room!']
+      },
+      {
+        id: 'whitney',
+        tx: 7,
+        ty: 11,
+        color: '#e8c8a8',
+        shirt: '#111',
+        sleeves: 'long',
+        hair: '#111',
+        name: 'WHITNEY',
+        charCode: 'WHITNEY',
+        dialogue: ["CSI is down this month.\nDon't mess up my numbers."]
+      },
+      {
+        id: 'ryan',
+        tx: 11,
+        ty: 11,
+        color: '#ffccaa',
+        shirt: '#111',
+        sleeves: 'long',
+        hair: null,
+        name: 'RYAN',
+        charCode: 'RYAN',
+        dialogue: ["I've been on hold with\nextended warranty for an hour."]
+      },
+      {
+        id: 'zack',
+        tx: 15,
+        ty: 11,
+        color: '#ffdbac',
+        shirt: '#111',
+        sleeves: 'long',
+        hair: '#4a3121',
+        name: 'ZACK',
+        charCode: 'ZACK',
+        dialogue: ['Did the parts for that\nAltima come in yet?']
+      },
+      {
+        id: 'desk',
+        tx: 3,
+        ty: 11,
+        isObject: true,
+        name: 'YOUR DESK',
+        charCode: 'OBJ',
+        dialogue: ['Your assigned Advisor Desk.']
+      },
+      {
+        id: 'customer_car',
+        tx: 4,
+        ty: 3,
+        isObject: true,
+        charCode: 'CAR',
+        hidden: true,
+        name: 'BROKEN CAR',
+        dialogue: ['It smells like burnt clutch\nand bad decisions.']
+      },
+      {
+        id: 'angry_customer',
+        tx: 8,
+        ty: 3,
+        color: '#ffccaa',
+        shirt: '#cc2222',
+        sleeves: 'short',
+        hair: '#222',
+        name: 'JOHN HUGHES',
+        charCode: 'CUSTOMER',
+        hidden: true,
+        dialogue: []
+      }
+    ]
+  },
+
+  shop: {
+    bg: '#777777',
+    layout: generateEmptyMap(),
+    warps: [
+      { tx: 8, ty: 14, to: 'drive', px: 8, py: 1 },
+      { tx: 9, ty: 14, to: 'drive', px: 9, py: 1 },
+      { tx: 10, ty: 14, to: 'drive', px: 10, py: 1 },
+      { tx: 11, ty: 14, to: 'drive', px: 11, py: 1 },
+      { tx: 19, ty: 2, to: 'bodyshop', px: 1, py: 7 },
+      { tx: 19, ty: 7, to: 'breakroom', px: 1, py: 7 },
+      { tx: 19, ty: 12, to: 'parts', px: 1, py: 7 },
+      { tx: 17, ty: 14, to: 'office', px: 9, py: 1 },
+      { tx: 18, ty: 14, to: 'office', px: 10, py: 1 },
+      { tx: 9, ty: 0, to: 'parkinglot', px: 9, py: 2 },
+      { tx: 10, ty: 0, to: 'parkinglot', px: 10, py: 2 }
+    ],
+    npcs: [
+      {
+        id: 'rival',
+        tx: 4,
+        ty: 10,
+        color: '#ffccaa',
+        shirt: '#111',
+        sleeves: 'short',
+        hair: '#d4a017',
+        name: 'KASEY',
+        charCode: 'RIVAL',
+        dialogue: ["I'm taking a break.\nI only wrench for Mike\nor Ryan anyway."]
+      },
+      {
+        id: 'joe',
+        tx: 4,
+        ty: 6,
+        color: '#ffdbac',
+        shirt: '#111',
+        sleeves: 'short',
+        hair: '#222',
+        name: 'JOE',
+        charCode: 'JOE',
+        isShort: true,
+        dialogue: ["I'm a Senior Master Tech.\nI don't have time for basic ROs."]
+      },
+      {
+        id: 'vinnie',
+        tx: 15,
+        ty: 10,
+        color: '#e8b898',
+        shirt: '#111',
+        sleeves: 'short',
+        hair: '#a06540',
+        name: 'VINNIE',
+        charCode: 'VINNIE',
+        dialogue: ["I can knock this out quick,\nbut I don't touch engine work."]
+      },
+      {
+        id: 'bronson',
+        tx: 15,
+        ty: 6,
+        color: '#dcb',
+        shirt: '#111',
+        sleeves: 'short',
+        hair: '#cc5500',
+        name: 'BRONSON',
+        charCode: 'BRONSON',
+        dialogue: ['I can fix anything.\nIgnore those comeback numbers.']
+      },
+      {
+        id: 'shop_car',
+        tx: 13,
+        ty: 4,
+        isObject: true,
+        charCode: 'CAR',
+        hidden: true,
+        name: "JOHN'S 2020 EXPLORER",
+        dialogue: ["John Hughes' wife's 2020 Explorer.\nNeeds a new engine.\nIt's gonna be here a while."]
+      }
+    ]
+  },
+
+  breakroom: {
+    bg: '#cccccc',
+    layout: generateEmptyMap(),
+    warps: [{ tx: 0, ty: 7, to: 'shop', px: 18, py: 7 }],
+    npcs: [
+      {
+        id: 'locker',
+        tx: 10,
+        ty: 2,
+        isObject: true,
+        name: 'LOCKER',
+        charCode: 'OBJ',
+        dialogue: ["It's your locker.\nChange into uniform?"]
+      }
+    ]
+  },
+
+  parts: {
+    bg: '#9999aa',
+    layout: generateEmptyMap(),
+    warps: [
+      { tx: 0, ty: 7, to: 'shop', px: 18, py: 12 },
+      { tx: 9, ty: 14, to: 'office', px: 9, py: 1 },
+      { tx: 10, ty: 14, to: 'office', px: 10, py: 1 }
+    ],
+    npcs: [
+      {
+        id: 'parts_guy',
+        tx: 8,
+        ty: 6,
+        color: '#ffdbac',
+        shirt: '#111',
+        sleeves: 'short',
+        hair: '#4a3121',
+        name: 'JACOB MORRIS',
+        charCode: 'PARTS',
+        dialogue: ['Need an air filter?\nWe are on backorder.']
+      },
+      {
+        id: 'counter',
+        tx: 7,
+        ty: 6,
+        isObject: true,
+        name: 'PARTS COUNTER',
+        charCode: 'OBJ',
+        dialogue: ['The counter is sticky.']
+      }
+    ]
+  },
+
+  office: {
+    bg: '#8b7355',
+    layout: generateEmptyMap(),
+    warps: [
+      { tx: 9, ty: 14, to: 'drive', px: 18, py: 1 },
+      { tx: 10, ty: 14, to: 'drive', px: 18, py: 1 },
+      { tx: 9, ty: 0, to: 'shop', px: 17, py: 13 },
+      { tx: 10, ty: 0, to: 'shop', px: 18, py: 13 }
+    ],
+    npcs: [
+      {
+        id: 'rick_desk',
+        tx: 10,
+        ty: 5,
+        isObject: true,
+        name: 'BOSS DESK',
+        charCode: 'OBJ',
+        dialogue: ["Mike's desk.\nIt's covered in spreadsheets."]
+      },
+      {
+        id: 'mike',
+        tx: 10,
+        ty: 6,
+        color: '#e8b898',
+        shirt: '#2c5a8c',
+        sleeves: 'long',
+        hair: '#111',
+        name: 'MIKE',
+        charCode: 'MIKE',
+        hidden: true,
+        dialogue: ['What are you doing in here?\nGet back out on the drive!']
+      }
+    ]
+  },
+
+  showroom: {
+    bg: '#eeeeee',
+    layout: generateEmptyMap(),
+    warps: [
+      { tx: 2, ty: 0, to: 'drive', px: 2, py: 13 },
+      { tx: 15, ty: 0, to: 'drive', px: 18, py: 13 },
+      { tx: 9, ty: 14, to: 'parkinglot', px: 9, py: 12 },
+      { tx: 10, ty: 14, to: 'parkinglot', px: 10, py: 12 },
+      { tx: 0, ty: 12, to: 'parkinglot', px: 3, py: 9 },
+      { tx: 0, ty: 13, to: 'parkinglot', px: 3, py: 9 },
+      { tx: 19, ty: 12, to: 'parkinglot', px: 16, py: 9 },
+      { tx: 19, ty: 13, to: 'parkinglot', px: 16, py: 9 }
+    ],
+    npcs: [
+      {
+        id: 'dave',
+        tx: 2,
+        ty: 13,
+        color: '#ffdbac',
+        shirt: '#222',
+        sleeves: 'long',
+        hair: '#cc3300',
+        name: 'DAVE',
+        charCode: 'DAVE',
+        dir: 'up',
+        dialogue: ['Hey buddy! I need this RO closed\nfive minutes ago!', "I could sell ice to an eskimo.\nChop chop!"],
+        acc: { glasses: true }
+      },
+      {
+        id: 'brad',
+        tx: 6,
+        ty: 13,
+        color: '#ffccaa',
+        shirt: '#ccc',
+        sleeves: 'long',
+        hair: '#cc3300',
+        name: 'BRAD',
+        charCode: 'BRAD',
+        dir: 'up',
+        dialogue: ["Take your time, man. No rush.\nDave's at it again, huh?", 'Just breathe.'],
+        acc: { pants: '#c2b280' }
+      },
+      {
+        id: 'john',
+        tx: 13,
+        ty: 13,
+        color: '#ffdbac',
+        shirt: '#fff',
+        sleeves: 'long',
+        hair: '#6b4c3a',
+        name: 'JOHN',
+        charCode: 'JOHN',
+        dir: 'up',
+        dialogue: ['Just trying to secure this deal\nso I can go roll.', "You train jiu jitsu?\nIt's all about leverage."],
+        acc: { glasses: true, beard: '#6b4c3a', vest: '#222' }
+      },
+      {
+        id: 'troy',
+        tx: 17,
+        ty: 13,
+        color: '#e8b898',
+        shirt: '#111',
+        sleeves: 'short',
+        hair: null,
+        name: 'TROY',
+        charCode: 'TROY',
+        dir: 'up',
+        dialogue: ['Listen here, peon.\nGet my client\'s car done.', 'I only accept excellence.'],
+        acc: { glasses: true, beard: '#222' }
+      },
+      {
+        id: 'nick',
+        tx: 17,
+        ty: 5,
+        color: '#ffdbac',
+        shirt: '#888',
+        sleeves: 'long',
+        hair: null,
+        name: 'NICK',
+        charCode: 'NICK',
+        dir: 'down',
+        dialogue: ['We need more units out the door.\nService better not blow my deals.'],
+        acc: { pants: '#111' }
+      },
+      {
+        id: 'navigator',
+        tx: 10,
+        ty: 10,
+        isObject: true,
+        charCode: 'SUV_BLACK',
+        hidden: false,
+        name: 'LINCOLN NAVIGATOR',
+        dialogue: ['2026 Lincoln Navigator.\nBlack on black.', 'The pinnacle of luxury.']
+      }
+    ]
+  },
+
+  bodyshop: {
+    bg: '#555555',
+    layout: generateEmptyMap(),
+    warps: [{ tx: 0, ty: 7, to: 'shop', px: 18, py: 2 }],
+    npcs: [
+      {
+        id: 'bodytech',
+        tx: 10,
+        ty: 7,
+        color: '#dcb',
+        shirt: '#555',
+        sleeves: 'long',
+        hair: '#111',
+        name: 'BODY TECH',
+        charCode: 'OBJ',
+        dialogue: ['(Sanding sounds drown\nout your voice)']
+      }
+    ]
+  },
+
+  parkinglot: {
+    bg: '#333333',
+    layout: generateEmptyMap(),
+    warps: [
+      { tx: 9, ty: 3, to: 'shop', px: 9, py: 1 },
+      { tx: 10, ty: 3, to: 'shop', px: 10, py: 1 },
+      { tx: 4, ty: 4, to: 'drive', px: 1, py: 3 },
+      { tx: 4, ty: 5, to: 'drive', px: 1, py: 4 },
+      { tx: 4, ty: 7, to: 'drive', px: 1, py: 7 },
+      { tx: 4, ty: 8, to: 'drive', px: 1, py: 8 },
+      { tx: 4, ty: 10, to: 'drive', px: 1, py: 10 },
+      { tx: 15, ty: 4, to: 'drive', px: 18, py: 3 },
+      { tx: 15, ty: 5, to: 'drive', px: 18, py: 4 },
+      { tx: 15, ty: 7, to: 'drive', px: 18, py: 7 },
+      { tx: 15, ty: 8, to: 'drive', px: 18, py: 8 },
+      { tx: 9, ty: 11, to: 'showroom', px: 9, py: 13 },
+      { tx: 10, ty: 11, to: 'showroom', px: 10, py: 13 },
+      { tx: 4, ty: 9, to: 'showroom', px: 1, py: 12 },
+      { tx: 15, ty: 9, to: 'showroom', px: 18, py: 12 }
+    ],
+    npcs: []
+  }
+};
+
+let dl = maps.drive.layout;
+let sl = maps.shop.layout;
+let shl = maps.showroom.layout;
+let pl = maps.parkinglot.layout;
+
+dl[2][0] = 8;
+dl[3][0] = 8;
+dl[4][0] = 8;
+dl[6][0] = 8;
+dl[7][0] = 8;
+dl[8][0] = 8;
+dl[2][19] = 8;
+dl[3][19] = 8;
+dl[4][19] = 8;
+dl[6][19] = 8;
+dl[7][19] = 8;
+dl[8][19] = 8;
+dl[10][0] = 9;
+dl[11][3] = 13;
+dl[11][7] = 13;
+dl[11][11] = 13;
+dl[11][15] = 13;
+dl[0][8] = 9;
+dl[0][9] = 9;
+dl[0][10] = 9;
+dl[0][11] = 9;
+dl[0][18] = 9;
+dl[14][2] = 9;
+dl[14][18] = 9;
+
+sl[14][8] = 9;
+sl[14][9] = 9;
+sl[14][10] = 9;
+sl[14][11] = 9;
+sl[14][17] = 9;
+sl[14][18] = 9;
+sl[2][19] = 9;
+sl[7][19] = 9;
+sl[12][19] = 9;
+sl[4][4] = 3;
+sl[10][4] = 3;
+sl[4][14] = 3;
+sl[10][14] = 3;
+sl[0][9] = 8;
+sl[0][10] = 8;
+sl[9][3] = 10;
+sl[10][3] = 10;
+sl[5][3] = 11;
+sl[6][3] = 11;
+sl[7][3] = 12;
+sl[9][16] = 4;
+sl[10][16] = 4;
+sl[5][16] = 5;
+sl[6][16] = 5;
+
+maps.breakroom.layout[7][0] = 9;
+maps.breakroom.layout[2][9] = 7;
+maps.breakroom.layout[2][10] = 7;
+maps.breakroom.layout[2][11] = 7;
+
+maps.parts.layout[7][0] = 9;
+maps.parts.layout[5][7] = 2;
+maps.parts.layout[6][7] = 13;
+maps.parts.layout[7][7] = 2;
+maps.parts.layout[8][12] = 6;
+maps.parts.layout[14][9] = 9;
+maps.parts.layout[14][10] = 9;
+
+maps.office.layout[14][9] = 9;
+maps.office.layout[14][10] = 9;
+maps.office.layout[5][10] = 13;
+maps.office.layout[5][9] = 2;
+maps.office.layout[0][9] = 9;
+maps.office.layout[0][10] = 9;
+
+shl[0][2] = 9;
+shl[0][15] = 9;
+shl[14][9] = 9;
+shl[14][10] = 9;
+shl[12][0] = 8;
+shl[13][0] = 8;
+shl[12][19] = 8;
+shl[13][19] = 8;
+shl[12][2] = 13;
+shl[12][6] = 13;
+shl[12][13] = 13;
+shl[12][17] = 13;
+
+for (let y = 2; y <= 9; y++) shl[y][15] = 16;
+for (let x = 15; x <= 18; x++) shl[9][x] = 16;
+shl[9][16] = 0;
+shl[6][17] = 13;
+shl[4][4] = 18;
+shl[4][5] = 19;
+shl[7][4] = 14;
+shl[7][5] = 14;
+shl[6][3] = 17;
+shl[4][10] = 18;
+shl[4][11] = 19;
+shl[7][10] = 14;
+shl[7][11] = 14;
+
+maps.bodyshop.layout[7][0] = 9;
+
+for (let y = 3; y <= 11; y++) {
+  for (let x = 4; x <= 15; x++) {
+    pl[y][x] = 2;
+  }
+}
+
+pl[3][9] = 8;
+pl[3][10] = 8;
+pl[4][4] = 8;
+pl[5][4] = 9;
+pl[7][4] = 8;
+pl[8][4] = 9;
+pl[9][4] = 9;
+pl[10][4] = 8;
+pl[4][15] = 8;
+pl[5][15] = 9;
+pl[7][15] = 8;
+pl[8][15] = 9;
+pl[10][15] = 8;
+pl[11][9] = 9;
+pl[11][10] = 9;
+
+if (playerDetails.inUniform) {
+  const dm = maps.drive.npcs.find(n => n.id === 'mike');
+  if (dm) dm.hidden = true;
+  const om = maps.office.npcs.find(n => n.id === 'mike');
+  if (om) om.hidden = false;
+}
+
+if (questState.step >= 5) {
+  const dc = maps.drive.npcs.find(n => n.id === 'customer_car');
+  if (dc) dc.hidden = true;
+  const ac = maps.drive.npcs.find(n => n.id === 'angry_customer');
+  if (ac) ac.hidden = true;
+  const sc = maps.shop.npcs.find(n => n.id === 'shop_car');
+  if (sc) sc.hidden = false;
+}
+
+if (questState.step >= 8) {
+  const cust = maps.drive.npcs.find(n => n.id === 'angry_customer');
+  const car = maps.drive.npcs.find(n => n.id === 'customer_car');
+  const sc = maps.shop.npcs.find(n => n.id === 'shop_car');
+
+  if (sc) sc.hidden = false;
+
+  if (gameEvents.dailyAptsCompleted < 3) {
+    const t = gameEvents.dailyAptsCompleted === 0 ? 'morning' : gameEvents.dailyAptsCompleted === 1 ? 'mid-day' : 'afternoon';
+    if (cust) {
+      cust.hidden = false;
+      cust.name = 'APPOINTMENT';
+      cust.dialogue = [`I'm here for my ${t}\nappointment.`, 'Are you going to check me in?'];
+    }
+    if (car) {
+      car.hidden = false;
+      car.name = 'CLIENT CAR';
+      car.dialogue = ['Ready for routine\nmaintenance.'];
+    }
+  } else if (gameEvents.dailyWalkIn && !gameEvents.dailyWalkInDone) {
+    if (cust) {
+      cust.hidden = false;
+      cust.name = 'WALK-IN';
+      cust.dialogue = ["I don't have an appointment,\ncan you squeeze me in?"];
+    }
+    if (car) {
+      car.hidden = false;
+      car.name = 'WALK-IN CAR';
+      car.dialogue = ['Needs a diagnostic.'];
+    }
+  } else {
+    if (cust) cust.hidden = true;
+    if (car) car.hidden = true;
+  }
+}
+
+let savedPlayer = null;
+try {
+  if (localStorage.getItem('serviceBaySave')) {
+    savedPlayer = JSON.parse(localStorage.getItem('serviceBaySave')).player;
+  }
+} catch (e) {}
+
+const player = savedPlayer || {
+  tx: 9,
+  ty: 8,
+  x: 9 * TILE_SIZE,
+  y: 8 * TILE_SIZE,
+  dir: 'down',
+  isMoving: false,
+  moveTimer: 0,
+  speed: 2
+};
+
+function triggerPAAnnouncement() {
+  activeDialogue = [`[P.A. SYSTEM]\n${playerDetails.name} to the service drive,\nguest is waiting.`];
+  activeLine = 0;
+  dName.innerText = 'SYSTEM';
+  dText.innerText = activeDialogue[0];
+  drawPortrait('NONE');
+  dContainer.style.display = 'flex';
+}
+
+function pR(x, y, w, h, c) {
+  pCtx.fillStyle = c;
+  pCtx.fillRect(x, y, w, h);
+}
+
+function drawPortrait(c) {
+  pCtx.clearRect(0, 0, 64, 64);
+  pR(0, 0, 64, 64, '#6d8fa8');
+
+  if (c === 'RICK') {
+    pR(16, 48, 32, 16, '#222');
+    pCtx.fillStyle = '#fff';
+    pCtx.beginPath();
+    pCtx.moveTo(32, 48);
+    pCtx.lineTo(26, 64);
+    pCtx.lineTo(38, 64);
+    pCtx.fill();
+    pR(31, 52, 2, 12, '#cc0000');
+    pR(22, 18, 20, 26, '#e8b898');
+    pR(26, 28, 2, 2, '#111');
+    pR(36, 28, 2, 2, '#111');
+    pR(18, 16, 6, 14, '#8a5a44');
+    pR(40, 16, 6, 14, '#8a5a44');
+    pR(22, 14, 20, 4, '#8a5a44');
+    pCtx.strokeStyle = '#222';
+    pCtx.lineWidth = 1;
+    pCtx.strokeRect(24, 26, 6, 5);
+    pCtx.strokeRect(34, 26, 6, 5);
+    pCtx.beginPath();
+    pCtx.moveTo(30, 28);
+    pCtx.lineTo(34, 28);
+    pCtx.stroke();
+    pR(29, 38, 6, 1, '#111');
+  } else if (c === 'MIKE') {
+    pR(16, 48, 32, 16, '#2c5a8c');
+    pCtx.fillStyle = '#fff';
+    pCtx.beginPath();
+    pCtx.moveTo(32, 48);
+    pCtx.lineTo(28, 56);
+    pCtx.lineTo(36, 56);
+    pCtx.fill();
+    pR(31, 56, 2, 8, '#999');
+    pR(22, 22, 20, 24, '#e8b898');
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    pR(20, 16, 24, 6, '#111');
+    pR(22, 40, 20, 6, '#111');
+    pR(20, 36, 4, 10, '#111');
+    pR(40, 36, 4, 10, '#111');
+    pCtx.strokeStyle = '#222';
+    pCtx.lineWidth = 1;
+    pCtx.strokeRect(24, 30, 6, 5);
+    pCtx.strokeRect(34, 30, 6, 5);
+    pCtx.beginPath();
+    pCtx.moveTo(30, 32);
+    pCtx.lineTo(34, 32);
+    pCtx.stroke();
+  } else if (c === 'WHITNEY') {
+    pR(18, 48, 28, 16, '#111');
+    pR(22, 22, 20, 24, '#e8c8a8');
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    pR(18, 16, 28, 8, '#111');
+    pR(16, 24, 6, 24, '#111');
+    pR(42, 24, 6, 24, '#111');
+    pR(28, 42, 8, 2, '#fff');
+  } else if (c === 'RYAN') {
+    pR(16, 48, 32, 16, '#111');
+    pR(22, 18, 20, 28, '#ffccaa');
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    pR(20, 40, 24, 10, '#6b4c3a');
+    pR(18, 36, 4, 10, '#6b4c3a');
+    pR(42, 36, 4, 10, '#6b4c3a');
+  } else if (c === 'ZACK') {
+    pR(18, 48, 28, 16, '#111');
+    pR(22, 22, 20, 24, '#ffdbac');
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    pR(22, 16, 20, 6, '#4a3121');
+    pR(20, 22, 4, 6, '#4a3121');
+    pR(40, 22, 4, 6, '#4a3121');
+    pR(24, 40, 16, 4, 'rgba(74,49,33,0.5)');
+  } else if (c === 'RIVAL') {
+    pR(18, 48, 28, 16, '#111');
+    pR(22, 22, 20, 24, '#ffccaa');
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    pR(20, 14, 24, 12, '#d4a017');
+    pR(29, 40, 6, 1, '#d4a017');
+  } else if (c === 'BRONSON') {
+    pR(16, 48, 32, 16, '#111');
+    pR(22, 22, 20, 24, '#dcb');
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    pR(20, 16, 24, 8, '#cc5500');
+    pR(18, 20, 4, 10, '#cc5500');
+    pR(42, 20, 4, 10, '#cc5500');
+    pR(24, 42, 16, 4, '#cc5500');
+  } else if (c === 'VINNIE') {
+    pR(18, 48, 28, 16, '#111');
+    pR(22, 22, 20, 24, '#e8b898');
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    pR(20, 16, 24, 8, '#a06540');
+    pR(20, 38, 24, 8, '#a06540');
+    pR(18, 32, 4, 14, '#a06540');
+    pR(42, 32, 4, 14, '#a06540');
+  } else if (c === 'JOE') {
+    pR(18, 48, 28, 16, '#111');
+    pR(22, 22, 20, 24, '#ffdbac');
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    pR(20, 16, 24, 8, '#222');
+  } else if (c === 'PARTS') {
+    pR(18, 48, 28, 16, '#111');
+    pR(22, 22, 20, 24, '#ffdbac');
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    pR(20, 16, 24, 8, '#4a3121');
+  } else if (c === 'NICK') {
+    pR(16, 48, 32, 16, '#111');
+    pR(22, 22, 20, 24, '#ffdbac');
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    pR(20, 16, 24, 8, '#888');
+    pR(18, 20, 4, 10, '#888');
+    pR(42, 20, 4, 10, '#888');
+  } else if (c === 'DAVE') {
+    pR(16, 48, 32, 16, '#111');
+    pR(22, 22, 20, 24, '#ffdbac');
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    pR(20, 14, 24, 8, '#cc3300');
+    pR(20, 16, 24, 8, '#222');
+    pR(18, 20, 4, 10, '#222');
+    pR(42, 20, 4, 10, '#222');
+    pR(24, 30, 6, 4, '#fff');
+    pR(34, 30, 6, 4, '#fff');
+  } else if (c === 'BRAD') {
+    pR(16, 48, 32, 16, '#c2b280');
+    pR(22, 22, 20, 24, '#ffccaa');
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    pR(20, 14, 24, 8, '#cc3300');
+    pR(20, 16, 24, 8, '#ccc');
+    pR(18, 20, 4, 10, '#ccc');
+    pR(42, 20, 4, 10, '#ccc');
+  } else if (c === 'JOHN') {
+    pR(16, 48, 32, 16, '#fff');
+    pR(20, 48, 24, 16, '#222');
+    pR(22, 22, 20, 24, '#ffdbac');
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    pR(20, 14, 24, 8, '#6b4c3a');
+    pR(22, 38, 20, 8, '#6b4c3a');
+    pR(20, 16, 24, 8, '#fff');
+    pR(18, 20, 4, 10, '#fff');
+    pR(42, 20, 4, 10, '#fff');
+    pR(20, 16, 24, 8, '#222');
+    pR(24, 30, 6, 4, 'rgba(255,255,255,0.4)');
+    pR(34, 30, 6, 4, 'rgba(255,255,255,0.4)');
+  } else if (c === 'TROY') {
+    pR(16, 48, 32, 16, '#111');
+    pR(22, 22, 20, 24, '#e8b898');
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    pR(22, 38, 20, 8, '#222');
+    pR(20, 16, 24, 8, '#111');
+    pR(18, 20, 4, 6, '#111');
+    pR(42, 20, 4, 6, '#111');
+    pR(24, 30, 6, 4, 'rgba(255,255,255,0.4)');
+    pR(34, 30, 6, 4, 'rgba(255,255,255,0.4)');
+  } else if (c === 'CUSTOMER' || c === 'APPOINTMENT' || c === 'WALK-IN') {
+    pR(18, 48, 28, 16, '#cc2222');
+    pR(22, 22, 20, 24, '#ffccaa');
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    pR(20, 16, 24, 8, '#222');
+    pCtx.beginPath();
+    pCtx.moveTo(24, 28);
+    pCtx.lineTo(30, 30);
+    pCtx.stroke();
+    pCtx.beginPath();
+    pCtx.moveTo(40, 28);
+    pCtx.lineTo(34, 30);
+    pCtx.stroke();
+    pR(29, 42, 6, 4, '#222');
+  } else if (c === 'PLAYER') {
+    const skin = playerDetails.gender === 'Boy' ? '#ffccaa' : '#ffdbac';
+    const hair = '#4a3121';
+    pR(18, 48, 28, 16, playerDetails.inUniform ? '#111' : '#fff');
+    pR(22, 22, 20, 24, skin);
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    if (playerDetails.gender === 'Boy') {
+      pR(20, 16, 24, 8, hair);
+      pR(18, 20, 4, 10, hair);
+    } else {
+      pR(18, 16, 28, 10, hair);
+      pR(18, 26, 6, 18, hair);
+      pR(40, 26, 6, 18, hair);
+    }
+  } else {
+    pR(0, 0, 64, 64, '#111');
+  }
+}
+
+function checkChoiceTrigger() {
+  const txt = activeDialogue[activeLine];
+
+  if (txt === '[CHOICE_MIKE_YESNO]') {
+    currentChoiceType = 'MIKE';
+    dText.innerText = 'Did you talk to Mike\nabout this ticket?';
+    cBox.style.display = 'flex';
+    arrow.style.display = 'none';
+  } else if (txt === '[CHOICE_CHECKIN_YESNO]') {
+    currentChoiceType = 'CHECKIN';
+    dText.innerText = 'Check vehicle in?';
+    cBox.style.display = 'flex';
+    arrow.style.display = 'none';
+  } else if (txt === '[CHOICE_END_SHIFT]') {
+    currentChoiceType = 'END_SHIFT';
+    dText.innerText = 'End shift and advance to next day?';
+    cBox.style.display = 'flex';
+    arrow.style.display = 'none';
+  } else if (txt === '[CHOICE_CHECKIN_DAILY]') {
+    currentChoiceType = 'CHECKIN_DAILY';
+    dText.innerText = 'Check in the scheduled appointment?';
+    cBox.style.display = 'flex';
+    arrow.style.display = 'none';
+  } else if (txt === '[CHOICE_CHECKIN_WALKIN]') {
+    currentChoiceType = 'CHECKIN_WALKIN';
+    dText.innerText = 'Check in the unexpected walk-in?';
+    cBox.style.display = 'flex';
+    arrow.style.display = 'none';
+  } else if (txt === '[CHOICE_SAVE_GAME]') {
+    currentChoiceType = 'SAVE_GAME';
+    dText.innerText = 'Would you like to save the game?';
+    cBox.style.display = 'flex';
+    arrow.style.display = 'none';
+  }
+}
+
+function makeChoice(val, e) {
+  e.stopPropagation();
+  cBox.style.display = 'none';
+  arrow.style.display = 'block';
+
+  if (currentChoiceType === 'CHECKIN') {
+    if (val === 'NO') {
+      activeDialogue = ['You backed away from the vehicle.'];
+      activeLine = 0;
+      dText.innerText = activeDialogue[0];
+    }
+    if (val === 'YES') {
+      questState.step = 2;
+      activeDialogue = ['Vehicle checked in.\nGo to your computer to write the RO.'];
+      activeLine = 0;
+      dText.innerText = activeDialogue[0];
+    }
+  } else if (currentChoiceType === 'MIKE') {
+    if (val === 'NO') {
+      activeDialogue = ["I'm not working on that until\nyou talk to Mike."];
+      activeLine = 0;
+      dText.innerText = activeDialogue[0];
+    }
+    if (val === 'YES') {
+      if (!questState.talkedToMike) {
+        activeDialogue = ["Don't lie to me.\nI didn't hear him page me."];
+        activeLine = 0;
+        dText.innerText = activeDialogue[0];
+      } else {
+        if (questState.assignedTo === dName.innerText) {
+          activeDialogue = [
+            "Mike sent you? Fine, pull it\ninto my bay.",
+            "Hope there's no comebacks\non this one..."
+          ];
+          activeLine = 0;
+          dText.innerText = activeDialogue[0];
+          questState.step = 4;
+        } else {
+          activeDialogue = ["Mike didn't assign that to me.\nKick rocks."];
+          activeLine = 0;
+          dText.innerText = activeDialogue[0];
+        }
+      }
+    }
+  } else if (currentChoiceType === 'END_SHIFT') {
+    if (val === 'NO') {
+      activeDialogue = ['You close the locker.'];
+      activeLine = 0;
+      dText.innerText = activeDialogue[0];
+    }
+    if (val === 'YES') {
+      gameEvents.currentDay = (gameEvents.currentDay || 1) + 1;
+      gameEvents.dailyWalkIn = Math.random() < 0.3;
+      gameEvents.dailyAptsCompleted = 0;
+      gameEvents.dailyWalkInDone = false;
+      gameEvents.timeMinutes = 420;
+      gameEvents.tick = 0;
+      questState.step = 8;
+
+      const cust = maps.drive.npcs.find(n => n.id === 'angry_customer');
+      const car = maps.drive.npcs.find(n => n.id === 'customer_car');
+      const sc = maps.shop.npcs.find(n => n.id === 'shop_car');
+
+      if (cust) {
+        cust.hidden = false;
+        cust.name = 'APPOINTMENT';
+        cust.dialogue = ["I'm here for my morning\nservice."];
+      }
+
+      if (car) {
+        car.hidden = false;
+        car.name = 'CLIENT CAR';
+        car.dialogue = ['Ready for routine\nmaintenance.'];
+      }
+
+      if (sc) sc.hidden = false;
+
+      triggerFlash();
+
+      activeDialogue = gameEvents.dailyWalkIn
+        ? [
+            `Day ${gameEvents.currentDay} begins.\nYou have 3 appointments.`,
+            'Expect a walk-in later.',
+            `[P.A. SYSTEM]\n${playerDetails.name} to the service drive,\nguest is waiting.`
+          ]
+        : [
+            `Day ${gameEvents.currentDay} begins.\nYou have 3 appointments.`,
+            `[P.A. SYSTEM]\n${playerDetails.name} to the service drive,\nguest is waiting.`
+          ];
+
+      activeLine = 0;
+      dText.innerText = activeDialogue[0];
+      dName.innerText = 'SYSTEM';
+      drawPortrait('NONE');
+    }
+  } else if (currentChoiceType === 'CHECKIN_DAILY') {
+    if (val === 'NO') {
+      activeDialogue = ['You ignored the vehicle.'];
+      activeLine = 0;
+      dText.innerText = activeDialogue[0];
+    }
+    if (val === 'YES') {
+      gameEvents.dailyAptsCompleted++;
+      questState.roNumber++;
+
+      const cust = maps.drive.npcs.find(n => n.id === 'angry_customer');
+      const car = maps.drive.npcs.find(n => n.id === 'customer_car');
+
+      if (gameEvents.dailyAptsCompleted < 3) {
+        const nApt = gameEvents.dailyAptsCompleted === 1 ? 'mid-day' : 'afternoon';
+        activeDialogue = [
+          `RO #${questState.roNumber} printed!\nYour ${nApt} appointment\nhas arrived.`,
+          `[P.A. SYSTEM]\n${playerDetails.name} to the service drive,\nguest is waiting.`
+        ];
+        if (cust) {
+          cust.name = 'APPOINTMENT';
+          cust.dialogue = [`I'm here for my ${nApt}\nappointment.`];
+        }
+      } else if (gameEvents.dailyWalkIn) {
+        activeDialogue = [
+          `RO #${questState.roNumber} printed!\nWait, another car just pulled up.\nIt's a walk-in!`,
+          `[P.A. SYSTEM]\n${playerDetails.name} to the service drive,\nguest is waiting.`
+        ];
+        if (cust) {
+          cust.name = 'WALK-IN';
+          cust.dialogue = ['Can you squeeze me in?'];
+        }
+        if (car) {
+          car.name = 'WALK-IN CAR';
+          car.dialogue = ['Needs a diagnostic.'];
+        }
+      } else {
+        activeDialogue = [
+          `RO #${questState.roNumber} printed!\nThat's it for today.\nEnd your shift at your locker.`
+        ];
+        if (cust) cust.hidden = true;
+        if (car) car.hidden = true;
+      }
+
+      activeLine = 0;
+      dText.innerText = activeDialogue[0];
+    }
+  } else if (currentChoiceType === 'CHECKIN_WALKIN') {
+    if (val === 'NO') {
+      activeDialogue = ['You ignored the vehicle.'];
+      activeLine = 0;
+      dText.innerText = activeDialogue[0];
+    }
+    if (val === 'YES') {
+      gameEvents.dailyWalkInDone = true;
+      questState.roNumber++;
+
+      const cust = maps.drive.npcs.find(n => n.id === 'angry_customer');
+      const car = maps.drive.npcs.find(n => n.id === 'customer_car');
+
+      if (cust) cust.hidden = true;
+      if (car) car.hidden = true;
+
+      activeDialogue = [
+        `RO #${questState.roNumber} printed!\nThe drive is empty.`,
+        'Time to hit the locker room.'
+      ];
+      activeLine = 0;
+      dText.innerText = activeDialogue[0];
+    }
+  } else if (currentChoiceType === 'SAVE_GAME') {
+    if (val === 'NO') {
+      activeDialogue = ['Save cancelled.'];
+      activeLine = 0;
+      dText.innerText = activeDialogue[0];
+    }
+    if (val === 'YES') {
+      const data = { player, playerDetails, currentMapKey, gameEvents, questState };
+      localStorage.setItem('serviceBaySave', JSON.stringify(data));
+      activeDialogue = ['Saving...\nDon\'t turn off the power.', `${playerDetails.name} saved the game!`];
+      activeLine = 0;
+      dText.innerText = activeDialogue[0];
+    }
+  }
+}
+
+function triggerFlash() {
+  gameState = 'FLASH';
+  flash.active = true;
+  flash.alpha = 0;
+  flash.state = 'fade_out';
+}
+
+function playIntroLine() {
+  const step = introScript[introIndex];
+  if (!step) return;
+
+  if (step.type === 'ACTION') {
+    dContainer.style.display = 'none';
+
+    if (step.action === '[SHOW_GENDER]') {
+      document.getElementById('choice-box').style.display = 'flex';
+    }
+
+    if (step.action === '[SHOW_NAME]') {
+      document.getElementById('name-box').style.display = 'flex';
+      document.getElementById('player-name-input').focus();
+    }
+
+    if (step.action === '[SHOW_RIVAL_NAME]') {
+      document.getElementById('rival-name-box').style.display = 'flex';
+      document.getElementById('rival-name-input').focus();
+    }
+
+    if (step.action === '[START_GAME]') {
+      document.getElementById('intro-screen').style.display = 'none';
+      gameState = 'PLAYING';
+      activeDialogue = ["You're late.\nGo to the locker room in the shop.\nGet your uniform on."];
+      activeLine = 0;
+      dName.innerText = 'MIKE';
+      dText.innerText = activeDialogue[0];
+      drawPortrait('MIKE');
+      dContainer.style.display = 'flex';
+    }
+  } else {
+    const line = step.text
+      .replace(/\[PLAYER_NAME\]/g, playerDetails.name)
+      .replace(/\[RIVAL_NAME\]/g, playerDetails.rivalName);
+
+    dName.innerText = step.char === 'PLAYER' ? playerDetails.name : 'RICK SELLERS';
+    dText.innerText = line;
+    drawPortrait(step.char);
+  }
+}
+
+function selectGender(g) {
+  playerDetails.gender = g;
+  document.getElementById('choice-box').style.display = 'none';
+  dContainer.style.display = 'flex';
+  introIndex++;
+  playIntroLine();
+}
+
+function confirmName() {
+  if (introScript[introIndex].action !== '[SHOW_NAME]') return;
+  let n = document.getElementById('player-name-input').value.toUpperCase();
+  if (n.trim() === '') n = 'CHANDLER';
+  playerDetails.name = n;
+  document.getElementById('name-box').style.display = 'none';
+  dContainer.style.display = 'flex';
+  introIndex++;
+  playIntroLine();
+}
+
+function confirmRivalName() {
+  if (introScript[introIndex].action !== '[SHOW_RIVAL_NAME]') return;
+  let n = document.getElementById('rival-name-input').value.toUpperCase();
+  if (n.trim() === '') n = 'KASEY';
+  playerDetails.rivalName = n;
+
+  const rivalObj = maps.shop.npcs.find(npc => npc.id === 'rival');
+  if (rivalObj) {
+    rivalObj.name = playerDetails.rivalName;
+    rivalObj.dialogue = [`Whatever, ${playerDetails.name}.\nI only wrench for Mike or Ryan.`];
+  }
+
+  document.getElementById('rival-name-box').style.display = 'none';
+  dContainer.style.display = 'flex';
+  introIndex++;
+  playIntroLine();
+}
+
+function advanceDialogue() {
+  if (cBox.style.display === 'flex') return;
+
+  if (gameState === 'INTRO') {
+    if (introScript[introIndex] && introScript[introIndex].type === 'ACTION') return;
+    introIndex++;
+    if (introIndex < introScript.length) playIntroLine();
+  } else if (activeDialogue) {
+    activeLine++;
+
+    if (activeLine >= activeDialogue.length) {
+      if (dName.innerText === 'LOCKER' && !playerDetails.inUniform) {
+        playerDetails.inUniform = true;
+
+        const dm = maps.drive.npcs.find(n => n.id === 'mike');
+        if (dm) dm.hidden = true;
+
+        const om = maps.office.npcs.find(n => n.id === 'mike');
+        if (om) om.hidden = false;
+
+        activeDialogue = ['You put on the black Advisor Uniform.\nYour shift has officially begun.'];
+        activeLine = 0;
+        dText.innerText = activeDialogue[0];
+        drawPortrait('PLAYER');
+        return;
+      }
+
+      if (questState.step === 6 && dName.innerText === 'MIKE') {
+        questState.step = 7;
+        playerDetails.hasRunningShoes = true;
+        activeDialogue = [
+          "You received the Non-Slip Running Shoes!\nHold 'B' (or Shift) while moving to run.",
+          '(Tutorial Complete. Use your locker\nin the breakroom to end your shift.)'
+        ];
+        activeLine = 0;
+        dName.innerText = 'SYSTEM';
+        dText.innerText = activeDialogue[0];
+        drawPortrait('NONE');
+        return;
+      }
+
+      if (gameState === 'CUTSCENE') {
+        gameState = 'PLAYING';
+        gameEvents.firstCustomerTriggered = true;
+        questState.active = true;
+        questState.step = 1;
+      }
+
+      if (questState.step === 4 && dName.innerText === 'BRONSON') {
+        questState.step = 5;
+        triggerFlash();
+      }
+
+      dContainer.style.display = 'none';
+      activeDialogue = null;
+    } else {
+      dText.innerText = activeDialogue[activeLine];
+      checkChoiceTrigger();
+    }
+  }
+}
+
+function interact() {
+  if (gameState === 'TITLE') {
+    startGameFromTitle();
+    return;
+  }
+
+  if (
+    gameState === 'INTRO' ||
+    activeDialogue ||
+    gameState === 'TRANSITION' ||
+    gameState === 'CUTSCENE' ||
+    gameState === 'FLASH'
+  ) {
+    advanceDialogue();
+    return;
+  }
+
+  let tx = player.tx;
+  let ty = player.ty;
+
+  if (player.dir === 'up') ty--;
+  if (player.dir === 'down') ty++;
+  if (player.dir === 'left') tx--;
+  if (player.dir === 'right') tx++;
+
+  const npc = maps[currentMapKey].npcs.find(n => {
+    if (n.hidden) return false;
+    if (n.charCode === 'CAR' || n.charCode === 'SUV_BLACK') {
+      return tx >= n.tx && tx <= n.tx + 2 && ty >= n.ty && ty <= n.ty + 1;
+    }
+    return n.tx === tx && n.ty === ty;
+  });
+
+  if (npc) {
+    dContainer.style.display = 'flex';
+    dName.innerText = npc.name;
+
+    if (npc.id === 'locker') {
+      if (questState.step >= 8) {
+        activeDialogue = [`End your shift and advance\nto Day ${gameEvents.currentDay + 1}?`, '[CHOICE_END_SHIFT]'];
+      } else if (questState.step === 7) {
+        activeDialogue = ["Your shift isn't over.\nYou have a noon appointment."];
+      } else {
+        activeDialogue = npc.dialogue;
+      }
+    } else if (questState.active && questState.step >= 1 && questState.step <= 4) {
+      if (questState.step === 1 && npc.id === 'customer_car') {
+        activeDialogue = ['[CHOICE_CHECKIN_YESNO]'];
+      } else if (questState.step === 2 && npc.id === 'desk') {
+        activeDialogue = [`Writing Repair Order...\nRO #${questState.roNumber} printed!`, 'Take it to Mike to dispatch.'];
+        questState.roNumber++;
+        questState.step = 3;
+      } else if (questState.step >= 3 && npc.id === 'mike') {
+        activeDialogue = [
+          'An engine knocking?\nSounds heavy.',
+          "Vinnie won't touch engine work.\nGive it to Bronson."
+        ];
+        questState.talkedToMike = true;
+        questState.assignedTo = 'BRONSON';
+      } else if (questState.step >= 3 && ['rival', 'joe', 'vinnie', 'bronson'].includes(npc.id)) {
+        activeDialogue = ['[CHOICE_MIKE_YESNO]'];
+      } else if (npc.id === 'angry_customer') {
+        activeDialogue = ['What are you doing?!\nI thought you were supposed\nto be getting my car fixed!'];
+      } else {
+        activeDialogue = npc.dialogue;
+      }
+    } else if (questState.active && questState.step >= 5 && questState.step < 8) {
+      if (questState.step === 5 && npc.id === 'desk') {
+        activeDialogue = ['You have a new email from MIKE:\n"Come into my office."'];
+        questState.step = 6;
+      } else if (questState.step === 6 && npc.id === 'mike') {
+        activeDialogue = [
+          'Nice work getting that\nout to Bronson.',
+          "You're gonna want to keep\nan eye on this ticket.",
+          'This guy can either be your\nbest friend or your worst enemy.',
+          'By the way, I saw the way\nyou were moving out there.',
+          'Gonna have to pick it up.',
+          'I got this pair of non-slip\nrunning shoes for you.',
+          "Your next appointment\nisn't until noon.",
+          'Go find something to do.'
+        ];
+      } else {
+        activeDialogue = npc.dialogue;
+      }
+    } else if (questState.active && questState.step >= 8) {
+      if (npc.id === 'customer_car') {
+        if (gameEvents.dailyAptsCompleted < 3) {
+          activeDialogue = ['[CHOICE_CHECKIN_DAILY]'];
+        } else if (gameEvents.dailyWalkIn && !gameEvents.dailyWalkInDone) {
+          activeDialogue = ['[CHOICE_CHECKIN_WALKIN]'];
+        } else {
+          activeDialogue = ['The drive is clear.'];
+        }
+      } else if (npc.id === 'angry_customer') {
+        if (gameEvents.dailyAptsCompleted < 3) {
+          const t =
+            gameEvents.dailyAptsCompleted === 0
+              ? 'morning'
+              : gameEvents.dailyAptsCompleted === 1
+              ? 'mid-day'
+              : 'afternoon';
+          activeDialogue = [`I'm here for my ${t} appointment.\nAre you going to check me in?`];
+        } else if (gameEvents.dailyWalkIn && !gameEvents.dailyWalkInDone) {
+          activeDialogue = ["I don't have an appointment,\ncan you squeeze me in?"];
+        } else {
+          activeDialogue = ['Thanks for the help!'];
+        }
+      } else if (npc.id === 'mike') {
+        activeDialogue = [`Keep the drive moving, Chandler.\nDay ${gameEvents.currentDay} is busy.`];
+      } else if (npc.id === 'desk') {
+        activeDialogue = [`RO System active.\nCurrent RO: #${questState.roNumber}`];
+      } else {
+        activeDialogue = npc.dialogue;
+      }
+    } else {
+      activeDialogue = npc.dialogue;
+    }
+
+    activeLine = 0;
+    dText.innerText = activeDialogue[0];
+    drawPortrait(npc.charCode);
+    checkChoiceTrigger();
+
+    if (!npc.isObject) {
+      npc.dir =
+        player.dir === 'up'
+          ? 'down'
+          : player.dir === 'down'
+          ? 'up'
+          : player.dir === 'left'
+          ? 'right'
+          : 'left';
+    }
+  }
+}
+
+function triggerWarp(w) {
+  gameState = 'TRANSITION';
+  transition.active = true;
+  transition.alpha = 0;
+  transition.state = 'fade_out';
+  transition.dest = w;
+}
+
+function isSolid(tx, ty) {
+  if (tx < 0 || tx >= MAP_COLS || ty < 0 || ty >= MAP_ROWS) return true;
+
+  const tile = maps[currentMapKey].layout[ty][tx];
+  if ([1, 2, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].includes(tile)) return true;
+
+  if (
+    maps[currentMapKey].npcs.some(n => {
+      if (n.hidden) return false;
+      if (n.charCode === 'CAR' || n.charCode === 'SUV_BLACK') {
+        return tx >= n.tx && tx <= n.tx + 2 && ty >= n.ty && ty <= n.ty + 1;
+      }
+      return !n.isObject && n.tx === tx && n.ty === ty;
+    })
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function triggerCutscene(customerObj) {
+  gameState = 'CUTSCENE';
+  customerObj.hidden = false;
+  player.dir = 'down';
+  customerObj.dir = 'up';
+
+  const carObj = maps.drive.npcs.find(n => n.id === 'customer_car');
+  if (carObj) carObj.hidden = false;
+
+  activeDialogue = [
+    'Hey! Advisor! Over here!\nMy car sounds like a\nblender full of rocks!',
+    "I need this looked at right now.\nAnd don't try to upsell me!"
+  ];
+  activeLine = 0;
+  dName.innerText = customerObj.name;
+  dText.innerText = activeDialogue[0];
+  drawPortrait(customerObj.charCode);
+  dContainer.style.display = 'flex';
+}
+
+function toggleStartMenu() {
+  if (gameState === 'MENU') {
+    document.getElementById('start-menu').style.display = 'none';
+    gameState = 'PLAYING';
+  } else if (gameState === 'PLAYING') {
+    let m = gameEvents.timeMinutes;
+    let h = Math.floor(m / 60);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12;
+    if (h === 0) h = 12;
+    const mins = m % 60;
+    const timeStr = `${h}:${mins < 10 ? '0' : ''}${mins} ${ampm}`;
+
+    document.getElementById('menu-header').innerText = `DAY ${gameEvents.currentDay}\n${timeStr}`;
+    document.getElementById('start-menu').style.display = 'block';
+    gameState = 'MENU';
+  }
+}
+
+function saveGame() {
+  toggleStartMenu();
+  activeDialogue = ['Would you like to save the game?', '[CHOICE_SAVE_GAME]'];
+  activeLine = 0;
+  dName.innerText = 'SYSTEM';
+  dText.innerText = activeDialogue[0];
+  drawPortrait('NONE');
+  dContainer.style.display = 'flex';
+}
+
+function update() {
+  if (gameState === 'MENU') return;
+  if (gameState === 'TITLE' || gameState === 'INTRO' || activeDialogue || gameState === 'CUTSCENE') return;
+
+  if (gameState === 'PLAYING') {
+    gameEvents.tick++;
+    if (gameEvents.tick >= 60) {
+      gameEvents.tick = 0;
+      if (gameEvents.timeMinutes < 1080) gameEvents.timeMinutes++;
+    }
+
+    if (gameEvents.currentDay === 1 && questState.step === 7 && gameEvents.timeMinutes >= 720) {
+      questState.step = 8;
+      gameEvents.dailyAptsCompleted = 2;
+      gameEvents.dailyWalkIn = false;
+
+      const cust = maps.drive.npcs.find(n => n.id === 'angry_customer');
+      const car = maps.drive.npcs.find(n => n.id === 'customer_car');
+
+      if (cust) {
+        cust.hidden = false;
+        cust.name = 'APPOINTMENT';
+        cust.dialogue = ["I'm here for my afternoon\nappointment.", 'Are you going to check me in?'];
+      }
+
+      if (car) {
+        car.hidden = false;
+        car.name = 'CLIENT CAR';
+        car.dialogue = ['Ready for routine\nmaintenance.'];
+      }
+
+      triggerPAAnnouncement();
+    }
+  }
+
+  if (gameState === 'FLASH') {
+    if (flash.state === 'fade_out') {
+      flash.alpha += 0.1;
+      if (flash.alpha >= 1) {
+        flash.alpha = 1;
+        flash.state = 'fade_in';
+
+        const dc = maps.drive.npcs.find(n => n.id === 'customer_car');
+        if (dc && questState.step < 8) dc.hidden = true;
+
+        const ac = maps.drive.npcs.find(n => n.id === 'angry_customer');
+        if (ac && questState.step < 8) ac.hidden = true;
+
+        const sc = maps.shop.npcs.find(n => n.id === 'shop_car');
+        if (sc && questState.step < 8) sc.hidden = false;
+      }
+    } else if (flash.state === 'fade_in') {
+      flash.alpha -= 0.1;
+      if (flash.alpha <= 0) {
+        flash.alpha = 0;
+        flash.active = false;
+        gameState = 'PLAYING';
+      }
+    }
+    return;
+  }
+
+  if (gameState === 'TRANSITION') {
+    if (transition.state === 'fade_out') {
+      transition.alpha += 0.05;
+      if (transition.alpha >= 1) {
+        transition.alpha = 1;
+        transition.state = 'fade_in';
+        currentMapKey = transition.dest.to;
+        player.tx = transition.dest.px;
+        player.ty = transition.dest.py;
+        player.x = player.tx * TILE_SIZE;
+        player.y = player.ty * TILE_SIZE;
+      }
+    } else if (transition.state === 'fade_in') {
+      transition.alpha -= 0.05;
+      if (transition.alpha <= 0) {
+        transition.alpha = 0;
+        transition.active = false;
+        gameState = 'PLAYING';
+        if (currentMapKey === 'drive' && playerDetails.inUniform && !gameEvents.firstCustomerTriggered) {
+          const customer = maps.drive.npcs.find(n => n.id === 'angry_customer');
+          if (customer) triggerCutscene(customer);
+        }
+      }
+    }
+    return;
+  }
+
+  if (!player.isMoving) {
+    let dx = 0;
+    let dy = 0;
+
+    if (keys.w) {
+      dy = -1;
+      player.dir = 'up';
+    } else if (keys.s) {
+      dy = 1;
+      player.dir = 'down';
+    } else if (keys.a && !keys.enter) {
+      dx = -1;
+      player.dir = 'left';
+    } else if (keys.d) {
+      dx = 1;
+      player.dir = 'right';
+    }
+
+    if (dx !== 0 || dy !== 0) {
+      if (!isSolid(player.tx + dx, player.ty + dy)) {
+        player.tx += dx;
+        player.ty += dy;
+        player.isMoving = true;
+        player.moveTimer = TILE_SIZE;
+        player.speed = playerDetails.hasRunningShoes && keys.b ? 4 : 2;
+      }
+    }
+  } else {
+    player.moveTimer -= player.speed;
+
+    if (player.dir === 'up') player.y -= player.speed;
+    if (player.dir === 'down') player.y += player.speed;
+    if (player.dir === 'left') player.x -= player.speed;
+    if (player.dir === 'right') player.x += player.speed;
+
+    if (player.moveTimer <= 0) {
+      player.isMoving = false;
+      player.x = player.tx * TILE_SIZE;
+      player.y = player.ty * TILE_SIZE;
+
+      const warp = maps[currentMapKey].warps.find(w => w.tx === player.tx && w.ty === player.ty);
+      if (warp) triggerWarp(warp);
+    }
+  }
+}
+
+function dR(x, y, w, h, c) {
+  ctx.fillStyle = c;
+  ctx.fillRect(x, y, w, h);
+}
+
+function drawTile(tx, ty, t) {
+  const px = tx * TILE_SIZE;
+  const py = ty * TILE_SIZE;
+
+  dR(px, py, TILE_SIZE, TILE_SIZE, maps[currentMapKey].bg);
+
+  switch (t) {
+    case 1:
+      dR(px, py, TILE_SIZE, TILE_SIZE, '#333');
+      break;
+    case 2:
+      if (currentMapKey === 'parkinglot') {
+        dR(px, py, TILE_SIZE, TILE_SIZE, '#e0e4e8');
+        dR(px, py, TILE_SIZE, 1, '#f0f4f8');
+        dR(px, py + TILE_SIZE - 1, TILE_SIZE, 1, '#c0c4c8');
+      } else {
+        dR(px, py, TILE_SIZE, TILE_SIZE, '#4a6b8c');
+      }
+      break;
+    case 3:
+      dR(px + 2, py, 4, TILE_SIZE, '#ddcc22');
+      dR(px + 10, py, 4, TILE_SIZE, '#ddcc22');
+      break;
+    case 4:
+      dR(px + 2, py, 12, TILE_SIZE, '#cc2222');
+      dR(px + 4, py + 4, 8, 1, '#881111');
+      dR(px + 4, py + 12, 8, 1, '#881111');
+      break;
+    case 5:
+      dR(px + 2, py, 12, TILE_SIZE, '#2244cc');
+      dR(px + 4, py + 4, 8, 1, '#112288');
+      dR(px + 4, py + 12, 8, 1, '#112288');
+      break;
+    case 6:
+      dR(px + 3, py + 2, 10, 12, '#33aa33');
+      dR(px + 3, py + 2, 10, 3, '#111');
+      break;
+    case 7:
+      dR(px + 2, py, 12, TILE_SIZE, '#888');
+      dR(px + 4, py + 2, 2, 8, '#555');
+      break;
+    case 8:
+      dR(px, py, TILE_SIZE, TILE_SIZE, '#ddd');
+      if (currentMapKey === 'parkinglot') {
+        dR(px, py, TILE_SIZE, TILE_SIZE, '#999');
+        dR(px + 1, py + 1, TILE_SIZE - 2, TILE_SIZE - 2, '#f0f0f0');
+        dR(px + 2, py + 4, TILE_SIZE - 4, 3, '#87ceeb');
+        dR(px + 2, py + 9, TILE_SIZE - 4, 3, '#87ceeb');
+      } else {
+        dR(px, py + 4, TILE_SIZE, 2, '#aaa');
+        dR(px, py + 10, TILE_SIZE, 2, '#aaa');
+      }
+      break;
+    case 9:
+      dR(px + 2, py + 2, 12, 12, '#222');
+      break;
+    case 10:
+      dR(px + 2, py, 12, TILE_SIZE, '#222');
+      dR(px + 4, py + 4, 8, 1, '#111');
+      dR(px + 4, py + 12, 8, 1, '#111');
+      break;
+    case 11:
+      dR(px + 2, py, 12, TILE_SIZE, '#2e8b57');
+      dR(px + 4, py + 4, 8, 1, '#1a5936');
+      dR(px + 4, py + 12, 8, 1, '#1a5936');
+      break;
+    case 12:
+      dR(px + 4, py + 4, 8, 8, '#222');
+      dR(px + 4, py + 12, 2, 2, '#777');
+      dR(px + 10, py + 12, 2, 2, '#777');
+      break;
+    case 13:
+      dR(px, py, TILE_SIZE, TILE_SIZE, '#4a6b8c');
+      dR(px + 3, py + 4, 10, 6, '#ddd');
+      dR(px + 4, py + 5, 8, 4, '#222');
+      dR(px + 4, py + 12, 8, 2, '#aaa');
+      break;
+    case 14:
+      dR(px + 1, py + 4, 14, 10, '#8b4513');
+      dR(px + 1, py + 2, 14, 4, '#5c2e0b');
+      break;
+    case 15:
+      dR(px + 2, py + 2, 12, 8, '#111');
+      dR(px + 3, py + 3, 10, 6, '#33aaee');
+      dR(px + 7, py + 10, 2, 6, '#222');
+      break;
+    case 16:
+      dR(px, py, TILE_SIZE, TILE_SIZE, '#e0e4e8');
+      dR(px + 1, py + 1, TILE_SIZE - 2, TILE_SIZE - 2, '#cce6ff');
+      dR(px + 4, py + 2, 4, 10, 'rgba(255,255,255,0.5)');
+      break;
+    case 17:
+      dR(px + 3, py + 2, 10, 12, '#8b4513');
+      dR(px, py + 4, 3, 8, '#222');
+      dR(px + 13, py + 4, 3, 8, '#222');
+      break;
+    case 18:
+      dR(px + 2, py + 2, TILE_SIZE, 12, '#111');
+      dR(px + 3, py + 3, TILE_SIZE - 1, 10, '#33aaee');
+      break;
+    case 19:
+      dR(px, py + 2, TILE_SIZE - 2, 12, '#111');
+      dR(px, py + 3, TILE_SIZE - 3, 10, '#33aaee');
+      dR(px - 2, py + 14, 4, 4, '#222');
+      break;
+  }
+}
+
+function drawSprite(x, y, skinColor, shirtColor, sleeves, hairColor, dir, isShort, acc) {
+  const hMod = isShort ? 2 : 0;
+  acc = acc || {};
+
+  dR(x + 4, y + 2 + hMod, 8, 8, skinColor);
+  if (hairColor) dR(x + 4, y + 2 + hMod, 8, 3, hairColor);
+
+  dR(x + 3, y + 10 + hMod, 10, 6 - hMod, shirtColor);
+
+  if (acc.vest) dR(x + 4, y + 10 + hMod, 8, 6 - hMod, acc.vest);
+
+  const armColor = sleeves === 'long' ? shirtColor : skinColor;
+  dR(x + 1, y + 10 + hMod, 2, 5 - hMod, armColor);
+  dR(x + 13, y + 10 + hMod, 2, 5 - hMod, armColor);
+
+  if (dir === 'left') {
+    dR(x + 4, y + 4 + hMod, 2, 2, '#111');
+  } else if (dir === 'right') {
+    dR(x + 10, y + 4 + hMod, 2, 2, '#111');
+  } else if (dir === 'down') {
+    dR(x + 6, y + 5 + hMod, 2, 2, '#111');
+    dR(x + 10, y + 5 + hMod, 2, 2, '#111');
+    if (acc.glasses) {
+      dR(x + 4, y + 4 + hMod, 4, 3, 'rgba(255,255,255,0.4)');
+      dR(x + 8, y + 4 + hMod, 4, 3, 'rgba(255,255,255,0.4)');
+      dR(x + 4, y + 4 + hMod, 8, 1, '#111');
+    }
+    if (acc.beard) dR(x + 4, y + 8 + hMod, 8, 2, acc.beard);
+  }
+
+  const yOff = player.isMoving && player.moveTimer % 8 < 4 && x === player.x && y === player.y ? -1 : 0;
+  let txOff = 0;
+  if (skinColor === '#dcb' && hairColor === '#cc5500' && Math.random() < 0.02) {
+    txOff = 1;
+  }
+
+  const pantsColor = acc.pants || '#111';
+  dR(x + 4 + txOff, y + 16 + yOff, 3, 4, pantsColor);
+  dR(x + 9 + txOff, y + 16 - yOff, 3, 4, pantsColor);
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (let y = 0; y < MAP_ROWS; y++) {
+    for (let x = 0; x < MAP_COLS; x++) {
+      drawTile(x, y, maps[currentMapKey].layout[y][x]);
+    }
+  }
+
+  if (currentMapKey === 'parkinglot') {
+    ctx.fillStyle = '#fff';
+
+    for (let i = 0; i < 6; i++) {
+      ctx.fillRect(16, 32 + i * 24, 32, 2);
+      ctx.fillRect(canvas.width - 48, 32 + i * 24, 32, 2);
+      ctx.fillRect(64 + i * 32, canvas.height - 32, 2, 32);
+    }
+
+    const drawCar = (cx, cy, col, a = 0) => {
+      ctx.save();
+      ctx.translate(cx + 7, cy + 11);
+      ctx.rotate((a * Math.PI) / 180);
+      dR(-7, -11, 14, 22, col);
+      dR(-5, -7, 10, 5, '#111');
+      dR(-5, 4, 10, 4, '#111');
+      dR(-6, -10, 3, 2, '#fff');
+      dR(3, -10, 3, 2, '#fff');
+      dR(-6, 8, 3, 2, '#f00');
+      dR(3, 8, 3, 2, '#f00');
+      ctx.restore();
+    };
+
+    drawCar(25, 33, '#cc2222', 90);
+    drawCar(25, 81, '#2244cc', 90);
+    drawCar(canvas.width - 39, 57, '#aaaaaa', -90);
+    drawCar(canvas.width - 39, 105, '#222222', -90);
+    drawCar(73, canvas.height - 28, '#228822', 0);
+    drawCar(137, canvas.height - 28, '#2222cc', 0);
+
+    const fx = 7 * TILE_SIZE;
+    const fy = 11 * TILE_SIZE - 12;
+    const fw = 6 * TILE_SIZE;
+
+    dR(fx, fy, fw, 24, '#f8f9fa');
+    dR(fx, fy, fw, 2, '#0055a4');
+    dR(fx, fy + 22, fw, 2, '#0055a4');
+
+    ctx.fillStyle = '#0055a4';
+    ctx.font = '10px "Press Start 2P"';
+    ctx.textAlign = 'center';
+    ctx.fillText('CAR PLANET', fx + fw / 2, fy + 16);
+    ctx.textAlign = 'left';
+  }
+
+  maps[currentMapKey].npcs.forEach(n => {
+    if (n.hidden) return;
+
+    if (!n.isObject) {
+      let txOff = 0;
+      if (n.id === 'bronson' && Math.random() < 0.02) txOff = 2;
+      drawSprite((n.tx * TILE_SIZE) + txOff, n.ty * TILE_SIZE, n.color, n.shirt, n.sleeves, n.hair, n.dir || 'down', n.isShort, n.acc);
+    } else if (n.charCode === 'CAR') {
+      const cx = n.tx * TILE_SIZE;
+      const cy = n.ty * TILE_SIZE;
+      dR(cx, cy, 48, 24, '#3a5a80');
+      dR(cx + 8, cy + 4, 24, 16, '#111');
+      dR(cx + 10, cy + 6, 20, 12, '#6699cc');
+      dR(cx + 6, cy - 4, 8, 4, '#111');
+      dR(cx + 34, cy - 4, 8, 4, '#111');
+      dR(cx + 6, cy + 24, 8, 4, '#111');
+      dR(cx + 34, cy + 24, 8, 4, '#111');
+    } else if (n.charCode === 'SUV_BLACK') {
+      const cx = n.tx * TILE_SIZE;
+      const cy = n.ty * TILE_SIZE;
+      dR(cx, cy - 4, 52, 28, '#151515');
+      dR(cx + 8, cy, 26, 18, '#050505');
+      dR(cx + 10, cy + 2, 22, 14, '#222');
+      dR(cx + 6, cy - 8, 10, 4, '#050505');
+      dR(cx + 36, cy - 8, 10, 4, '#050505');
+      dR(cx + 6, cy + 24, 10, 4, '#050505');
+      dR(cx + 36, cy + 24, 10, 4, '#050505');
+    }
+  });
+
+  const shirt = playerDetails.inUniform ? '#111' : '#fff';
+  const sleeves = playerDetails.inUniform ? 'long' : 'short';
+  const skin = playerDetails.gender === 'Boy' ? '#ffccaa' : '#ffdbac';
+  const hair = '#4a3121';
+
+  drawSprite(player.x, player.y, skin, shirt, sleeves, hair, player.dir, false, {});
+
+  if (transition.active) {
+    ctx.fillStyle = `rgba(0,0,0,${transition.alpha})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  if (flash.active) {
+    ctx.fillStyle = `rgba(255,255,255,${flash.alpha})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+window.addEventListener('keydown', e => {
+  if (document.activeElement.tagName === 'INPUT') return;
+
+  let k = e.key.toLowerCase();
+
+  if (k === 'arrowup') k = 'w';
+  if (k === 'arrowdown') k = 's';
+  if (k === 'arrowleft') k = 'a';
+  if (k === 'arrowright') k = 'd';
+
+  if (k === 'p' && gameState !== 'INTRO' && gameState !== 'TITLE') toggleStartMenu();
+  if (k === 'shift' || k === 'b') k = 'b';
+
+  if (Object.prototype.hasOwnProperty.call(keys, k)) keys[k] = true;
+});
+
+window.addEventListener('keyup', e => {
+  if (document.activeElement.tagName === 'INPUT') return;
+
+  let k = e.key.toLowerCase();
+
+  if (k === 'arrowup') k = 'w';
+  if (k === 'arrowdown') k = 's';
+  if (k === 'arrowleft') k = 'a';
+  if (k === 'arrowright') k = 'd';
+  if (k === 'shift' || k === 'b') k = 'b';
+
+  if (Object.prototype.hasOwnProperty.call(keys, k)) keys[k] = false;
+
+  if ((e.key === 'Enter' || e.key === ' ') && !actionTriggered) {
+    actionTriggered = true;
+    interact();
+    setTimeout(() => {
+      actionTriggered = false;
+    }, 100);
+  }
+});
+
+const bindTouchDir = (id, k) => {
+  const btn = document.getElementById(id);
+  btn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    keys[k] = true;
+  });
+  btn.addEventListener('touchend', e => {
+    e.preventDefault();
+    keys[k] = false;
+  });
+};
+
+bindTouchDir('btn-up', 'w');
+bindTouchDir('btn-down', 's');
+bindTouchDir('btn-left', 'a');
+bindTouchDir('btn-right', 'd');
+
+document.getElementById('btn-a').addEventListener('touchstart', e => {
+  e.preventDefault();
+  if (!actionTriggered) {
+    actionTriggered = true;
+    interact();
+  }
+});
+
+document.getElementById('btn-a').addEventListener('touchend', e => {
+  e.preventDefault();
+  actionTriggered = false;
+});
+
+document.getElementById('btn-b').addEventListener('touchstart', e => {
+  e.preventDefault();
+  keys.b = true;
+});
+
+document.getElementById('btn-b').addEventListener('touchend', e => {
+  e.preventDefault();
+  keys.b = false;
+});
+
+document.getElementById('btn-start').addEventListener('touchstart', e => {
+  e.preventDefault();
+  toggleStartMenu();
+});
+
+loop();
