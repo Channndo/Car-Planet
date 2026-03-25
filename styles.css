@@ -1,7 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-body { margin:0; padding:0; background-color:#111; color:#fff; font-family:'Press Start 2P',cursive; display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; touch-action:none; user-select:none; overflow:hidden; }
-#game-wrapper { position:relative; width:100%; max-width:800px; max-height:100vh; margin:0 auto; height:100vh; background:#000; }
-canvas { display:block; width:100%; height:100%; image-rendering:pixelated; object-fit:contain; }
+
+/* Mobile CSS Reset & Anti-Zooming */
+html, body { width: 100%; height: 100%; margin: 0; padding: 0; background-color: #111; overflow: hidden; }
+body { color:#fff; font-family:'Press Start 2P',cursive; display:flex; flex-direction:column; justify-content:center; align-items:center; touch-action:none; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; }
+
+/* Proper Flex Stacking for Game & Controls */
+#game-wrapper { position:relative; width:100%; max-width:800px; height:100%; margin:0 auto; background:#000; display:flex; flex-direction:column; justify-content:center; }
+canvas { display:block; width:100%; flex:1; min-height:0; image-rendering:pixelated; object-fit:contain; object-position:center; }
+
 #dialogue-container { position:absolute; bottom:220px; left:5%; right:5%; height:130px; display:none; flex-direction:row; gap:10px; z-index:20; }
 #portrait-box { width:120px; height:100%; background:#222; border:4px solid #333; border-radius:8px; box-shadow:inset 0 0 0 2px #aaa; display:flex; justify-content:center; align-items:center; }
 #portrait-canvas { width:100%; height:100%; image-rendering:pixelated; border-radius:4px; }
@@ -12,6 +18,7 @@ canvas { display:block; width:100%; height:100%; image-rendering:pixelated; obje
 #choice-buttons { display:none; position:absolute; bottom:10px; right:10px; gap:10px; }
 .choice-btn { background:#333; color:#fff; border:2px solid #aaa; font-family:'Press Start 2P'; font-size:8px; padding:8px; cursor:pointer; }
 .choice-btn:active { background:#555; }
+
 #start-menu { position:absolute; top:8%; right:4%; width:210px; background:#fff; border:4px solid #333; border-radius:8px; padding:10px; display:none; z-index:30; box-shadow:inset 0 0 0 2px #aaa; }
 #menu-header { color:#000; font-size:10px; padding-bottom:10px; border-bottom:2px solid #333; margin-bottom:5px; text-align:center; line-height:1.5; }
 .menu-item { color:#000; font-size:10px; padding:10px 6px; cursor:pointer; border-bottom:1px solid #ccc; display:flex; justify-content:space-between; align-items:center; }
@@ -19,14 +26,18 @@ canvas { display:block; width:100%; height:100%; image-rendering:pixelated; obje
 .menu-item:last-child { border-bottom:none; }
 .menu-arrow { color:#999; font-size:10px; }
 #menu-footer { color:#555; font-size:8px; padding-top:8px; margin-top:8px; border-top:2px solid #333; text-align:center; line-height:1.4; }
+
 #title-screen { position:absolute; top:0; left:0; width:100%; height:100%; background:#111; z-index:60; display:flex; flex-direction:column; justify-content:center; align-items:center; cursor:pointer; }
 .title-text { font-size:24px; color:#fff; text-shadow:4px 4px #c00; text-align:center; line-height:1.5; }
 .blinking-text { font-size:10px; color:#ccc; animation:blink 1s infinite; margin-top:40px; }
+
 #intro-screen { position:absolute; top:0; left:0; width:100%; height:100%; background:#000; z-index:15; display:flex; flex-direction:column; justify-content:center; align-items:center; display:none; }
 #choice-box, #name-box, #rival-name-box { display:none; flex-direction:column; gap:10px; width:60%; max-width:300px; margin-bottom:220px; }
 .retro-btn { background:#fff; border:4px solid #333; color:#000; font-family:'Press Start 2P'; font-size:10px; padding:15px; cursor:pointer; text-align:left; box-shadow:inset 0 0 0 2px #aaa; }
 .retro-input { width:100%; box-sizing:border-box; background:#fff; border:4px solid #333; color:#000; font-family:'Press Start 2P'; font-size:12px; padding:10px; text-transform:uppercase; text-align:center; }
-#controls { position:absolute; bottom:0; left:0; width:100%; height:200px; pointer-events:none; z-index:100; }
+
+/* Controls sit under the canvas physically in flexbox now */
+#controls { position:relative; width:100%; height:200px; flex-shrink:0; pointer-events:none; z-index:100; }
 .dpad { position:absolute; bottom:20px; left:20px; width:140px; height:140px; }
 .action { position:absolute; bottom:20px; right:20px; width:140px; height:140px; }
 .touch-btn { position:absolute; background:rgba(255,255,255,0.1); border:2px solid rgba(255,255,255,0.3); pointer-events:auto; border-radius:10px; display:flex; justify-content:center; align-items:center; font-size:14px; backdrop-filter:blur(2px); color:#fff; }
@@ -36,4 +47,27 @@ canvas { display:block; width:100%; height:100%; image-rendering:pixelated; obje
 #btn-a { right:0; top:30px; width:60px; height:60px; border-radius:50%; background:rgba(200,0,0,0.3); border-color:#d00; }
 #btn-b { left:0; bottom:10px; width:60px; height:60px; border-radius:50%; background:rgba(0,0,200,0.3); border-color:#00d; }
 #btn-start { left:50%; bottom:20px; transform:translateX(-50%); width:80px; height:30px; border-radius:5px; font-size:10px; }
-@media (min-width:800px) { #controls { display:none; } #game-wrapper { height:auto; aspect-ratio:4/3; } #dialogue-container { bottom:5%; } }
+
+/* DMS Lite CSS */
+#dms-system { position:absolute; top:10%; left:5%; right:5%; bottom:10%; background:#fff; border:4px solid #333; border-radius:8px; z-index:150; display:flex; flex-direction:column; box-shadow:inset 0 0 0 2px #aaa; color:#000; overflow:hidden; }
+#dms-header { background:#333; color:#fff; padding:10px; font-size:10px; display:flex; justify-content:space-between; align-items:center; border-bottom:4px solid #111; }
+#dms-close { cursor:pointer; color:#ff4444; text-shadow:1px 1px #000; padding: 5px; }
+#dms-content { flex:1; padding:15px; overflow-y:auto; background:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABZJREFUeNpi2rVrf2QxAxiwg8QxwCQAAgwAHaQBuxE/VbMAAAAASUVORK5CYII=') repeat; }
+.dms-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap:15px; justify-items:center; }
+.dms-item { width:70px; height:85px; background:#fff; border:2px solid #555; border-radius:6px; display:flex; flex-direction:column; justify-content:center; align-items:center; cursor:pointer; box-shadow: 2px 2px 0px #888; transition:transform 0.1s; }
+.dms-item:active { transform: translateY(2px); box-shadow: 0px 0px 0px #888; }
+.dms-item canvas { width: 48px; height: 48px; image-rendering: pixelated; margin-bottom:5px; }
+.dms-item-label { font-size:6px; color:#111; width:100%; text-align:center; padding:0 2px; box-sizing:border-box; }
+#dms-detail-content { background:#fff; border:2px solid #ccc; padding:15px; border-radius:4px; box-shadow:inset 2px 2px 5px #eee; font-size:8px; line-height:1.8; }
+#dms-detail-content h3 { font-size:12px; margin:0 0 15px 0; padding-bottom:8px; border-bottom:2px dashed #ccc; color:#2244cc; text-transform:uppercase; }
+.dms-label { font-weight:bold; color:#555; display:inline-block; width:80px; }
+.dms-row { margin-bottom:10px; padding-bottom:5px; border-bottom:1px solid #eee; }
+.dms-back-btn { padding:10px; font-size:8px; margin-bottom:15px; display:block; width:100%; text-align:center; }
+
+/* Desktop scaling keeps original look */
+@media (min-width:800px) { 
+    #controls { display:none; } 
+    #game-wrapper { display:block; width:100%; max-width:800px; height:auto; aspect-ratio:4/3; } 
+    canvas { height:100%; }
+    #dialogue-container { bottom:5%; } 
+}
