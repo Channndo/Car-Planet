@@ -70,7 +70,7 @@ canvas { display:block; width:100%; height:100%; image-rendering:pixelated; obje
         <div class="menu-item" onclick="alert('TOOLS screen coming next.')"><span>TOOLS</span><span class="menu-arrow">▶</span></div>
         <div class="menu-item" onclick="saveGame()"><span>SAVE GAME</span><span class="menu-arrow">▶</span></div>
         <div class="menu-item" onclick="alert('OPTIONS screen coming next.')"><span>OPTIONS</span><span class="menu-arrow">▶</span></div>
-        <div class="menu-item" onclick="alert('v1.0.1 - Gold Master Update')"><span>INFO</span><span class="menu-arrow">▶</span></div>
+        <div class="menu-item" onclick="alert('v1.0.2 - Office Details')"><span>INFO</span><span class="menu-arrow">▶</span></div>
         <div id="menu-footer">CAR PLANET MENU</div>
     </div>
     <div id="controls">
@@ -85,7 +85,7 @@ const pCanvas=document.getElementById('portrait-canvas'); const pCtx=pCanvas.get
 const TILE_SIZE=16; const MAP_COLS=20; const MAP_ROWS=15;
 const keys={w:false,a:false,s:false,d:false,space:false,enter:false,b:false};
 let actionTriggered=false, gameState='TITLE', playerDetails={name:"CHANDLER",gender:"Boy",inUniform:false,rivalName:"KASEY",hasRunningShoes:false}, currentMapKey='drive';
-let gameEvents={firstCustomerTriggered:false, currentDay:1, dailyWalkIn:false, dailyAptsCompleted:0, dailyWalkInDone:false, timeMinutes:420, tick:0};
+let gameEvents={firstCustomerTriggered:false, currentDay:1, dailyWalkIn:false, dailyAptsCompleted:0, dailyWalkInDone:false, timeMinutes:420, tick:0, isAfterHours:false};
 let questState={active:false,step:0,talkedToMike:false,assignedTo:null,roNumber:600000};
 let transition={active:false,alpha:0,state:'none',dest:null}, flash={active:false,alpha:0,state:'none'}, currentChoiceType='', activeDialogue=null, activeLine=0;
 
@@ -93,7 +93,7 @@ if(localStorage.getItem('serviceBaySave')) {
     try {
         const s = JSON.parse(localStorage.getItem('serviceBaySave'));
         if(s.playerDetails) playerDetails=s.playerDetails; if(s.currentMapKey) currentMapKey=s.currentMapKey;
-        if(s.gameEvents) { gameEvents=s.gameEvents; if(gameEvents.dailyAptsCompleted===undefined) gameEvents.dailyAptsCompleted = gameEvents.dailyAptDone ? 3 : 0; if(gameEvents.timeMinutes===undefined) gameEvents.timeMinutes=420; if(gameEvents.tick===undefined) gameEvents.tick=0; }
+        if(s.gameEvents) { gameEvents=s.gameEvents; if(gameEvents.dailyAptsCompleted===undefined) gameEvents.dailyAptsCompleted = gameEvents.dailyAptDone ? 3 : 0; if(gameEvents.timeMinutes===undefined) gameEvents.timeMinutes=420; if(gameEvents.tick===undefined) gameEvents.tick=0; if(gameEvents.isAfterHours===undefined) gameEvents.isAfterHours=false; }
         if(s.questState) questState=s.questState;
         if(playerDetails.hasRunningShoes===undefined) playerDetails.hasRunningShoes=false;
         if(!gameEvents.currentDay) gameEvents.currentDay = 1;
@@ -107,9 +107,12 @@ let introIndex=0;
 function startGameFromTitle(){if(gameState==='TITLE'){gameState='INTRO';document.getElementById('title-screen').style.display='none';document.getElementById('intro-screen').style.display='flex';dContainer.style.display='flex';playIntroLine();}}
 function generateEmptyMap(){let m=[];for(let y=0;y<MAP_ROWS;y++){let r=[];for(let x=0;x<MAP_COLS;x++){r.push((y===0||y===MAP_ROWS-1||x===0||x===MAP_COLS-1)?1:0);}m.push(r);}return m;}
 
+// --- MAP DATA LOCKED ---
 const maps={
     drive:{bg:'#cccccc',layout:generateEmptyMap(),warps:[{tx:8,ty:0,to:'shop',px:8,py:13},{tx:9,ty:0,to:'shop',px:9,py:13},{tx:10,ty:0,to:'shop',px:10,py:13},{tx:11,ty:0,to:'shop',px:11,py:13},{tx:16,ty:0,to:'office',px:9,py:13},{tx:18,ty:0,to:'parts',px:10,py:13},{tx:2,ty:14,to:'showroom',px:2,py:1},{tx:18,ty:14,to:'showroom',px:15,py:1},{tx:0,ty:2,to:'parkinglot',px:3,py:4},{tx:0,ty:3,to:'parkinglot',px:3,py:4},{tx:0,ty:4,to:'parkinglot',px:3,py:5},{tx:0,ty:6,to:'parkinglot',px:3,py:7},{tx:0,ty:7,to:'parkinglot',px:3,py:7},{tx:0,ty:8,to:'parkinglot',px:3,py:8},{tx:0,ty:10,to:'parkinglot',px:3,py:10},{tx:19,ty:2,to:'parkinglot',px:16,py:4},{tx:19,ty:3,to:'parkinglot',px:16,py:4},{tx:19,ty:4,to:'parkinglot',px:16,py:5},{tx:19,ty:6,to:'parkinglot',px:16,py:7},{tx:19,ty:7,to:'parkinglot',px:16,py:7},{tx:19,ty:8,to:'parkinglot',px:16,py:8}],
-    npcs:[{id:'mike',tx:6,ty:4,color:'#e8b898',shirt:'#2c5a8c',sleeves:'long',hair:'#111',name:'MIKE',charCode:'MIKE',dialogue:["Are you finally in uniform?\nGet back to the locker room!"]},{id:'whitney',tx:7,ty:11,color:'#c68642',shirt:'#111',sleeves:'long',hair:'#111',name:'WHITNEY',charCode:'WHITNEY',dialogue:["CSI is down this month.\nDon't mess up my numbers."]},{id:'ryan',tx:11,ty:11,color:'#ffccaa',shirt:'#111',sleeves:'long',hair:null,name:'RYAN',charCode:'RYAN',dialogue:["I've been on hold with\nextended warranty for an hour."]},{id:'zack',tx:15,ty:11,color:'#ffdbac',shirt:'#111',sleeves:'long',hair:'#4a3121',name:'ZACK',charCode:'ZACK',dialogue:["Did the parts for that\nAltima come in yet?"]},{id:'desk',tx:3,ty:11,isObject:true,name:'YOUR DESK',charCode:'OBJ',dialogue:["Your assigned Advisor Desk."]},{id:'customer_car',tx:4,ty:3,isObject:true,charCode:'CAR',hidden:true,name:'BROKEN CAR',dialogue:["It smells like burnt clutch\nand bad decisions."]},{id:'angry_customer',tx:8,ty:3,color:'#ffccaa',shirt:'#cc2222',sleeves:'short',hair:'#222',name:'JOHN HUGHES',charCode:'CUSTOMER',hidden:true,dialogue:[]}]},
+    npcs:[{id:'mike',tx:6,ty:4,color:'#e8b898',shirt:'#2c5a8c',sleeves:'long',hair:'#111',name:'MIKE',charCode:'MIKE',dialogue:["Are you finally in uniform?\nGet back to the locker room!"]},{id:'whitney',tx:7,ty:11,color:'#c68642',shirt:'#111',sleeves:'long',hair:'#111',name:'WHITNEY',charCode:'WHITNEY',dialogue:["CSI is down this month.\nDon't mess up my numbers."]},{id:'ryan',tx:11,ty:11,color:'#ffccaa',shirt:'#111',sleeves:'long',hair:null,name:'RYAN',charCode:'RYAN',dialogue:["I've been on hold with\nextended warranty for an hour."]},{id:'zack',tx:15,ty:11,color:'#ffdbac',shirt:'#111',sleeves:'long',hair:'#4a3121',name:'ZACK',charCode:'ZACK',dialogue:["Did the parts for that\nAltima come in yet?"]},{id:'desk',tx:3,ty:11,isObject:true,name:'YOUR DESK',charCode:'OBJ',dialogue:["Your assigned Advisor Desk."]},{id:'customer_car',tx:4,ty:3,isObject:true,charCode:'CAR',hidden:true,name:'BROKEN CAR',dialogue:["It smells like burnt clutch\nand bad decisions."]},{id:'angry_customer',tx:8,ty:3,color:'#ffccaa',shirt:'#cc2222',sleeves:'short',hair:'#222',name:'JOHN HUGHES',charCode:'CUSTOMER',hidden:true,dialogue:[]},
+    {id:'zack_cust',tx:14,ty:12,color:'#ffccaa',shirt:'#22aa22',sleeves:'short',hair:'#444',name:'FRANK',charCode:'CUSTOMER',hidden:true,dialogue:["Bronson worked on this yesterday!","Now it's blowing smoke everywhere!"]},
+    {id:'zack_car',tx:12,ty:12,isObject:true,charCode:'CAR',hidden:true,name:'SMOKING CAR',dialogue:["It smells terrible.","*Cough* *Cough*"]}]},
     shop:{bg:'#5a5a5a',layout:generateEmptyMap(),warps:[{tx:8,ty:14,to:'drive',px:8,py:1},{tx:9,ty:14,to:'drive',px:9,py:1},{tx:10,ty:14,to:'drive',px:10,py:1},{tx:11,ty:14,to:'drive',px:11,py:1},{tx:19,ty:2,to:'bodyshop',px:1,py:7},{tx:19,ty:7,to:'breakroom',px:1,py:7},{tx:19,ty:12,to:'parts',px:1,py:7},{tx:17,ty:14,to:'office',px:16,py:1},{tx:18,ty:14,to:'office',px:16,py:1},{tx:9,ty:0,to:'parkinglot',px:9,py:2},{tx:10,ty:0,to:'parkinglot',px:10,py:2}],
     npcs:[{id:'rival',tx:6,ty:10,color:'#ffccaa',shirt:'#111',sleeves:'short',hair:'#d4a017',name:'KASEY',charCode:'RIVAL',dialogue:["I'm taking a break.\nI only wrench for Mike\nor Ryan anyway."]},
     {id:'joe',tx:4,ty:6,color:'#ffdbac',shirt:'#111',sleeves:'short',hair:'#222',name:'JOE',charCode:'JOE',isShort:true,dialogue:["I'm a Senior Master Tech.\nI don't have time for basic ROs.", "And yeah, I bought the biggest\ntoolbox. Gotta compensate\nfor something, right?"]},
@@ -129,7 +132,16 @@ const maps={
         {id:'adam',tx:5,ty:8,color:'#ffdbac',shirt:'#888',sleeves:'short',hair:'#111',name:'ADAM',charCode:'ADAM',dir:'left',acc:{beard:'#111',glasses:true},dialogue:["I think I ordered a\nwiper blade instead of an alternator.", "Is that bad?"]},
         {id:'jerry',tx:16,ty:2,color:'#ffdbac',shirt:'#fff',sleeves:'long',hair:'#fff',name:'JERRY',charCode:'JERRY',dir:'down',acc:{beard:'#fff',glasses:true},dialogue:["I've run this department for 30 years.", "These advisors don't know a spark plug\nfrom a strut.", "Eric is a good kid. The rest\nof them? Useless.", "Have I shown you pictures\nof my son Kevin?"]}
     ]},
-    office:{bg:'#5a5a5a',layout:generateEmptyMap(),warps:[{tx:9,ty:14,to:'drive',px:16,py:1},{tx:10,ty:14,to:'drive',px:16,py:1},{tx:9,ty:0,to:'shop',px:17,py:13},{tx:10,ty:0,to:'shop',px:18,py:13}],npcs:[{id:'rick_desk',tx:10,ty:5,isObject:true,name:'BOSS DESK',charCode:'OBJ',dialogue:["Mike's desk.\nIt's covered in spreadsheets."]},{id:'mike',tx:10,ty:6,color:'#e8b898',shirt:'#2c5a8c',sleeves:'long',hair:'#111',name:'MIKE',charCode:'MIKE',hidden:true,dialogue:["What are you doing in here?\nGet back out on the drive!"]}]},
+    office:{bg:'#5a5a5a',layout:generateEmptyMap(),warps:[{tx:9,ty:14,to:'drive',px:16,py:1},{tx:10,ty:14,to:'drive',px:16,py:1},{tx:9,ty:0,to:'shop',px:17,py:13},{tx:10,ty:0,to:'shop',px:18,py:13}],npcs:[
+    {id:'rick_desk',tx:9,ty:6,isObject:true,name:'BOSS DESK',charCode:'OBJ',dialogue:["Mike's desk.\nIt's covered in spreadsheets."]},
+    {id:'rick_desk2',tx:10,ty:6,isObject:true,name:'BOSS PC',charCode:'OBJ',dialogue:["Mike's computer.\nHe's checking your timesheets."]},
+    {id:'trophy_case',tx:4,ty:1,isObject:true,name:'TROPHY CASE',charCode:'OBJ',dialogue:["Dealership of the Year!"]},
+    {id:'trophy_case2',tx:5,ty:1,isObject:true,name:'TROPHY CASE',charCode:'OBJ',dialogue:["Top Service Department."]},
+    {id:'mike',tx:10,ty:5,color:'#e8b898',shirt:'#2c5a8c',sleeves:'long',hair:'#111',name:'MIKE',charCode:'MIKE',hidden:true,dir:'down',dialogue:["What are you doing in here?\nGet back out on the drive!"]},
+    {id:'office_ryan',tx:9,ty:7,color:'#ffccaa',shirt:'#111',sleeves:'long',hair:null,name:'RYAN',charCode:'RYAN',hidden:true,dir:'up',dialogue:["Mike is in a mood today."]},
+    {id:'office_zack',tx:11,ty:7,color:'#ffdbac',shirt:'#111',sleeves:'long',hair:'#4a3121',name:'ZACK',charCode:'ZACK',hidden:true,dir:'up',dialogue:["I can't believe Bronson."]},
+    {id:'office_whitney',tx:10,ty:8,color:'#c68642',shirt:'#111',sleeves:'long',hair:'#111',name:'WHITNEY',charCode:'WHITNEY',hidden:true,dir:'up',dialogue:["Meeting tomorrow? Ugh."]}
+    ]},
     showroom:{bg:'#fdfdfd',layout:generateEmptyMap(),warps:[{tx:2,ty:0,to:'drive',px:2,py:13},{tx:15,ty:0,to:'drive',px:18,py:13},{tx:9,ty:14,to:'parkinglot',px:9,py:12},{tx:10,ty:14,to:'parkinglot',px:10,py:12},{tx:0,ty:12,to:'parkinglot',px:3,py:9},{tx:0,ty:13,to:'parkinglot',px:3,py:9},{tx:19,ty:12,to:'parkinglot',px:16,py:9},{tx:19,ty:13,to:'parkinglot',px:16,py:9},
     {tx:0,ty:4,to:'lux_restroom',px:18,py:7}, {tx:0,ty:7,to:'lux_restroom',px:18,py:7}], 
     npcs:[
@@ -139,8 +151,6 @@ const maps={
     ]},
     lux_restroom:{bg:'#fdfdfd',layout:generateEmptyMap(),warps:[{tx:19,ty:7,to:'showroom',px:1,py:7}],npcs:[]},
     bodyshop:{bg:'#5a5a5a',layout:generateEmptyMap(),warps:[{tx:0,ty:7,to:'shop',px:18,py:2}],npcs:[{id:'bodytech',tx:10,ty:7,color:'#dcb',shirt:'#555',sleeves:'long',hair:'#111',name:'BODY TECH',charCode:'OBJ',dialogue:["(Sanding sounds drown\nout your voice)"]}]},
-    
-    // RESTORED ORIGINAL EXTERIOR PARKING LOT
     parkinglot:{bg:'#111111',layout:generateEmptyMap(),warps:[{tx:9,ty:3,to:'shop',px:9,py:1},{tx:10,ty:3,to:'shop',px:10,py:1},{tx:4,ty:4,to:'drive',px:1,py:3},{tx:4,ty:5,to:'drive',px:1,py:4},{tx:4,ty:7,to:'drive',px:1,py:7},{tx:4,ty:8,to:'drive',px:1,py:8},{tx:4,ty:10,to:'drive',px:1,py:10},{tx:15,ty:4,to:'drive',px:18,py:3},{tx:15,ty:5,to:'drive',px:18,py:4},{tx:15,ty:7,to:'drive',px:18,py:7},{tx:15,ty:8,to:'drive',px:18,py:8},{tx:9,ty:11,to:'showroom',px:9,py:13},{tx:10,ty:11,to:'showroom',px:10,py:13},{tx:4,ty:9,to:'showroom',px:1,py:12},{tx:15,ty:9,to:'showroom',px:18,py:12}],npcs:[]}
 };
 
@@ -174,6 +184,13 @@ maps.parts.layout[5][15] = 0; maps.parts.layout[3][16] = 34;
 for(let y=2; y<=8; y++) { maps.parts.layout[y][8]=29; maps.parts.layout[y][9]=29; }
 maps.parts.layout[8][16] = 30;
 
+let ol = maps.office.layout;
+ol[14][9]=9; ol[14][10]=9; 
+ol[0][9]=9; ol[0][10]=9;
+ol[6][9]=34; ol[6][10]=34; 
+ol[8][9]=12; ol[8][10]=12; 
+ol[1][4]=36; ol[1][5]=36;
+
 shl[0][2]=9;shl[0][15]=9;shl[14][9]=9;shl[14][10]=9;shl[12][0]=8;shl[13][0]=8;shl[12][19]=8;shl[13][19]=8;
 shl[12][2]=13;shl[12][6]=13;shl[12][13]=13;shl[12][17]=13;shl[4][0]=9; shl[7][0]=9; 
 for(let y=2;y<=9;y++)shl[y][15]=16; for(let x=15;x<=18;x++)shl[9][x]=16; shl[9][16]=0;shl[6][17]=13;
@@ -181,15 +198,14 @@ shl[4][4]=18;shl[4][5]=19;shl[7][4]=14;shl[7][5]=14;shl[6][3]=17; shl[4][10]=18;
 
 maps.bodyshop.layout[7][0]=9;
 
-// ORIGINAL EXTERIOR LAYOUT RESTORED EXACTLY
-for(let y=0;y<15;y++){for(let x=0;x<20;x++){pl[y][x]=0;}}
+for(let y=0;y<15;y++){for(let x=0;x<20;x++){pl[y][x]=0;}} 
 for(let y=3;y<=11;y++){for(let x=4;x<=15;x++){pl[y][x]=2;}}
 pl[3][9]=8;pl[3][10]=8;pl[4][4]=8;pl[5][4]=9;pl[7][4]=8;pl[8][4]=9;pl[9][4]=9;pl[10][4]=8;pl[4][15]=8;pl[5][15]=9;pl[7][15]=8;pl[8][15]=9;pl[10][15]=8;pl[11][9]=9;pl[11][10]=9;
 
 if(playerDetails.inUniform){let dm=maps.drive.npcs.find(n=>n.id==='mike'); if(dm) dm.hidden=true; let om=maps.office.npcs.find(n=>n.id==='mike'); if(om) om.hidden=false;}
 if(questState.step>=5){let dc=maps.drive.npcs.find(n=>n.id==='customer_car'); if(dc) dc.hidden=true; let ac=maps.drive.npcs.find(n=>n.id==='angry_customer'); if(ac) ac.hidden=true; let sc=maps.shop.npcs.find(n=>n.id==='shop_car'); if(sc) sc.hidden=false;}
 
-if(questState.step >= 8) {
+if(questState.step >= 8 && !gameEvents.isAfterHours) {
     let cust = maps.drive.npcs.find(n => n.id === 'angry_customer');
     let car = maps.drive.npcs.find(n => n.id === 'customer_car');
     let sc = maps.shop.npcs.find(n=>n.id==='shop_car');
@@ -244,6 +260,8 @@ function drawPortrait(c) {
     else {pR(0,0,64,64,'#111');}
 }
 
+function resetChoices() { cBox.innerHTML = '<button class="choice-btn" onclick="makeChoice(\'YES\', event)">YES</button><button class="choice-btn" onclick="makeChoice(\'NO\', event)">NO</button>'; }
+
 function checkChoiceTrigger(){
     let txt = activeDialogue[activeLine];
     if(txt==="[CHOICE_MIKE_YESNO]"){currentChoiceType='MIKE';dText.innerText="Did you talk to Mike\nabout this ticket?";cBox.style.display='flex';arrow.style.display='none';}
@@ -252,8 +270,56 @@ function checkChoiceTrigger(){
     else if(txt==="[CHOICE_CHECKIN_DAILY]"){currentChoiceType='CHECKIN_DAILY';dText.innerText="Check in the scheduled appointment?";cBox.style.display='flex';arrow.style.display='none';}
     else if(txt==="[CHOICE_CHECKIN_WALKIN]"){currentChoiceType='CHECKIN_WALKIN';dText.innerText="Check in the unexpected walk-in?";cBox.style.display='flex';arrow.style.display='none';}
     else if(txt==="[CHOICE_SAVE_GAME]"){currentChoiceType='SAVE_GAME';dText.innerText="Would you like to save the game?";cBox.style.display='flex';arrow.style.display='none';}
+    else if(txt==="[CHOICE_PC_MAIN]"){
+        currentChoiceType='PC_MAIN'; dText.innerText="Select an option:";
+        cBox.innerHTML = '<button class="choice-btn" onclick="makeChoice(\'TIME_CLOCK\', event)">TIME CLOCK</button><button class="choice-btn" onclick="makeChoice(\'OPEN_ROS\', event)">OPEN ROs</button><button class="choice-btn" onclick="makeChoice(\'CLOSED_ROS\', event)">CLOSED ROs</button><button class="choice-btn" onclick="makeChoice(\'EXIT\', event)">EXIT</button>';
+        cBox.style.display='flex'; arrow.style.display='none';
+    }
 }
-function makeChoice(val,e){e.stopPropagation();cBox.style.display='none';arrow.style.display='block';if(currentChoiceType==='CHECKIN'){if(val==='NO'){activeDialogue=["You backed away from the vehicle."];activeLine=0;dText.innerText=activeDialogue[0];}if(val==='YES'){questState.step=2;activeDialogue=["Vehicle checked in.\nGo to your computer to write the RO."];activeLine=0;dText.innerText=activeDialogue[0];}}else if(currentChoiceType==='MIKE'){if(val==='NO'){activeDialogue=["I'm not working on that until\nyou talk to Mike."];activeLine=0;dText.innerText=activeDialogue[0];}if(val==='YES'){if(!questState.talkedToMike){activeDialogue=["Don't lie to me.\nI didn't hear him page me."];activeLine=0;dText.innerText=activeDialogue[0];}else{if(questState.assignedTo===dName.innerText){activeDialogue=["Mike sent you? Fine, pull it\ninto my bay.","Hope there's no comebacks\non this one..."];activeLine=0;dText.innerText=activeDialogue[0];questState.step=4;}else{activeDialogue=["Mike didn't assign that to me.\nKick rocks."];activeLine=0;dText.innerText=activeDialogue[0];}}}}else if(currentChoiceType==='END_SHIFT'){if(val==='NO'){activeDialogue=["You close the locker."];activeLine=0;dText.innerText=activeDialogue[0];}if(val==='YES'){gameEvents.currentDay=(gameEvents.currentDay||1)+1;gameEvents.dailyWalkIn=Math.random()<0.3;gameEvents.dailyAptsCompleted=0;gameEvents.dailyWalkInDone=false;gameEvents.timeMinutes=420;gameEvents.tick=0;questState.step=8;let cust=maps.drive.npcs.find(n=>n.id==='angry_customer');let car=maps.drive.npcs.find(n=>n.id==='customer_car');let sc=maps.shop.npcs.find(n=>n.id==='shop_car');if(cust){cust.hidden=false;cust.name="APPOINTMENT";cust.dialogue=["I'm here for my morning\nservice."];}if(car){car.hidden=false;car.name="CLIENT CAR";car.dialogue=["Ready for routine\nmaintenance."];}if(sc)sc.hidden=false;triggerFlash();activeDialogue=gameEvents.dailyWalkIn?["Day "+gameEvents.currentDay+" begins.\nYou have 3 appointments.","Expect a walk-in later.","[P.A. SYSTEM]\n"+playerDetails.name+" to the service drive,\nguest is waiting."]:["Day "+gameEvents.currentDay+" begins.\nYou have 3 appointments.","[P.A. SYSTEM]\n"+playerDetails.name+" to the service drive,\nguest is waiting."];activeLine=0;dText.innerText=activeDialogue[0];dName.innerText="SYSTEM";drawPortrait('NONE');}}else if(currentChoiceType==='CHECKIN_DAILY'){if(val==='NO'){activeDialogue=["You ignored the vehicle."];activeLine=0;dText.innerText=activeDialogue[0];}if(val==='YES'){gameEvents.dailyAptsCompleted++;questState.roNumber++;let cust=maps.drive.npcs.find(n=>n.id==='angry_customer');let car=maps.drive.npcs.find(n=>n.id==='customer_car');if(gameEvents.dailyAptsCompleted<3){let nApt=gameEvents.dailyAptsCompleted===1?"mid-day":"afternoon";activeDialogue=["RO #"+questState.roNumber+" printed!\nYour "+nApt+" appointment\nhas arrived.","[P.A. SYSTEM]\n"+playerDetails.name+" to the service drive,\nguest is waiting."];if(cust){cust.name="APPOINTMENT";cust.dialogue=["I'm here for my "+nApt+"\nappointment."];}}else if(gameEvents.dailyWalkIn){activeDialogue=["RO #"+questState.roNumber+" printed!\nWait, another car just pulled up.\nIt's a walk-in!","[P.A. SYSTEM]\n"+playerDetails.name+" to the service drive,\nguest is waiting."];if(cust){cust.name="WALK-IN";cust.dialogue=["Can you squeeze me in?"];}if(car){car.name="WALK-IN CAR";car.dialogue=["Needs a diagnostic."];}}else{activeDialogue=["RO #"+questState.roNumber+" printed!\nThat's it for today.\nEnd your shift at your locker."];if(cust)cust.hidden=true;if(car)car.hidden=true;}activeLine=0;dText.innerText=activeDialogue[0];}}else if(currentChoiceType==='CHECKIN_WALKIN'){if(val==='NO'){activeDialogue=["You ignored the vehicle."];activeLine=0;dText.innerText=activeDialogue[0];}if(val==='YES'){gameEvents.dailyWalkInDone=true;questState.roNumber++;let cust=maps.drive.npcs.find(n=>n.id==='angry_customer');let car=maps.drive.npcs.find(n=>n.id==='customer_car');if(cust)cust.hidden=true;if(car)car.hidden=true;activeDialogue=["RO #"+questState.roNumber+" printed!\nThe drive is empty.","Time to hit the locker room."];activeLine=0;dText.innerText=activeDialogue[0];}}else if(currentChoiceType==='SAVE_GAME'){if(val==='NO'){activeDialogue=["Save cancelled."];activeLine=0;dText.innerText=activeDialogue[0];}if(val==='YES'){const data={player,playerDetails,currentMapKey,gameEvents,questState};localStorage.setItem('serviceBaySave',JSON.stringify(data));activeDialogue=["Saving...\nDon't turn off the power.",playerDetails.name+" saved the game!"];activeLine=0;dText.innerText=activeDialogue[0];}}}
+
+function makeChoice(val,e){
+    e.stopPropagation(); cBox.style.display='none'; arrow.style.display='block';
+    
+    if(currentChoiceType==='PC_MAIN'){
+        resetChoices();
+        if(val==='EXIT'){ activeDialogue=["Logged off."]; activeLine=0; dText.innerText=activeDialogue[0]; } 
+        else if(val==='OPEN_ROS'){ activeDialogue=["You have 3 Open ROs.\nAll waiting on parts."]; activeLine=0; dText.innerText=activeDialogue[0]; } 
+        else if(val==='CLOSED_ROS'){ activeDialogue=["0 Closed ROs.\nDave is going to yell at you."]; activeLine=0; dText.innerText=activeDialogue[0]; } 
+        else if(val==='TIME_CLOCK'){
+            if(questState.step>=8 || gameEvents.timeMinutes >= 1080) {
+                activeDialogue=["End your shift and clock out?","[CHOICE_END_SHIFT]"];
+                activeLine=0; dText.innerText=activeDialogue[0];
+                checkChoiceTrigger(); 
+            } else { activeDialogue=["Your shift isn't over yet!"]; activeLine=0; dText.innerText=activeDialogue[0]; }
+        }
+        return;
+    }
+    
+    resetChoices();
+    if(currentChoiceType==='CHECKIN'){if(val==='NO'){activeDialogue=["You backed away from the vehicle."];activeLine=0;dText.innerText=activeDialogue[0];}if(val==='YES'){questState.step=2;activeDialogue=["Vehicle checked in.\nGo to your computer to write the RO."];activeLine=0;dText.innerText=activeDialogue[0];}}
+    else if(currentChoiceType==='MIKE'){if(val==='NO'){activeDialogue=["I'm not working on that until\nyou talk to Mike."];activeLine=0;dText.innerText=activeDialogue[0];}if(val==='YES'){if(!questState.talkedToMike){activeDialogue=["Don't lie to me.\nI didn't hear him page me."];activeLine=0;dText.innerText=activeDialogue[0];}else{if(questState.assignedTo===dName.innerText){activeDialogue=["Mike sent you? Fine, pull it\ninto my bay.","Hope there's no comebacks\non this one..."];activeLine=0;dText.innerText=activeDialogue[0];questState.step=4;}else{activeDialogue=["Mike didn't assign that to me.\nKick rocks."];activeLine=0;dText.innerText=activeDialogue[0];}}}}
+    else if(currentChoiceType==='END_SHIFT'){
+        if(val==='NO'){activeDialogue=["You backed away from the terminal."];activeLine=0;dText.innerText=activeDialogue[0];}
+        if(val==='YES'){
+            gameEvents.currentDay=(gameEvents.currentDay||1)+1;gameEvents.dailyWalkIn=Math.random()<0.3;gameEvents.dailyAptsCompleted=0;gameEvents.dailyWalkInDone=false;gameEvents.timeMinutes=420;gameEvents.tick=0;
+            gameEvents.isAfterHours = false; gameEvents.meeting = false; gameEvents.zackComeback = false; gameEvents.lightsOut = false; questState.step=8;
+            Object.values(maps).forEach(m => { m.npcs.forEach(n => {
+                n.hidden = false;
+                if(n.id==='customer_car' || n.id==='angry_customer' || n.id==='shop_car') n.hidden=true;
+                if(n.id==='mike' && m===maps.office) n.hidden=false; if(n.id==='mike' && m===maps.drive) n.hidden=true;
+                if(n.id==='zack_cust' || n.id==='zack_car') n.hidden=true; if(n.id.startsWith('office_')) n.hidden=true;
+            });});
+            let cust=maps.drive.npcs.find(n=>n.id==='angry_customer');let car=maps.drive.npcs.find(n=>n.id==='customer_car');let sc=maps.shop.npcs.find(n=>n.id==='shop_car');
+            if(cust){cust.hidden=false;cust.name="APPOINTMENT";cust.dialogue=["I'm here for my morning\nservice."];}if(car){car.hidden=false;car.name="CLIENT CAR";car.dialogue=["Ready for routine\nmaintenance."];}if(sc)sc.hidden=false;
+            triggerFlash();activeDialogue=gameEvents.dailyWalkIn?["Day "+gameEvents.currentDay+" begins.\nYou have 3 appointments.","Expect a walk-in later.","[P.A. SYSTEM]\n"+playerDetails.name+" to the service drive,\nguest is waiting."]:["Day "+gameEvents.currentDay+" begins.\nYou have 3 appointments.","[P.A. SYSTEM]\n"+playerDetails.name+" to the service drive,\nguest is waiting."];
+            activeLine=0;dText.innerText=activeDialogue[0];dName.innerText="SYSTEM";drawPortrait('NONE');
+        }
+    }
+    else if(currentChoiceType==='CHECKIN_DAILY'){if(val==='NO'){activeDialogue=["You ignored the vehicle."];activeLine=0;dText.innerText=activeDialogue[0];}if(val==='YES'){gameEvents.dailyAptsCompleted++;questState.roNumber++;let cust=maps.drive.npcs.find(n=>n.id==='angry_customer');let car=maps.drive.npcs.find(n=>n.id==='customer_car');if(gameEvents.dailyAptsCompleted<3){let nApt=gameEvents.dailyAptsCompleted===1?"mid-day":"afternoon";activeDialogue=["RO #"+questState.roNumber+" printed!\nYour "+nApt+" appointment\nhas arrived.","[P.A. SYSTEM]\n"+playerDetails.name+" to the service drive,\nguest is waiting."];if(cust){cust.name="APPOINTMENT";cust.dialogue=["I'm here for my "+nApt+"\nappointment."];}}else if(gameEvents.dailyWalkIn){activeDialogue=["RO #"+questState.roNumber+" printed!\nWait, another car just pulled up.\nIt's a walk-in!","[P.A. SYSTEM]\n"+playerDetails.name+" to the service drive,\nguest is waiting."];if(cust){cust.name="WALK-IN";cust.dialogue=["Can you squeeze me in?"];}if(car){car.name="WALK-IN CAR";car.dialogue=["Needs a diagnostic."];}}else{activeDialogue=["RO #"+questState.roNumber+" printed!\nThat's it for today.\nEnd your shift at your computer."];if(cust)cust.hidden=true;if(car)car.hidden=true;}activeLine=0;dText.innerText=activeDialogue[0];}}
+    else if(currentChoiceType==='CHECKIN_WALKIN'){if(val==='NO'){activeDialogue=["You ignored the vehicle."];activeLine=0;dText.innerText=activeDialogue[0];}if(val==='YES'){gameEvents.dailyWalkInDone=true;questState.roNumber++;let cust=maps.drive.npcs.find(n=>n.id==='angry_customer');let car=maps.drive.npcs.find(n=>n.id==='customer_car');if(cust)cust.hidden=true;if(car)car.hidden=true;activeDialogue=["RO #"+questState.roNumber+" printed!\nThe drive is empty.","Time to clock out at your computer."];activeLine=0;dText.innerText=activeDialogue[0];}}
+    else if(currentChoiceType==='SAVE_GAME'){if(val==='NO'){activeDialogue=["Save cancelled."];activeLine=0;dText.innerText=activeDialogue[0];}if(val==='YES'){const data={player,playerDetails,currentMapKey,gameEvents,questState};localStorage.setItem('serviceBaySave',JSON.stringify(data));activeDialogue=["Saving...\nDon't turn off the power.",playerDetails.name+" saved the game!"];activeLine=0;dText.innerText=activeDialogue[0];}}
+}
+
 function triggerFlash(){gameState='FLASH';flash.active=true;flash.alpha=0;flash.state='fade_out';}
 function playIntroLine(){
     let step=introScript[introIndex];if(!step)return;
@@ -279,6 +345,13 @@ function advanceDialogue(){
     }else if(activeDialogue){
         activeLine++;
         if(activeLine>=activeDialogue.length){
+            if(gameEvents.pendingMeetingTeleport) {
+                gameEvents.pendingMeetingTeleport = false;
+                gameState = 'TRANSITION'; transition.active = true; transition.alpha = 0; transition.state = 'fade_out';
+                transition.dest = {to: 'office', px: 9, py: 8, isMeeting: true};
+                dContainer.style.display='none'; activeDialogue=null;
+                return;
+            }
             if(dName.innerText==='YOUR LOCKER'&&!playerDetails.inUniform){
                 playerDetails.inUniform=true;
                 let dm=maps.drive.npcs.find(n=>n.id==='mike');if(dm)dm.hidden=true;
@@ -296,10 +369,10 @@ function advanceDialogue(){
     }
 }
 
-function interact(){if(gameState==='TITLE'){startGameFromTitle();return;}if(gameState==='INTRO'||activeDialogue||gameState==='TRANSITION'||gameState==='CUTSCENE'||gameState==='FLASH'){advanceDialogue();return;}let tx=player.tx;let ty=player.ty;if(player.dir==='up')ty--;if(player.dir==='down')ty++;if(player.dir==='left')tx--;if(player.dir==='right')tx++;const npc=maps[currentMapKey].npcs.find(n=>{if(n.hidden)return false;if(n.charCode==='CAR'||n.charCode==='SUV_BLACK')return(tx>=n.tx&&tx<=n.tx+2&&ty>=n.ty&&ty<=n.ty+1);return n.tx===tx&&n.ty===ty;});if(npc){dContainer.style.display='flex';dName.innerText=npc.name;if(npc.id==='locker'){if(questState.step>=8){activeDialogue=["End your shift and advance\nto Day "+(gameEvents.currentDay+1)+"?","[CHOICE_END_SHIFT]"];}else if(questState.step===7){activeDialogue=["Your shift isn't over.\nYou have a noon appointment."];}else{activeDialogue=npc.dialogue;}}else if(questState.active&&questState.step>=1&&questState.step<=4){if(questState.step===1&&npc.id==='customer_car'){activeDialogue=["[CHOICE_CHECKIN_YESNO]"];}else if(questState.step===2&&npc.id==='desk'){activeDialogue=["Writing Repair Order...\nRO #"+questState.roNumber+" printed!","Take it to Mike to dispatch."];questState.roNumber++;questState.step=3;}else if(questState.step>=3&&npc.id==='mike'){activeDialogue=["An engine knocking?\nSounds heavy.","Vinnie won't touch engine work.\nGive it to Bronson."];questState.talkedToMike=true;questState.assignedTo='BRONSON';}else if(questState.step>=3&&['rival','joe','vinnie','bronson'].includes(npc.id)){activeDialogue=["[CHOICE_MIKE_YESNO]"];}else if(npc.id==='angry_customer'){activeDialogue=["What are you doing?!\nI thought you were supposed\nto be getting my car fixed!"];}else{activeDialogue=npc.dialogue;}}else if(questState.active&&questState.step>=5&&questState.step<8){if(questState.step===5&&npc.id==='desk'){activeDialogue=["You have a new email from MIKE:\n\"Come into my office.\""];questState.step=6;}else if(questState.step===6&&npc.id==='mike'){activeDialogue=["Nice work getting that\nout to Bronson.","You're gonna want to keep\nan eye on this ticket.","This guy can either be your\nbest friend or your worst enemy.","By the way, I saw the way\nyou were moving out there.","Gonna have to pick it up.","I got this pair of non-slip\nrunning shoes for you.", "Your next appointment\nisn't until noon.", "Go find something to do."];}else{activeDialogue=npc.dialogue;}}else if(questState.active&&questState.step>=8){if(npc.id==='customer_car'){if(gameEvents.dailyAptsCompleted<3){activeDialogue=["[CHOICE_CHECKIN_DAILY]"];}else if(gameEvents.dailyWalkIn&&!gameEvents.dailyWalkInDone){activeDialogue=["[CHOICE_CHECKIN_WALKIN]"];}else{activeDialogue=["The drive is clear."];}}else if(npc.id==='angry_customer'){if(gameEvents.dailyAptsCompleted<3){let t=gameEvents.dailyAptsCompleted===0?"morning":gameEvents.dailyAptsCompleted===1?"mid-day":"afternoon";activeDialogue=["I'm here for my "+t+" appointment.\nAre you going to check me in?"];}else if(gameEvents.dailyWalkIn&&!gameEvents.dailyWalkInDone){activeDialogue=["I don't have an appointment,\ncan you squeeze me in?"];}else{activeDialogue=["Thanks for the help!"];}}else if(npc.id==='mike'){activeDialogue=["Keep the drive moving, Chandler.\nDay "+gameEvents.currentDay+" is busy."];}else if(npc.id==='desk'){activeDialogue=["RO System active.\nCurrent RO: #"+questState.roNumber];}else{activeDialogue=npc.dialogue;}}else{activeDialogue=npc.dialogue;}activeLine=0;dText.innerText=activeDialogue[0];drawPortrait(npc.charCode);checkChoiceTrigger();if(!npc.isObject){npc.dir=player.dir==='up'?'down':player.dir==='down'?'up':player.dir==='left'?'right':'left';}}}
+function interact(){if(gameState==='TITLE'){startGameFromTitle();return;}if(gameState==='INTRO'||activeDialogue||gameState==='TRANSITION'||gameState==='CUTSCENE'||gameState==='FLASH'){advanceDialogue();return;}let tx=player.tx;let ty=player.ty;if(player.dir==='up')ty--;if(player.dir==='down')ty++;if(player.dir==='left')tx--;if(player.dir==='right')tx++;const npc=maps[currentMapKey].npcs.find(n=>{if(n.hidden)return false;if(n.charCode==='CAR'||n.charCode==='SUV_BLACK')return(tx>=n.tx&&tx<=n.tx+2&&ty>=n.ty&&ty<=n.ty+1);return n.tx===tx&&n.ty===ty;});if(npc){dContainer.style.display='flex';dName.innerText=npc.name;if(npc.id==='locker'){activeDialogue=["It's your locker.","It smells like stale cologne."];}else if(npc.id==='desk'){activeDialogue=["Car Planet OS\nWhat would you like to do?","[CHOICE_PC_MAIN]"];}else if(questState.active&&questState.step>=1&&questState.step<=4){if(questState.step===1&&npc.id==='customer_car'){activeDialogue=["[CHOICE_CHECKIN_YESNO]"];}else if(questState.step===2&&npc.id==='desk'){activeDialogue=["Writing Repair Order...\nRO #"+questState.roNumber+" printed!","Take it to Mike to dispatch."];questState.roNumber++;questState.step=3;}else if(questState.step>=3&&npc.id==='mike'){activeDialogue=["An engine knocking?\nSounds heavy.","Vinnie won't touch engine work.\nGive it to Bronson."];questState.talkedToMike=true;questState.assignedTo='BRONSON';}else if(questState.step>=3&&['rival','joe','vinnie','bronson'].includes(npc.id)){activeDialogue=["[CHOICE_MIKE_YESNO]"];}else if(npc.id==='angry_customer'){activeDialogue=["What are you doing?!\nI thought you were supposed\nto be getting my car fixed!"];}else{activeDialogue=npc.dialogue;}}else if(questState.active&&questState.step>=5&&questState.step<8){if(questState.step===5&&npc.id==='desk'){activeDialogue=["You have a new email from MIKE:\n\"Come into my office.\""];questState.step=6;}else if(questState.step===6&&npc.id==='mike'){activeDialogue=["Nice work getting that\nout to Bronson.","You're gonna want to keep\nan eye on this ticket.","This guy can either be your\nbest friend or your worst enemy.","By the way, I saw the way\nyou were moving out there.","Gonna have to pick it up.","I got this pair of non-slip\nrunning shoes for you.", "Your next appointment\nisn't until noon.", "Go find something to do."];}else{activeDialogue=npc.dialogue;}}else if(questState.active&&questState.step>=8){if(npc.id==='customer_car'){if(gameEvents.dailyAptsCompleted<3){activeDialogue=["[CHOICE_CHECKIN_DAILY]"];}else if(gameEvents.dailyWalkIn&&!gameEvents.dailyWalkInDone){activeDialogue=["[CHOICE_CHECKIN_WALKIN]"];}else{activeDialogue=["The drive is clear."];}}else if(npc.id==='angry_customer'){if(gameEvents.dailyAptsCompleted<3){let t=gameEvents.dailyAptsCompleted===0?"morning":gameEvents.dailyAptsCompleted===1?"mid-day":"afternoon";activeDialogue=["I'm here for my "+t+" appointment.\nAre you going to check me in?"];}else if(gameEvents.dailyWalkIn&&!gameEvents.dailyWalkInDone){activeDialogue=["I don't have an appointment,\ncan you squeeze me in?"];}else{activeDialogue=["Thanks for the help!"];}}else if(npc.id==='mike'){activeDialogue=["Keep the drive moving, Chandler.\nDay "+gameEvents.currentDay+" is busy."];}else if(npc.id==='desk'){activeDialogue=["RO System active.\nCurrent RO: #"+questState.roNumber];}else{activeDialogue=npc.dialogue;}}else{activeDialogue=npc.dialogue;}activeLine=0;dText.innerText=activeDialogue[0];drawPortrait(npc.charCode);checkChoiceTrigger();if(!npc.isObject){npc.dir=player.dir==='up'?'down':player.dir==='down'?'up':player.dir==='left'?'right':'left';}}}
 function triggerWarp(w){gameState='TRANSITION';transition.active=true;transition.alpha=0;transition.state='fade_out';transition.dest=w;}
 
-function isSolid(tx,ty){if(tx<0||tx>=MAP_COLS||ty<0||ty>=MAP_ROWS)return true;const tile=maps[currentMapKey].layout[ty][tx];if([1,2,3,4,5,6,7,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35].includes(tile))return true;if(maps[currentMapKey].npcs.some(n=>{if(n.hidden)return false;if(n.charCode==='CAR'||n.charCode==='SUV_BLACK')return(tx>=n.tx&&tx<=n.tx+2&&ty>=n.ty&&ty<=n.ty+1);return!n.isObject&&n.tx===tx&&n.ty===ty;}))return true;return false;}
+function isSolid(tx,ty){if(tx<0||tx>=MAP_COLS||ty<0||ty>=MAP_ROWS)return true;const tile=maps[currentMapKey].layout[ty][tx];if([1,2,3,4,5,6,7,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36].includes(tile))return true;if(maps[currentMapKey].npcs.some(n=>{if(n.hidden)return false;if(n.charCode==='CAR'||n.charCode==='SUV_BLACK')return(tx>=n.tx&&tx<=n.tx+2&&ty>=n.ty&&ty<=n.ty+1);return!n.isObject&&n.tx===tx&&n.ty===ty;}))return true;return false;}
 
 function triggerCutscene(customerObj){gameState='CUTSCENE';customerObj.hidden=false;player.dir='down';customerObj.dir='up';let carObj=maps.drive.npcs.find(n=>n.id==='customer_car');if(carObj)carObj.hidden=false;activeDialogue=["Hey! Advisor! Over here!\nMy car sounds like a\nblender full of rocks!","I need this looked at right now.\nAnd don't try to upsell me!"];activeLine=0;dName.innerText=customerObj.name;dText.innerText=activeDialogue[0];drawPortrait(customerObj.charCode);dContainer.style.display='flex';}
 function toggleStartMenu(){if(gameState==='MENU'){document.getElementById('start-menu').style.display='none';gameState='PLAYING';}else if(gameState==='PLAYING'){let m=gameEvents.timeMinutes,h=Math.floor(m/60),ampm=h>=12?'PM':'AM';h=h%12;if(h===0)h=12;let mins=m%60;let timeStr=h+':'+(mins<10?'0':'')+mins+' '+ampm;document.getElementById('menu-header').innerText='DAY '+gameEvents.currentDay+'\n'+timeStr;document.getElementById('start-menu').style.display='block';gameState='MENU';}}
@@ -339,7 +412,89 @@ function update(){
     if(gameState==='MENU')return;if(gameState==='TITLE'||gameState==='INTRO'||activeDialogue||gameState==='CUTSCENE')return;
     let joe = (maps && maps[currentMapKey] && maps[currentMapKey].npcs) ? maps[currentMapKey].npcs.find(n => n.id === 'coolant_joe') : null;
     if(joe && !joe.hidden) updateJoe(joe);
-    if(gameState==='PLAYING'){gameEvents.tick++;if(gameEvents.tick>=60){gameEvents.tick=0;if(gameEvents.timeMinutes<1080)gameEvents.timeMinutes++;}if(gameEvents.currentDay===1&&questState.step===7&&gameEvents.timeMinutes>=720){questState.step=8;gameEvents.dailyAptsCompleted=2;gameEvents.dailyWalkIn=false;let cust=maps.drive.npcs.find(n=>n.id==='angry_customer');let car=maps.drive.npcs.find(n=>n.id==='customer_car');if(cust){cust.hidden=false;cust.name="APPOINTMENT";cust.dialogue=["I'm here for my afternoon\nappointment.", "Are you going to check me in?"];}if(car){car.hidden=false;car.name="CLIENT CAR";car.dialogue=["Ready for routine\nmaintenance."];}triggerPAAnnouncement();}}if(gameState==='FLASH'){if(flash.state==='fade_out'){flash.alpha+=0.1;if(flash.alpha>=1){flash.alpha=1;flash.state='fade_in';let dc=maps.drive.npcs.find(n=>n.id==='customer_car');if(dc&&questState.step<8)dc.hidden=true;let ac=maps.drive.npcs.find(n=>n.id==='angry_customer');if(ac&&questState.step<8)ac.hidden=true;let sc=maps.shop.npcs.find(n=>n.id==='shop_car');if(sc&&questState.step<8)sc.hidden=false;}}else if(flash.state==='fade_in'){flash.alpha-=0.1;if(flash.alpha<=0){flash.alpha=0;flash.active=false;gameState='PLAYING';}}return;}if(gameState==='TRANSITION'){if(transition.state==='fade_out'){transition.alpha+=0.05;if(transition.alpha>=1){transition.alpha=1;transition.state='fade_in';currentMapKey=transition.dest.to;player.tx=transition.dest.px;player.ty=transition.dest.py;player.x=player.tx*TILE_SIZE;player.y=player.ty*TILE_SIZE;}}else if(transition.state==='fade_in'){transition.alpha-=0.05;if(transition.alpha<=0){transition.alpha=0;transition.active=false;gameState='PLAYING';if(currentMapKey==='drive'&&playerDetails.inUniform&&!gameEvents.firstCustomerTriggered){let customer=maps.drive.npcs.find(n=>n.id==='angry_customer');if(customer)triggerCutscene(customer);}}}return;}if(!player.isMoving){let dx=0;let dy=0;if(keys.w){dy=-1;player.dir='up';}else if(keys.s){dy=1;player.dir='down';}else if(keys.a&&!keys.enter){dx=-1;player.dir='left';}else if(keys.d){dx=1;player.dir='right';}if(dx!==0||dy!==0){if(!isSolid(player.tx+dx,player.ty+dy)){player.tx+=dx;player.ty+=dy;player.isMoving=true;player.moveTimer=TILE_SIZE;player.speed=(playerDetails.hasRunningShoes&&keys.b)?4:2;}}}else{player.moveTimer-=player.speed;if(player.dir==='up')player.y-=player.speed;if(player.dir==='down')player.y+=player.speed;if(player.dir==='left')player.x-=player.speed;if(player.dir==='right')player.x+=player.speed;if(player.moveTimer<=0){player.isMoving=false;player.x=player.tx*TILE_SIZE;player.y=player.ty*TILE_SIZE;const warp=maps[currentMapKey].warps.find(w=>w.tx===player.tx&&w.ty===player.ty);if(warp)triggerWarp(warp);}}}
+    
+    if(gameState==='PLAYING'){
+        gameEvents.tick++;
+        if(gameEvents.tick>=60){gameEvents.tick=0;if(gameEvents.timeMinutes<1440)gameEvents.timeMinutes++;}
+        
+        if(gameEvents.currentDay===1&&questState.step===7&&gameEvents.timeMinutes>=720){
+            questState.step=8;gameEvents.dailyAptsCompleted=2;gameEvents.dailyWalkIn=false;let cust=maps.drive.npcs.find(n=>n.id==='angry_customer');let car=maps.drive.npcs.find(n=>n.id==='customer_car');if(cust){cust.hidden=false;cust.name="APPOINTMENT";cust.dialogue=["I'm here for my afternoon\nappointment.", "Are you going to check me in?"];}if(car){car.hidden=false;car.name="CLIENT CAR";car.dialogue=["Ready for routine\nmaintenance."];}triggerPAAnnouncement();
+        }
+        
+        if(gameEvents.timeMinutes === 900 && !gameEvents.zackComeback) {
+            gameEvents.zackComeback = true;
+            let zCust = maps.drive.npcs.find(n=>n.id==='zack_cust'); let zCar = maps.drive.npcs.find(n=>n.id==='zack_car');
+            if(zCust) zCust.hidden = false; if(zCar) zCar.hidden = false;
+            activeDialogue=["[P.A. SYSTEM]\nZack, you have a comeback\nwaiting on the drive."];
+            activeLine=0; dName.innerText="SYSTEM"; dText.innerText=activeDialogue[0];
+            drawPortrait('NONE'); dContainer.style.display='flex';
+        }
+        
+        if(gameEvents.timeMinutes === 1050 && !gameEvents.meeting) {
+            gameEvents.meeting = true;
+            activeDialogue=["[P.A. SYSTEM]\nAll service advisors report\nto Mike's office immediately."];
+            activeLine=0; dName.innerText="SYSTEM"; dText.innerText=activeDialogue[0];
+            drawPortrait('NONE'); dContainer.style.display='flex';
+            gameEvents.pendingMeetingTeleport = true;
+        }
+        
+        if(gameEvents.timeMinutes === 1080 && !gameEvents.lightsOut) {
+            gameEvents.lightsOut = true; gameEvents.isAfterHours = true;
+            Object.values(maps).forEach(m => {
+                m.npcs.forEach(n => {
+                    if(n.id !== 'coolant_joe' && n.id !== 'dave' && !n.isObject) { n.hidden = true; }
+                });
+            });
+        }
+    }
+    
+    if(gameState==='FLASH'){
+        if(flash.state==='fade_out'){
+            flash.alpha+=0.1;if(flash.alpha>=1){
+                flash.alpha=1;flash.state='fade_in';
+                let dc=maps.drive.npcs.find(n=>n.id==='customer_car');if(dc&&questState.step<8)dc.hidden=true;
+                let ac=maps.drive.npcs.find(n=>n.id==='angry_customer');if(ac&&questState.step<8)ac.hidden=true;
+                let sc=maps.shop.npcs.find(n=>n.id==='shop_car');if(sc&&questState.step<8)sc.hidden=false;
+            }
+        }else if(flash.state==='fade_in'){
+            flash.alpha-=0.1;if(flash.alpha<=0){flash.alpha=0;flash.active=false;gameState='PLAYING';}
+        }
+        return;
+    }
+    if(gameState==='TRANSITION'){
+        if(transition.state==='fade_out'){
+            transition.alpha+=0.05;if(transition.alpha>=1){
+                transition.alpha=1;transition.state='fade_in';currentMapKey=transition.dest.to;player.tx=transition.dest.px;player.ty=transition.dest.py;player.x=player.tx*TILE_SIZE;player.y=player.ty*TILE_SIZE;
+            }
+        }else if(transition.state==='fade_in'){
+            transition.alpha-=0.05;if(transition.alpha<=0){
+                transition.alpha=0;transition.active=false;gameState='PLAYING';
+                if(currentMapKey==='drive'&&playerDetails.inUniform&&!gameEvents.firstCustomerTriggered){
+                    let customer=maps.drive.npcs.find(n=>n.id==='angry_customer');if(customer)triggerCutscene(customer);
+                }
+                if(transition.dest && transition.dest.isMeeting) {
+                    let oryan = maps.office.npcs.find(n=>n.id==='office_ryan'); let ozack = maps.office.npcs.find(n=>n.id==='office_zack'); let owhit = maps.office.npcs.find(n=>n.id==='office_whitney');
+                    if(oryan) oryan.hidden = false; if(ozack) ozack.hidden = false; if(owhit) owhit.hidden = false;
+                    player.dir = 'up';
+                    setTimeout(()=>{
+                        activeDialogue=["Listen up, team.", "CSI is slipping and Bronson's comebacks\nare through the roof.", "We're having a mandatory meeting\ntomorrow at 7:00 AM sharp.", "Don't be late. Back to work."];
+                        activeLine=0; dName.innerText="MIKE"; dText.innerText=activeDialogue[0];
+                        drawPortrait('MIKE'); dContainer.style.display='flex';
+                    }, 200);
+                }
+            }
+        }
+        return;
+    }
+    
+    if(!player.isMoving){
+        let dx=0;let dy=0;if(keys.w){dy=-1;player.dir='up';}else if(keys.s){dy=1;player.dir='down';}else if(keys.a&&!keys.enter){dx=-1;player.dir='left';}else if(keys.d){dx=1;player.dir='right';}
+        if(dx!==0||dy!==0){if(!isSolid(player.tx+dx,player.ty+dy)){player.tx+=dx;player.ty+=dy;player.isMoving=true;player.moveTimer=TILE_SIZE;player.speed=(playerDetails.hasRunningShoes&&keys.b)?4:2;}}
+    }else{
+        player.moveTimer-=player.speed;if(player.dir==='up')player.y-=player.speed;if(player.dir==='down')player.y+=player.speed;if(player.dir==='left')player.x-=player.speed;if(player.dir==='right')player.x+=player.speed;
+        if(player.moveTimer<=0){player.isMoving=false;player.x=player.tx*TILE_SIZE;player.y=player.ty*TILE_SIZE;const warp=maps[currentMapKey].warps.find(w=>w.tx===player.tx&&w.ty===player.ty);if(warp)triggerWarp(warp);}
+    }
+}
 
 function dR(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h);}
 
@@ -385,6 +540,7 @@ function drawTile(tx,ty,t){
         case 33: dR(px,py,TILE_SIZE,TILE_SIZE,'#4a6b8c'); dR(px+TILE_SIZE-2,py,2,TILE_SIZE,'#2a4b6c'); break;
         case 34: dR(px,py,TILE_SIZE,TILE_SIZE,'#8b7355'); dR(px+4,py+4,8,3,'#555'); dR(px+2,py+2,12,6,'#222'); break;
         case 35: dR(px,py,TILE_SIZE,TILE_SIZE,'#4a6b8c'); dR(px,py+TILE_SIZE-2,TILE_SIZE,2,'#2a4b6c'); dR(px+TILE_SIZE-2,py,2,TILE_SIZE,'#2a4b6c'); break;
+        case 36: dR(px,py,TILE_SIZE,TILE_SIZE,'#3b2f2f'); dR(px+2,py+2,TILE_SIZE-4,TILE_SIZE-4,'#87cefa'); dR(px+2,py+8,TILE_SIZE-4,2,'#fff'); dR(px+4,py+4,3,4,'#ffd700'); dR(px+10,py+4,2,4,'#c0c0c0'); dR(px+6,py+10,4,5,'#ffd700'); break;
         case 6: dR(px+3,py+2,10,12,'#33aa33'); dR(px+3,py+2,10,3,'#111'); break;
         case 7: dR(px+2,py,12,TILE_SIZE,'#888'); dR(px+4,py+2,2,8,'#555'); break;
         case 8: dR(px,py,TILE_SIZE,TILE_SIZE,'#ddd'); if(currentMapKey!=='parkinglot'){ dR(px,py+4,TILE_SIZE,2,'#aaa'); dR(px,py+10,TILE_SIZE,2,'#aaa'); } break;
@@ -459,6 +615,14 @@ function draw(){
     });
     let shirt=playerDetails.inUniform?'#111':'#fff';let sleeves=playerDetails.inUniform?'long':'short';let skin=playerDetails.gender==='Boy'?'#ffccaa':'#ffdbac';let hair='#4a3121';
     drawSprite(player.x,player.y,skin,shirt,sleeves,hair,player.dir,false,{});
+    
+    if(gameEvents.isAfterHours) {
+        if(['drive', 'shop', 'parts', 'breakroom'].includes(currentMapKey)) {
+            ctx.fillStyle = 'rgba(0,10,30,0.5)';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+        }
+    }
+    
     if(transition.active){ctx.fillStyle=`rgba(0,0,0,${transition.alpha})`;ctx.fillRect(0,0,canvas.width,canvas.height);}
     if(flash.active){ctx.fillStyle=`rgba(255,255,255,${flash.alpha})`;ctx.fillRect(0,0,canvas.width,canvas.height);}
 }
