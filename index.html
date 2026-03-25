@@ -70,7 +70,7 @@ canvas { display:block; width:100%; height:100%; image-rendering:pixelated; obje
         <div class="menu-item" onclick="alert('TOOLS screen coming next.')"><span>TOOLS</span><span class="menu-arrow">▶</span></div>
         <div class="menu-item" onclick="saveGame()"><span>SAVE GAME</span><span class="menu-arrow">▶</span></div>
         <div class="menu-item" onclick="alert('OPTIONS screen coming next.')"><span>OPTIONS</span><span class="menu-arrow">▶</span></div>
-        <div class="menu-item" onclick="alert('v3.6.9 - Fixed Border & Lincoln')"><span>INFO</span><span class="menu-arrow">▶</span></div>
+        <div class="menu-item" onclick="alert('v1.0.1 - Gold Master Update')"><span>INFO</span><span class="menu-arrow">▶</span></div>
         <div id="menu-footer">CAR PLANET MENU</div>
     </div>
     <div id="controls">
@@ -182,7 +182,7 @@ shl[4][4]=18;shl[4][5]=19;shl[7][4]=14;shl[7][5]=14;shl[6][3]=17; shl[4][10]=18;
 maps.bodyshop.layout[7][0]=9;
 
 // ORIGINAL EXTERIOR LAYOUT RESTORED EXACTLY
-for(let y=0;y<15;y++){for(let x=0;x<20;x++){pl[y][x]=0;}} // Explicitly clear outer border to asphalt (0)
+for(let y=0;y<15;y++){for(let x=0;x<20;x++){pl[y][x]=0;}}
 for(let y=3;y<=11;y++){for(let x=4;x<=15;x++){pl[y][x]=2;}}
 pl[3][9]=8;pl[3][10]=8;pl[4][4]=8;pl[5][4]=9;pl[7][4]=8;pl[8][4]=9;pl[9][4]=9;pl[10][4]=8;pl[4][15]=8;pl[5][15]=9;pl[7][15]=8;pl[8][15]=9;pl[10][15]=8;pl[11][9]=9;pl[11][10]=9;
 
@@ -360,10 +360,7 @@ function drawTile(tx,ty,t){
         }
     }
     switch(t){
-        case 1: // STEEL WALLS
-            dR(px,py,TILE_SIZE,TILE_SIZE,'#7a7a7a'); 
-            dR(px+2,py,2,TILE_SIZE,'#555'); dR(px+8,py,2,TILE_SIZE,'#555'); dR(px+14,py,2,TILE_SIZE,'#555');
-            break;
+        case 1: dR(px,py,TILE_SIZE,TILE_SIZE,'#333'); break;
         case 2:
             if(currentMapKey==='parkinglot'){
                 // Building Roof for parking lot
@@ -390,13 +387,7 @@ function drawTile(tx,ty,t){
         case 35: dR(px,py,TILE_SIZE,TILE_SIZE,'#4a6b8c'); dR(px,py+TILE_SIZE-2,TILE_SIZE,2,'#2a4b6c'); dR(px+TILE_SIZE-2,py,2,TILE_SIZE,'#2a4b6c'); break;
         case 6: dR(px+3,py+2,10,12,'#33aa33'); dR(px+3,py+2,10,3,'#111'); break;
         case 7: dR(px+2,py,12,TILE_SIZE,'#888'); dR(px+4,py+2,2,8,'#555'); break;
-        case 8: 
-            dR(px,py,TILE_SIZE,TILE_SIZE,'#ddd'); 
-            if(currentMapKey!=='parkinglot'){ 
-                dR(px,py+4,TILE_SIZE,2,'#aaa'); 
-                dR(px,py+10,TILE_SIZE,2,'#aaa'); 
-            } 
-            break;
+        case 8: dR(px,py,TILE_SIZE,TILE_SIZE,'#ddd'); if(currentMapKey!=='parkinglot'){ dR(px,py+4,TILE_SIZE,2,'#aaa'); dR(px,py+10,TILE_SIZE,2,'#aaa'); } break;
         case 9: dR(px+2,py+2,12,12,'#222'); break;
         case 12: dR(px+4,py+4,8,8,'#222'); dR(px+4,py+12,2,2,'#777'); dR(px+10,py+12,2,2,'#777'); break;
         case 13: dR(px,py,TILE_SIZE,TILE_SIZE,'#4a6b8c'); dR(px+3,py+4,10,6,'#ddd'); dR(px+4,py+5,8,4,'#222'); dR(px+4,py+12,8,2,'#aaa'); break;
