@@ -1,4 +1,4 @@
-/* Options submenu — menu frames & reset game */
+/* Options submenu — menu frames, control board color & reset game */
 
 const MENU_FRAMES = [
     { id: 'classic', label: 'CLASSIC' },
@@ -12,7 +12,18 @@ const MENU_FRAMES = [
     { id: 'pearl', label: 'PEARL' }
 ];
 
-let gameSettings = { menuFrame: 'classic' };
+const CONTROL_BOARDS = [
+    { id: 'black', label: 'BLACK' },
+    { id: 'grape', label: 'GRAPE' },
+    { id: 'teal', label: 'TEAL' },
+    { id: 'berry', label: 'BERRY' },
+    { id: 'kiwi', label: 'KIWI' },
+    { id: 'dandelion', label: 'DANDELION' },
+    { id: 'atomic', label: 'ATOMIC' },
+    { id: 'classic', label: 'CLASSIC GRAY' }
+];
+
+let gameSettings = { menuFrame: 'classic', controlBoard: 'black' };
 
 function loadGameSettings() {
     try {
@@ -20,9 +31,11 @@ function loadGameSettings() {
         if (raw) {
             const s = JSON.parse(raw);
             if (s.menuFrame) gameSettings.menuFrame = s.menuFrame;
+            if (s.controlBoard) gameSettings.controlBoard = s.controlBoard;
         }
     } catch (e) {}
     applyMenuFrame(gameSettings.menuFrame, false);
+    applyControlBoard(gameSettings.controlBoard, false);
 }
 
 function persistGameSettings() {
@@ -40,14 +53,40 @@ function applyMenuFrame(frameId, save) {
     if (save !== false) persistGameSettings();
 }
 
+function applyControlBoard(boardId, save) {
+    const controls = document.getElementById('controls');
+    const screen = document.getElementById('game-screen');
+    if (!controls) return;
+    const valid = CONTROL_BOARDS.some(b => b.id === boardId);
+    gameSettings.controlBoard = valid ? boardId : 'black';
+    CONTROL_BOARDS.forEach(b => {
+        controls.classList.remove('control-board-' + b.id);
+        if (screen) screen.classList.remove('control-board-screen-' + b.id);
+    });
+    controls.classList.add('control-board-' + gameSettings.controlBoard);
+    if (screen) screen.classList.add('control-board-screen-' + gameSettings.controlBoard);
+    updateControlBoardLabel();
+    if (save !== false) persistGameSettings();
+}
+
 function getMenuFrameLabel(frameId) {
     const f = MENU_FRAMES.find(x => x.id === frameId);
     return f ? f.label : 'CLASSIC';
 }
 
+function getControlBoardLabel(boardId) {
+    const b = CONTROL_BOARDS.find(x => x.id === boardId);
+    return b ? b.label : 'BLACK';
+}
+
 function updateMenuFrameLabel() {
     const el = document.getElementById('menu-frame-label');
     if (el) el.textContent = getMenuFrameLabel(gameSettings.menuFrame);
+}
+
+function updateControlBoardLabel() {
+    const el = document.getElementById('control-board-label');
+    if (el) el.textContent = getControlBoardLabel(gameSettings.controlBoard);
 }
 
 function showMenuPanel(panelId) {
@@ -62,6 +101,7 @@ function openOptionsMenu() {
     showMenuPanel('menu-panel-options');
     document.getElementById('options-header').innerText = 'OPTIONS';
     updateMenuFrameLabel();
+    updateControlBoardLabel();
 }
 
 function closeOptionsMenu() {
@@ -72,6 +112,12 @@ function cycleMenuFrame() {
     let idx = MENU_FRAMES.findIndex(f => f.id === gameSettings.menuFrame);
     idx = (idx + 1) % MENU_FRAMES.length;
     applyMenuFrame(MENU_FRAMES[idx].id, true);
+}
+
+function cycleControlBoard() {
+    let idx = CONTROL_BOARDS.findIndex(b => b.id === gameSettings.controlBoard);
+    idx = (idx + 1) % CONTROL_BOARDS.length;
+    applyControlBoard(CONTROL_BOARDS[idx].id, true);
 }
 
 function openResetGameConfirm() {
@@ -99,6 +145,7 @@ function openStartMenu() {
     const menu = document.getElementById('start-menu');
     if (!menu) return;
     applyMenuFrame(gameSettings.menuFrame, false);
+    applyControlBoard(gameSettings.controlBoard, false);
     showMenuPanel('menu-panel-main');
     document.getElementById('menu-header').innerText = getMenuHeaderLines();
     menu.style.display = 'block';
@@ -115,6 +162,7 @@ window.loadGameSettings = loadGameSettings;
 window.openOptionsMenu = openOptionsMenu;
 window.closeOptionsMenu = closeOptionsMenu;
 window.cycleMenuFrame = cycleMenuFrame;
+window.cycleControlBoard = cycleControlBoard;
 window.openResetGameConfirm = openResetGameConfirm;
 window.resetGameToTitle = resetGameToTitle;
 window.openStartMenu = openStartMenu;

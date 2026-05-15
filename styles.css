@@ -444,7 +444,27 @@ canvas {
   z-index: 1;
   overflow: hidden;
   contain: layout style;
+  background: #000;
 }
+
+/* Mobile control board color themes (Game Boy Color shells) */
+.control-board-black { background: #000; }
+.control-board-grape { background: #6b5b7a; }
+.control-board-teal { background: #4a9b9b; }
+.control-board-berry { background: #9b4a6b; }
+.control-board-kiwi { background: #6b9b4a; }
+.control-board-dandelion { background: #9b9b4a; }
+.control-board-atomic { background: #8b9b6b; }
+.control-board-classic { background: #8b8b7a; }
+
+.control-board-screen-black { border-bottom-color: #333; }
+.control-board-screen-grape { border-bottom-color: #5c4a6e; }
+.control-board-screen-teal { border-bottom-color: #3a7a7a; }
+.control-board-screen-berry { border-bottom-color: #7a3a55; }
+.control-board-screen-kiwi { border-bottom-color: #557a3a; }
+.control-board-screen-dandelion { border-bottom-color: #7a7a3a; }
+.control-board-screen-atomic { border-bottom-color: #6a7a55; }
+.control-board-screen-classic { border-bottom-color: #6b6b5a; }
 
 .dpad {
   position: relative;
@@ -663,6 +683,18 @@ canvas {
 
 /* Mobile: Game Boy face — full screen width, top 50% screen / bottom 50% controls */
 @media (max-width: 799px) {
+  #game-screen.control-board-screen-black,
+  #game-screen.control-board-screen-grape,
+  #game-screen.control-board-screen-teal,
+  #game-screen.control-board-screen-berry,
+  #game-screen.control-board-screen-kiwi,
+  #game-screen.control-board-screen-dandelion,
+  #game-screen.control-board-screen-atomic,
+  #game-screen.control-board-screen-classic {
+    border-bottom-width: 3px;
+    border-bottom-style: solid;
+  }
+
   html {
     width: 100%;
     height: 100%;
@@ -710,7 +742,7 @@ canvas {
     align-self: stretch;
     justify-self: stretch;
     background: #000;
-    border-bottom: 3px solid #5c4a6e;
+    border-bottom: 3px solid #333;
     box-shadow: none;
     z-index: 2;
     isolation: isolate;
@@ -763,7 +795,6 @@ canvas {
     grid-template-rows: minmax(0, 1fr) auto;
     padding: 8px 6vw max(10px, env(safe-area-inset-bottom, 10px));
     gap: 6px;
-    background: #6b5b7a;
     box-shadow: none;
     z-index: 1;
     contain: layout style;
