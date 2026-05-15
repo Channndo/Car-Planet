@@ -25,12 +25,12 @@
     <div id="start-menu">
         <div id="menu-header"></div>
         <div class="menu-item" onclick="toggleStartMenu()"><span>RESUME</span><span class="menu-arrow">▶</span></div>
-        <div class="menu-item" onclick="alert('STATUS screen coming next.')"><span>STATUS</span><span class="menu-arrow">▶</span></div>
-        <div class="menu-item" onclick="alert('ROSTER screen coming next.')"><span>ROSTER</span><span class="menu-arrow">▶</span></div>
+        <div class="menu-item" onclick="showStatusMenu()"><span>STATUS</span><span class="menu-arrow">▶</span></div>
+        <div class="menu-item" onclick="showRosterMenu()"><span>ROSTER</span><span class="menu-arrow">▶</span></div>
         <div class="menu-item" onclick="alert('TOOLS screen coming next.')"><span>TOOLS</span><span class="menu-arrow">▶</span></div>
         <div class="menu-item" onclick="saveGame()"><span>SAVE GAME</span><span class="menu-arrow">▶</span></div>
         <div class="menu-item" onclick="alert('OPTIONS screen coming next.')"><span>OPTIONS</span><span class="menu-arrow">▶</span></div>
-        <div class="menu-item" onclick="alert('v1.0.21 - Split Architecture')"><span>INFO</span><span class="menu-arrow">▶</span></div>
+        <div class="menu-item" onclick="alert('v1.0.22 - Probation campaign + neighborhood')"><span>INFO</span><span class="menu-arrow">▶</span></div>
         <div id="menu-footer">CAR PLANET MENU</div>
     </div>
     <div id="controls">
@@ -39,6 +39,28 @@
     </div>
 </div>
 
-<script src="game.js"></script>
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/maps/generate.js"></script>
+<script src="js/maps/dealership-data.js"></script>
+<script src="js/maps/neighborhood.js"></script>
+<script src="js/maps/index.js"></script>
+<script src="js/maps/dealership-layout.js"></script>
+<script src="js/maps/neighborhood-layout.js"></script>
+<script src="js/data/vehicles.js"></script>
+<script src="js/data/procedural-names.js"></script>
+<script src="js/data/attitudes.js"></script>
+<script src="js/data/customers.js"></script>
+<script src="js/systems/customerSpawn.js"></script>
+<script src="js/systems/walkIns.js"></script>
+<script src="js/systems/probation.js"></script>
+<script src="js/data/story-events.js"></script>
+<script src="js/systems/storyEvents.js"></script>
+<script src="js/systems/day2-meeting.js"></script>
+<script src="js/dialogue.js"></script>
+<script src="js/world.js"></script>
+<script src="js/movement.js"></script>
+<script src="js/render.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>

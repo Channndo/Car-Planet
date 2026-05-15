@@ -1,0 +1,188 @@
+/* Spawn core / procedural customers on the service drive */
+
+const PROC_SKINS = ['#ffccaa', '#ffdbac', '#f1c27d', '#c68642', '#e8b898', '#8d5524', '#dcb'];
+const PROC_SHIRTS = ['#111', '#222', '#444', '#2c5a8c', '#cc2222', '#228822', '#663399'];
+
+function ensureRosterState() {
+    if (!probation.metCustomerIds) probation.metCustomerIds = [];
+    if (!gameEvents.dailySchedule) gameEvents.dailySchedule = null;
+}
+
+function markCustomerMet(customer) {
+    ensureRosterState();
+    if (customer.isProcedural) return;
+    if (!probation.metCustomerIds.includes(customer.id)) {
+        probation.metCustomerIds.push(customer.id);
+    }
+}
+
+function cloneCustomer(c) {
+    return JSON.parse(JSON.stringify(c));
+}
+
+function generateProceduralCustomer(excludeIds) {
+    const vehicle = buildVehicle();
+    return {
+        id: 'proc_' + Date.now() + '_' + Math.floor(Math.random() * 9999),
+        isProcedural: true,
+        name: randomProceduralName(),
+        dexEntry: 'Walk-in guest. Not on the roster yet.',
+        personalityLine: 'I just need someone to look at it.',
+        complaintPool: [
+            'Something sounds wrong when I accelerate.',
+            'Fluid spot under the car.',
+            'Steering feels loose.',
+            'Warning light on the dash.'
+        ],
+        portrait: {
+            skin: PROC_SKINS[Math.floor(Math.random() * PROC_SKINS.length)],
+            shirt: PROC_SHIRTS[Math.floor(Math.random() * PROC_SHIRTS.length)],
+            sleeves: Math.random() < 0.5 ? 'short' : 'long',
+            hair: Math.random() < 0.7 ? '#222' : '#4a3121'
+        },
+        vehicle: vehicle,
+        carNote: 'Unfamiliar vehicle on the drive.'
+    };
+}
+
+function pickWalkInCustomer(appointmentIds) {
+    if (Math.random() < 0.3) {
+        const core = getRandomCoreCustomers(1, appointmentIds);
+        if (core.length) return cloneCustomer(core[0]);
+    }
+    return generateProceduralCustomer(appointmentIds);
+}
+
+function getAppointmentSlotName(index) {
+    return index === 0 ? 'morning' : index === 1 ? 'mid-day' : 'afternoon';
+}
+
+function generateDailyCustomerSchedule() {
+    if (questState.step < 8) return;
+    ensureRosterState();
+
+    const three = getRandomCoreCustomers(3, []);
+    const appointmentIds = three.map(c => c.id);
+
+    gameEvents.dailySchedule = {
+        appointments: three.map((c, i) => ({
+            customerId: c.id,
+            customer: cloneCustomer(c),
+            slot: getAppointmentSlotName(i),
+            attitude: rollAttitude()
+        })),
+        walkIn: null,
+        walkInAttitude: null
+    };
+
+    gameEvents.dailyWalkIn = Math.random() < 0.3;
+    if (gameEvents.dailyWalkIn) {
+        const walkCustomer = pickWalkInCustomer(appointmentIds);
+        gameEvents.dailySchedule.walkIn = walkCustomer;
+        gameEvents.dailySchedule.walkInAttitude = rollAttitude();
+    }
+
+    gameEvents.intradayWalkInRolled = false;
+    if (probation.active) reserveStoryEventSlot(gameEvents.currentDay);
+    spawnCurrentDriveCustomer();
+}
+
+function resolveActiveVisit() {
+    if (!gameEvents.dailySchedule || questState.step < 8) return null;
+    const sched = gameEvents.dailySchedule;
+
+    if (gameEvents.dailyAptsCompleted < 3) {
+        const apt = sched.appointments[gameEvents.dailyAptsCompleted];
+        if (!apt) return null;
+        return {
+            type: 'appointment',
+            customer: apt.customer,
+            attitude: apt.attitude,
+            slot: apt.slot
+        };
+    }
+    if (gameEvents.dailyWalkIn && !gameEvents.dailyWalkInDone && sched.walkIn) {
+        return {
+            type: 'walkin',
+            customer: sched.walkIn,
+            attitude: sched.walkInAttitude,
+            slot: null
+        };
+    }
+    return null;
+}
+
+function applyCustomerToDriveNpc(npc, customer, visit) {
+    if (!npc || !customer) return;
+    npc.hidden = false;
+    npc.name = customer.name;
+    npc.color = customer.portrait.skin;
+    npc.shirt = customer.portrait.shirt;
+    npc.sleeves = customer.portrait.sleeves;
+    npc.hair = customer.portrait.hair;
+    npc.acc = customer.portrait.acc || undefined;
+    npc.charCode = visit.type === 'walkin' ? 'WALK-IN' : 'APPOINTMENT';
+    npc.dialogue = buildCustomerDialogue(customer, visit.attitude, visit.type === 'walkin' ? 'walkin' : 'appointment');
+    npc._visitCustomerId = customer.id;
+    markCustomerMet(customer);
+}
+
+function applyVehicleToDriveCar(carNpc, customer) {
+    if (!carNpc || !customer || !customer.vehicle) return;
+    carNpc.hidden = false;
+    carNpc.name = formatVehicleLabel(customer.vehicle);
+    carNpc.dialogue = buildCarDialogue(customer);
+    carNpc._vehicleColor = customer.vehicle.color;
+}
+
+function hideDriveCustomerSlots() {
+    const cust = maps.drive.npcs.find(n => n.id === 'angry_customer');
+    const car = maps.drive.npcs.find(n => n.id === 'customer_car');
+    if (cust) cust.hidden = true;
+    if (car) car.hidden = true;
+}
+
+function spawnCurrentDriveCustomer() {
+    if (questState.step < 8) return;
+
+    const visit = resolveActiveVisit();
+    const cust = maps.drive.npcs.find(n => n.id === 'angry_customer');
+    const car = maps.drive.npcs.find(n => n.id === 'customer_car');
+    const sc = maps.shop.npcs.find(n => n.id === 'shop_car');
+    if (sc) sc.hidden = false;
+
+    if (!visit || gameEvents.isAfterHours) {
+        hideDriveCustomerSlots();
+        return;
+    }
+
+    applyCustomerToDriveNpc(cust, visit.customer, visit);
+    applyVehicleToDriveCar(car, visit.customer);
+}
+
+function syncDriveDailyCustomers() {
+    if (questState.step >= 8 && !gameEvents.isAfterHours) {
+        if (!gameEvents.dailySchedule) generateDailyCustomerSchedule();
+        else spawnCurrentDriveCustomer();
+    }
+}
+
+function getRosterSummaryText() {
+    const met = (probation.metCustomerIds || []).length;
+    return 'ROSTER: ' + met + ' / ' + CORE_CUSTOMERS.length + ' customers met.\n(Procedural walk-ins are not cataloged.)';
+}
+
+function showRosterMenu() {
+    toggleStartMenu();
+    let lines = getRosterSummaryText() + '\n\n';
+    const met = probation.metCustomerIds || [];
+    CORE_CUSTOMERS.forEach(c => {
+        const seen = met.includes(c.id);
+        lines += (seen ? '#' + String(c.id).padStart(2, '0') + ' ' + c.name : '???') + '\n';
+        if (seen && c.dexEntry) lines += '  "' + c.dexEntry + '"\n';
+    });
+    alert(lines);
+}
+
+window.showRosterMenu = showRosterMenu;
+window.showStatusMenu = showStatusMenu;
