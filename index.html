@@ -3,8 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<script>
+(function () {
+  function syncVisibleHeight() {
+    if (window.matchMedia('(min-width: 800px)').matches) {
+      document.documentElement.style.removeProperty('--vv-inner-h');
+      return;
+    }
+    var vv = window.visualViewport;
+    var h = vv ? Math.round(vv.height) : Math.round(window.innerHeight || 0);
+    if (h > 0) document.documentElement.style.setProperty('--vv-inner-h', h + 'px');
+  }
+  function kick() {
+    syncVisibleHeight();
+    requestAnimationFrame(syncVisibleHeight);
+    setTimeout(syncVisibleHeight, 60);
+    setTimeout(syncVisibleHeight, 300);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', kick);
+  else kick();
+  window.addEventListener('resize', syncVisibleHeight, { passive: true });
+  window.addEventListener('orientationchange', function () { setTimeout(syncVisibleHeight, 400); });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', syncVisibleHeight, { passive: true });
+    window.visualViewport.addEventListener('scroll', syncVisibleHeight, { passive: true });
+  }
+})();
+</script>
 <title>Car Planet</title>
-<link rel="stylesheet" href="styles.css?v=gb-layout-restore">
+<link rel="stylesheet" href="styles.css?v=gb-layout-vv-1">
 </head>
 <body>
 <div id="game-wrapper">
