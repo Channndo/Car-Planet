@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Car Planet</title>
-<link rel="stylesheet" href="styles.css?v=gb-layout-5">
+<link rel="stylesheet" href="styles.css?v=gb-layout-6">
 </head>
 <body>
 <div id="game-wrapper">
-    <div id="game-screen">
+    <div id="game-screen" class="control-board-screen-black">
         <div id="title-screen">
             <div class="title-text">CAR PLANET</div>
             <div id="title-menu">
@@ -44,7 +44,7 @@
             <div id="menu-panel-options" class="menu-panel" style="display:none;">
                 <div id="options-header">OPTIONS</div>
                 <div class="menu-item" onclick="cycleMenuFrame()"><span>MENU FRAME</span><span class="menu-frame-value" id="menu-frame-label">CLASSIC</span></div>
-                <div class="menu-item" onclick="cycleControlBoard()"><span>CONTROL BOARD</span><span class="menu-frame-value" id="control-board-label">BLACK</span></div>
+                <div class="menu-item" onclick="cycleControlBoard(event)"><span>CONTROL BOARD</span><span class="menu-frame-value" id="control-board-label">BLACK</span></div>
                 <div class="menu-item menu-item-warn" onclick="openResetGameConfirm()"><span>RESET GAME</span><span class="menu-arrow">▶</span></div>
                 <div class="menu-item" onclick="closeOptionsMenu()"><span>BACK</span><span class="menu-arrow">◀</span></div>
                 <div id="menu-footer">OPTIONS</div>

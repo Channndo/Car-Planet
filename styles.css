@@ -474,27 +474,26 @@ canvas {
   z-index: 1;
   overflow: hidden;
   contain: layout style;
-  background: #000;
 }
 
-/* Mobile control board color themes (Game Boy Color shells) */
-.control-board-black { background: #000; }
-.control-board-grape { background: #6b5b7a; }
-.control-board-teal { background: #4a9b9b; }
-.control-board-berry { background: #9b4a6b; }
-.control-board-kiwi { background: #6b9b4a; }
-.control-board-dandelion { background: #9b9b4a; }
-.control-board-atomic { background: #8b9b6b; }
-.control-board-classic { background: #8b8b7a; }
+/* Control board color themes (Game Boy Color shells) */
+#controls.control-board-black { background: #000; }
+#controls.control-board-grape { background: #6b5b7a; }
+#controls.control-board-teal { background: #4a9b9b; }
+#controls.control-board-berry { background: #9b4a6b; }
+#controls.control-board-kiwi { background: #6b9b4a; }
+#controls.control-board-dandelion { background: #9b9b4a; }
+#controls.control-board-atomic { background: #8b9b6b; }
+#controls.control-board-classic { background: #8b8b7a; }
 
-.control-board-screen-black { border-bottom-color: #333; }
-.control-board-screen-grape { border-bottom-color: #5c4a6e; }
-.control-board-screen-teal { border-bottom-color: #3a7a7a; }
-.control-board-screen-berry { border-bottom-color: #7a3a55; }
-.control-board-screen-kiwi { border-bottom-color: #557a3a; }
-.control-board-screen-dandelion { border-bottom-color: #7a7a3a; }
-.control-board-screen-atomic { border-bottom-color: #6a7a55; }
-.control-board-screen-classic { border-bottom-color: #6b6b5a; }
+#game-screen.control-board-screen-black { border-bottom-color: #333; }
+#game-screen.control-board-screen-grape { border-bottom-color: #5c4a6e; }
+#game-screen.control-board-screen-teal { border-bottom-color: #3a7a7a; }
+#game-screen.control-board-screen-berry { border-bottom-color: #7a3a55; }
+#game-screen.control-board-screen-kiwi { border-bottom-color: #557a3a; }
+#game-screen.control-board-screen-dandelion { border-bottom-color: #7a7a3a; }
+#game-screen.control-board-screen-atomic { border-bottom-color: #6a7a55; }
+#game-screen.control-board-screen-classic { border-bottom-color: #6b6b5a; }
 
 .dpad {
   position: relative;
@@ -776,6 +775,11 @@ canvas {
     box-shadow: none;
     z-index: 2;
     isolation: isolate;
+  }
+
+  #game-screen[class*="control-board-screen-"] {
+    border-bottom-width: 3px;
+    border-bottom-style: solid;
   }
 
   #game-screen canvas {

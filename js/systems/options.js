@@ -114,7 +114,11 @@ function cycleMenuFrame() {
     applyMenuFrame(MENU_FRAMES[idx].id, true);
 }
 
-function cycleControlBoard() {
+function cycleControlBoard(e) {
+    if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
     let idx = CONTROL_BOARDS.findIndex(b => b.id === gameSettings.controlBoard);
     idx = (idx + 1) % CONTROL_BOARDS.length;
     applyControlBoard(CONTROL_BOARDS[idx].id, true);
