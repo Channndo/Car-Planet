@@ -19,6 +19,33 @@
     w.classList.remove(PIN_CLASS);
     w.style.cssText = '';
     document.documentElement.style.removeProperty('--vv-h');
+    document.documentElement.style.removeProperty('--browser-cap-vh');
+  }
+
+  /** CSS 100svh / 100dvh in px — Safari often overlays the toolbar while vv.height stays tall */
+  function probeViewportHeight(unit) {
+    var el = document.createElement('div');
+    el.style.cssText =
+      'position:fixed;top:0;left:0;width:1px;height:100' +
+      unit +
+      ';opacity:0;pointer-events:none;z-index:-1;margin:0;padding:0;border:0;overflow:hidden';
+    document.documentElement.appendChild(el);
+    var h = el.getBoundingClientRect().height;
+    document.documentElement.removeChild(el);
+    return h > 0 ? h : 0;
+  }
+
+  /** Heights where UA chrome is expanded (svh) + current dynamic (dvh); cap vv so UI clears overlay toolbar */
+  function cappedShellHeight(vv) {
+    var vvH = vv ? vv.height : window.innerHeight;
+    var inner = window.innerHeight;
+    var cap = Math.min(vvH, inner);
+    var svh = probeViewportHeight('svh');
+    var dvh = probeViewportHeight('dvh');
+    if (svh > 0) cap = Math.min(cap, svh);
+    if (dvh > 0) cap = Math.min(cap, dvh);
+    document.documentElement.style.setProperty('--browser-cap-vh', Math.round(cap) + 'px');
+    return Math.max(160, Math.round(cap));
   }
 
   function syncMobileLayout() {
@@ -35,29 +62,21 @@
       w.classList.add(PIN_CLASS);
       var top = Math.max(0, Math.round(vv.offsetTop));
       var left = Math.max(0, Math.round(vv.offsetLeft));
-      var vw = Math.round(vv.width);
-      var vh = Math.round(vv.height);
-      var ih = window.innerHeight;
-      var vvSpan = vv.offsetTop + vv.height;
-      var belowVV = Math.max(0, Math.round(ih - vvSpan));
-      // Safari draws translucent bars on top of the last pixels of the visual viewport.
-      // Leave a gap so native chrome reads like a normal page (not tucked under game UI).
-      var reserveBottom = Math.min(96, Math.max(48, belowVV > 0 ? belowVV + 14 : 48));
-      var contentH = Math.max(240, vh - reserveBottom);
+      var vw = Math.round(Math.min(vv.width, window.innerWidth));
+      var vh = cappedShellHeight(vv);
       w.style.position = 'fixed';
       w.style.left = left + 'px';
       w.style.top = top + 'px';
       w.style.width = vw + 'px';
-      w.style.height = contentH + 'px';
+      w.style.height = vh + 'px';
       w.style.maxWidth = 'none';
       w.style.margin = '0';
       w.style.boxSizing = 'border-box';
       w.style.zIndex = '1';
-      document.documentElement.style.setProperty('--vv-h', contentH + 'px');
+      document.documentElement.style.setProperty('--vv-h', vh + 'px');
     } else {
       w.classList.add(PIN_CLASS);
-      var slack = 48;
-      var h = Math.max(240, window.innerHeight - slack);
+      var h = cappedShellHeight(null);
       w.style.position = 'fixed';
       w.style.left = '0';
       w.style.top = '0';
