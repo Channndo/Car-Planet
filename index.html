@@ -37,19 +37,27 @@
       var left = Math.max(0, Math.round(vv.offsetLeft));
       var vw = Math.round(vv.width);
       var vh = Math.round(vv.height);
+      var ih = window.innerHeight;
+      var vvSpan = vv.offsetTop + vv.height;
+      var belowVV = Math.max(0, Math.round(ih - vvSpan));
+      // Safari draws translucent bars on top of the last pixels of the visual viewport.
+      // Leave a gap so native chrome reads like a normal page (not tucked under game UI).
+      var reserveBottom = Math.min(96, Math.max(48, belowVV > 0 ? belowVV + 14 : 48));
+      var contentH = Math.max(240, vh - reserveBottom);
       w.style.position = 'fixed';
       w.style.left = left + 'px';
       w.style.top = top + 'px';
       w.style.width = vw + 'px';
-      w.style.height = vh + 'px';
+      w.style.height = contentH + 'px';
       w.style.maxWidth = 'none';
       w.style.margin = '0';
       w.style.boxSizing = 'border-box';
       w.style.zIndex = '1';
-      document.documentElement.style.setProperty('--vv-h', vh + 'px');
+      document.documentElement.style.setProperty('--vv-h', contentH + 'px');
     } else {
       w.classList.add(PIN_CLASS);
-      var h = window.innerHeight;
+      var slack = 48;
+      var h = Math.max(240, window.innerHeight - slack);
       w.style.position = 'fixed';
       w.style.left = '0';
       w.style.top = '0';
@@ -84,7 +92,7 @@
 })();
 </script>
 <title>Car Planet</title>
-<link rel="stylesheet" href="styles.css?v=safari-viewport-3">
+<link rel="stylesheet" href="styles.css?v=safari-viewport-4">
 </head>
 <body>
 <div id="game-wrapper">
