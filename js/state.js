@@ -88,7 +88,15 @@ function migrateSaveData(s) {
     if (!gameEvents.currentDay) gameEvents.currentDay = 1;
 }
 
-function tryRestoreFromSave() {
+function hasSaveFile() {
+    try {
+        return !!localStorage.getItem(SAVE_KEY);
+    } catch (e) {
+        return false;
+    }
+}
+
+function loadGameFromSave() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
     try {
@@ -96,11 +104,39 @@ function tryRestoreFromSave() {
         gameState = 'PLAYING';
         document.getElementById('intro-screen').style.display = 'none';
         document.getElementById('title-screen').style.display = 'none';
+        dContainer.style.display = 'none';
+        activeDialogue = null;
         return true;
     } catch (e) {
         localStorage.removeItem(SAVE_KEY);
         return false;
     }
+}
+
+function resetGameStateForNewGame() {
+    playerDetails = { name: 'CHANDLER', gender: 'Boy', inUniform: false, rivalName: 'KASEY', hasRunningShoes: false };
+    currentMapKey = 'drive';
+    gameEvents = {
+        firstCustomerTriggered: false, currentDay: 1, dailyWalkIn: false,
+        dailyAptsCompleted: 0, dailyWalkInDone: false, timeMinutes: 420, tick: 0,
+        isAfterHours: false, carWaitingForRO: false,
+        pendingMikeOfficePage: false, mikeOfficePageActive: false
+    };
+    questState = { active: false, step: 0, talkedToMike: false, assignedTo: null, roNumber: 600000 };
+    probation = defaultProbation();
+    introIndex = 0;
+    activeDialogue = null;
+    activeLine = 0;
+}
+
+function returnToTitleScreen() {
+    gameState = 'TITLE';
+    activeDialogue = null;
+    activeLine = 0;
+    document.getElementById('intro-screen').style.display = 'none';
+    document.getElementById('title-screen').style.display = 'flex';
+    dContainer.style.display = 'none';
+    if (typeof refreshTitleScreen === 'function') refreshTitleScreen();
 }
 
 function buildSavePayload() {
@@ -117,6 +153,14 @@ function buildSavePayload() {
 
 function persistGame() {
     localStorage.setItem(SAVE_KEY, JSON.stringify(buildSavePayload()));
+    if (typeof refreshTitleScreen === 'function') refreshTitleScreen();
 }
+
+window.hasSaveFile = hasSaveFile;
+window.loadGameFromSave = loadGameFromSave;
+window.resetGameStateForNewGame = resetGameStateForNewGame;
+window.returnToTitleScreen = returnToTitleScreen;
+window.persistGame = persistGame;
+window.buildSavePayload = buildSavePayload;
 
 let player;

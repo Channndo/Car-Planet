@@ -10,16 +10,29 @@ const dText = document.getElementById('dialogue-text');
 const cBox = document.getElementById('choice-buttons');
 const arrow = document.getElementById('diag-arrow');
 
-function initPlayer() {
-    let savedPlayer = null;
-    try {
-        const raw = localStorage.getItem(SAVE_KEY);
-        if (raw) savedPlayer = JSON.parse(raw).player;
-    } catch (e) {}
-    player = savedPlayer || {
+function defaultPlayer() {
+    return {
         tx: 9, ty: 8, x: 9 * TILE_SIZE, y: 8 * TILE_SIZE,
         dir: 'down', isMoving: false, moveTimer: 0, speed: 2
     };
+}
+
+function initPlayer(fromSave) {
+    let savedPlayer = null;
+    if (fromSave) {
+        try {
+            const raw = localStorage.getItem(SAVE_KEY);
+            if (raw) savedPlayer = JSON.parse(raw).player;
+        } catch (e) {}
+    }
+    player = savedPlayer || defaultPlayer();
+}
+
+function initWorldAfterLoad() {
+    applyDealershipLayouts();
+    applyNeighborhoodLayouts();
+    applyParkingStreetWarps();
+    syncDriveDailyCustomers();
 }
 
 function update() {
@@ -218,14 +231,13 @@ document.getElementById('btn-start').addEventListener('touchstart', e => { e.pre
 
 function boot() {
     loadGameSettings();
-    tryRestoreFromSave();
-    initPlayer();
-    applyDealershipLayouts();
-    applyNeighborhoodLayouts();
-    applyParkingStreetWarps();
-    syncDriveDailyCustomers();
-    maybeResumeDay2MeetingOnLoad();
+    initPlayer(false);
+    initWorldAfterLoad();
+    refreshTitleScreen();
     loop();
 }
+
+window.initPlayer = initPlayer;
+window.initWorldAfterLoad = initWorldAfterLoad;
 
 boot();

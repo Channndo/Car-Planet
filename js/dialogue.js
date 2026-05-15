@@ -1,4 +1,42 @@
-function startGameFromTitle(){if(gameState==='TITLE'){gameState='INTRO';document.getElementById('title-screen').style.display='none';document.getElementById('intro-screen').style.display='flex';dContainer.style.display='flex';playIntroLine();}}
+function refreshTitleScreen(){
+    const cont=document.getElementById('title-continue');
+    if(cont) cont.style.display=hasSaveFile()?'block':'none';
+}
+function beginIntro(){
+    gameState='INTRO';
+    document.getElementById('title-screen').style.display='none';
+    document.getElementById('intro-screen').style.display='flex';
+    dContainer.style.display='flex';
+    playIntroLine();
+}
+function continueGameFromTitle(e){
+    if(e) e.stopPropagation();
+    if(gameState!=='TITLE') return;
+    if(!loadGameFromSave()){refreshTitleScreen();return;}
+    initPlayer(true);
+    initWorldAfterLoad();
+    maybeResumeDay2MeetingOnLoad();
+}
+function startNewGameFromTitle(e){
+    if(e) e.stopPropagation();
+    if(gameState!=='TITLE') return;
+    if(hasSaveFile()){
+        document.getElementById('title-screen').style.display='none';
+        gameState='PLAYING';
+        activeDialogue=["There is already a saved game.","Starting a new game will erase it. OK?","[CHOICE_NEW_GAME_OVERWRITE]"];
+        activeLine=0;
+        dName.innerText='SYSTEM';
+        dText.innerText=activeDialogue[0];
+        drawPortrait('NONE');
+        dContainer.style.display='flex';
+        checkChoiceTrigger();
+        return;
+    }
+    resetGameStateForNewGame();
+    initPlayer(false);
+    initWorldAfterLoad();
+    beginIntro();
+}
 function triggerPAAnnouncement(){
     activeDialogue=["[P.A. SYSTEM]\n"+playerDetails.name+" to the service drive,\nguest is waiting."];
     activeLine=0; dName.innerText="SYSTEM"; dText.innerText=activeDialogue[0];
@@ -50,6 +88,7 @@ function checkChoiceTrigger(){
     else if(txt==="[CHOICE_SAVE_GAME]"){currentChoiceType='SAVE_GAME';dText.innerText="Would you like to save the game?";cBox.style.display='flex';arrow.style.display='none';}
     else if(txt==="[CHOICE_PROBATION_FIRED]"){currentChoiceType='PROBATION_FIRED';dText.innerText="Your employment has ended.\nReturn to title screen?";cBox.style.display='flex';arrow.style.display='none';}
     else if(txt==="[CHOICE_RESET_GAME]"){currentChoiceType='RESET_GAME';dText.innerText="Erase all save data\nand start over?";cBox.style.display='flex';arrow.style.display='none';}
+    else if(txt==="[CHOICE_NEW_GAME_OVERWRITE]"){currentChoiceType='NEW_GAME_OVERWRITE';dText.innerText="Erase the saved game\nand start a new one?";cBox.style.display='flex';arrow.style.display='none';}
     else if(txt==="[CHOICE_PC_MAIN]"){
         currentChoiceType='PC_MAIN'; dText.innerText="Select an option:";
         
@@ -154,10 +193,29 @@ function makeChoice(val,e){
     else if(currentChoiceType==='PROBATION_FIRED'){
         if(val==='YES'){
             localStorage.removeItem(SAVE_KEY);
-            location.reload();
+            resetGameStateForNewGame();
+            initPlayer(false);
+            initWorldAfterLoad();
+            returnToTitleScreen();
         }else{
             activeDialogue=["You remain on the lot.\nBut you're not on the schedule."];
             activeLine=0;dText.innerText=activeDialogue[0];
+        }
+    }
+    else if(currentChoiceType==='NEW_GAME_OVERWRITE'){
+        if(val==='YES'){
+            localStorage.removeItem(SAVE_KEY);
+            refreshTitleScreen();
+            resetGameStateForNewGame();
+            initPlayer(false);
+            initWorldAfterLoad();
+            beginIntro();
+        }else{
+            gameState='TITLE';
+            activeDialogue=null;
+            dContainer.style.display='none';
+            document.getElementById('title-screen').style.display='flex';
+            refreshTitleScreen();
         }
     }
     else if(currentChoiceType==='RESET_GAME'){
@@ -256,7 +314,10 @@ function advanceDialogue(){
     }
 }
 
-window.startGameFromTitle = startGameFromTitle;
+window.refreshTitleScreen = refreshTitleScreen;
+window.beginIntro = beginIntro;
+window.continueGameFromTitle = continueGameFromTitle;
+window.startNewGameFromTitle = startNewGameFromTitle;
 window.triggerPAAnnouncement = triggerPAAnnouncement;
 window.drawPortrait = drawPortrait;
 window.resetChoices = resetChoices;

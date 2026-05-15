@@ -4,12 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Car Planet</title>
-<link rel="stylesheet" href="styles.css?v=gb-layout-4">
+<link rel="stylesheet" href="styles.css?v=gb-layout-5">
 </head>
 <body>
 <div id="game-wrapper">
     <div id="game-screen">
-        <div id="title-screen" onclick="startGameFromTitle()"><div class="title-text">CAR PLANET</div><div class="blinking-text">TAP OR PRESS A TO START</div></div>
+        <div id="title-screen">
+            <div class="title-text">CAR PLANET</div>
+            <div id="title-menu">
+                <button type="button" id="title-continue" class="title-btn" style="display:none" onclick="continueGameFromTitle(event)">CONTINUE</button>
+                <button type="button" id="title-new-game" class="title-btn" onclick="startNewGameFromTitle(event)">NEW GAME</button>
+            </div>
+        </div>
         <div id="intro-screen">
             <div id="choice-box"><button class="retro-btn" onclick="selectGender('Boy')">BOY</button><button class="retro-btn" onclick="selectGender('Girl')">GIRL</button></div>
             <div id="name-box"><input type="text" id="player-name-input" class="retro-input" maxlength="10" placeholder="NAME?"><button class="retro-btn" style="text-align: center;" onclick="confirmName()">CONFIRM</button></div>
