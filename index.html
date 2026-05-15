@@ -2,28 +2,89 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <script>
 (function () {
-  function syncMobileDocHeight() {
+  var PIN_CLASS = 'mobile-vv-pin';
+  var wrap;
+
+  function getWrap() {
+    if (!wrap) wrap = document.getElementById('game-wrapper');
+    return wrap;
+  }
+
+  function clearMobilePin() {
+    var w = getWrap();
+    if (!w) return;
+    w.classList.remove(PIN_CLASS);
+    w.style.cssText = '';
+    document.documentElement.style.removeProperty('--vv-h');
+  }
+
+  function syncMobileLayout() {
+    var w = getWrap();
+    if (!w) return;
+
     if (window.matchMedia('(min-width: 800px)').matches) {
-      document.documentElement.style.removeProperty('--vv-h');
+      clearMobilePin();
       return;
     }
-    var h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    document.documentElement.style.setProperty('--vv-h', Math.round(h) + 'px');
+
+    var vv = window.visualViewport;
+    if (vv) {
+      w.classList.add(PIN_CLASS);
+      var top = Math.max(0, Math.round(vv.offsetTop));
+      var left = Math.max(0, Math.round(vv.offsetLeft));
+      var vw = Math.round(vv.width);
+      var vh = Math.round(vv.height);
+      w.style.position = 'fixed';
+      w.style.left = left + 'px';
+      w.style.top = top + 'px';
+      w.style.width = vw + 'px';
+      w.style.height = vh + 'px';
+      w.style.maxWidth = 'none';
+      w.style.margin = '0';
+      w.style.boxSizing = 'border-box';
+      w.style.zIndex = '1';
+      document.documentElement.style.setProperty('--vv-h', vh + 'px');
+    } else {
+      w.classList.add(PIN_CLASS);
+      var h = window.innerHeight;
+      w.style.position = 'fixed';
+      w.style.left = '0';
+      w.style.top = '0';
+      w.style.width = '100%';
+      w.style.height = h + 'px';
+      w.style.maxWidth = 'none';
+      w.style.margin = '0';
+      w.style.boxSizing = 'border-box';
+      w.style.zIndex = '1';
+      document.documentElement.style.setProperty('--vv-h', h + 'px');
+    }
   }
-  syncMobileDocHeight();
-  window.addEventListener('resize', syncMobileDocHeight, { passive: true });
-  window.addEventListener('orientationchange', function () { setTimeout(syncMobileDocHeight, 250); });
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', syncMobileDocHeight, { passive: true });
-    window.visualViewport.addEventListener('scroll', syncMobileDocHeight, { passive: true });
+
+  function wire() {
+    syncMobileLayout();
+    window.addEventListener('resize', syncMobileLayout, { passive: true });
+    window.addEventListener('orientationchange', function () { setTimeout(syncMobileLayout, 300); });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', syncMobileLayout, { passive: true });
+      window.visualViewport.addEventListener('scroll', syncMobileLayout, { passive: true });
+    }
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') setTimeout(syncMobileLayout, 100);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wire);
+  } else {
+    wire();
   }
 })();
 </script>
 <title>Car Planet</title>
-<link rel="stylesheet" href="styles.css?v=safari-viewport-2">
+<link rel="stylesheet" href="styles.css?v=safari-viewport-3">
 </head>
 <body>
 <div id="game-wrapper">
