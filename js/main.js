@@ -211,6 +211,7 @@ document.getElementById('btn-b').addEventListener('touchend', e => { e.preventDe
 document.getElementById('btn-start').addEventListener('touchstart', e => { e.preventDefault(); toggleStartMenu(); });
 
 function boot() {
+    loadGameSettings();
     tryRestoreFromSave();
     initPlayer();
     applyDealershipLayouts();

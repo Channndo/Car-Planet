@@ -49,6 +49,7 @@ function checkChoiceTrigger(){
     else if(txt==="[CHOICE_CHECKIN_WALKIN]"){currentChoiceType='CHECKIN_WALKIN';dText.innerText="Check in the unexpected walk-in?";cBox.style.display='flex';arrow.style.display='none';}
     else if(txt==="[CHOICE_SAVE_GAME]"){currentChoiceType='SAVE_GAME';dText.innerText="Would you like to save the game?";cBox.style.display='flex';arrow.style.display='none';}
     else if(txt==="[CHOICE_PROBATION_FIRED]"){currentChoiceType='PROBATION_FIRED';dText.innerText="Your employment has ended.\nReturn to title screen?";cBox.style.display='flex';arrow.style.display='none';}
+    else if(txt==="[CHOICE_RESET_GAME]"){currentChoiceType='RESET_GAME';dText.innerText="Erase all save data\nand start over?";cBox.style.display='flex';arrow.style.display='none';}
     else if(txt==="[CHOICE_PC_MAIN]"){
         currentChoiceType='PC_MAIN'; dText.innerText="Select an option:";
         
@@ -158,6 +159,10 @@ function makeChoice(val,e){
             activeDialogue=["You remain on the lot.\nBut you're not on the schedule."];
             activeLine=0;dText.innerText=activeDialogue[0];
         }
+    }
+    else if(currentChoiceType==='RESET_GAME'){
+        if(val==='YES'){resetGameToTitle();}
+        else{activeDialogue=["Reset cancelled."];activeLine=0;dText.innerText=activeDialogue[0];}
     }
     else if(currentChoiceType==='CHECKIN_DAILY'){
         if(val==='NO'){activeDialogue=["You ignored the vehicle."];activeLine=0;dText.innerText=activeDialogue[0];if(probation.active)adjustCSI(-2);}

@@ -4,6 +4,7 @@ const MAP_COLS = 20;
 const MAP_ROWS = 15;
 const PROBATION_DAYS = 90;
 const SAVE_KEY = 'serviceBaySave';
+const SETTINGS_KEY = 'carPlanetSettings';
 const SAVE_VERSION = 3;
 
 /* Probation pass / fail thresholds */
