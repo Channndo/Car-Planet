@@ -8,7 +8,8 @@ let gameEvents = {
     firstCustomerTriggered: false, currentDay: 1, dailyWalkIn: false,
     dailyAptsCompleted: 0, dailyWalkInDone: false, timeMinutes: 420, tick: 0,
     isAfterHours: false, carWaitingForRO: false,
-    pendingMikeOfficePage: false, mikeOfficePageActive: false
+    pendingMikeOfficePage: false, mikeOfficePageActive: false,
+    inWhitneyCheckInTutorial: false, whitneyCheckInTutorialDone: false
 };
 let questState = { active: false, step: 0, talkedToMike: false, assignedTo: null, roNumber: 600000 };
 let probation = {
@@ -78,6 +79,10 @@ function migrateSaveData(s) {
         if (gameEvents.intradayWalkInRolled === undefined) gameEvents.intradayWalkInRolled = false;
         if (gameEvents.pendingMikeOfficePage === undefined) gameEvents.pendingMikeOfficePage = false;
         if (gameEvents.mikeOfficePageActive === undefined) gameEvents.mikeOfficePageActive = false;
+        if (gameEvents.inWhitneyCheckInTutorial === undefined) gameEvents.inWhitneyCheckInTutorial = false;
+        if (gameEvents.whitneyCheckInTutorialDone === undefined) {
+            gameEvents.whitneyCheckInTutorialDone = !!(questState && questState.step >= 1);
+        }
     }
     if (s.probation && !probation.metCustomerIds) probation.metCustomerIds = [];
     if (s.questState) questState = s.questState;
@@ -120,7 +125,8 @@ function resetGameStateForNewGame() {
         firstCustomerTriggered: false, currentDay: 1, dailyWalkIn: false,
         dailyAptsCompleted: 0, dailyWalkInDone: false, timeMinutes: 420, tick: 0,
         isAfterHours: false, carWaitingForRO: false,
-        pendingMikeOfficePage: false, mikeOfficePageActive: false
+        pendingMikeOfficePage: false, mikeOfficePageActive: false,
+        inWhitneyCheckInTutorial: false, whitneyCheckInTutorialDone: false
     };
     questState = { active: false, step: 0, talkedToMike: false, assignedTo: null, roNumber: 600000 };
     probation = defaultProbation();

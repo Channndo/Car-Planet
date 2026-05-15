@@ -3,8 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<script>
+(function () {
+  function syncMobileDocHeight() {
+    if (window.matchMedia('(min-width: 800px)').matches) {
+      document.documentElement.style.removeProperty('--vv-h');
+      return;
+    }
+    var h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.documentElement.style.setProperty('--vv-h', Math.round(h) + 'px');
+  }
+  syncMobileDocHeight();
+  window.addEventListener('resize', syncMobileDocHeight, { passive: true });
+  window.addEventListener('orientationchange', function () { setTimeout(syncMobileDocHeight, 250); });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', syncMobileDocHeight, { passive: true });
+    window.visualViewport.addEventListener('scroll', syncMobileDocHeight, { passive: true });
+  }
+})();
+</script>
 <title>Car Planet</title>
-<link rel="stylesheet" href="styles.css?v=safari-viewport-1">
+<link rel="stylesheet" href="styles.css?v=safari-viewport-2">
 </head>
 <body>
 <div id="game-wrapper">

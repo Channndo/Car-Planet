@@ -296,9 +296,27 @@ function advanceDialogue(){
             }
             if(questState.step===6&&dName.innerText==='MIKE'){
                 questState.step=7; playerDetails.hasRunningShoes=true;
-                activeDialogue=["You received the Non-Slip Running Shoes!\nHold 'B' (or Shift) while moving to run.","(Tutorial Complete. Use your locker\nin the breakroom to end your shift.)"];activeLine=0;dName.innerText="SYSTEM";dText.innerText=activeDialogue[0];drawPortrait('NONE');return;
+                activeDialogue=[
+                    "You received the Non-Slip Running Shoes!\nHold 'B' (or Shift) while moving to run.",
+                    "MIKE: By the way, don't tell anyone\nI told you to run in here.",
+                    "MIKE: I don't need OSHA up in here.",
+                    "(Tutorial Complete. Use your locker\nin the breakroom to end your shift.)"
+                ];
+                activeLine=0;dName.innerText="SYSTEM";dText.innerText=activeDialogue[0];drawPortrait('NONE');return;
             }
-            if(gameState==='CUTSCENE'){gameState='PLAYING';gameEvents.firstCustomerTriggered=true;questState.active=true;questState.step=1;}
+            if(gameEvents.inWhitneyCheckInTutorial){
+                gameEvents.inWhitneyCheckInTutorial=false;
+                completeWhitneyCheckInTutorial();
+                dContainer.style.display='none';activeDialogue=null;
+                return;
+            }
+            if(gameState==='CUTSCENE'){
+                gameState='PLAYING';
+                gameEvents.firstCustomerTriggered=true;
+                questState.active=true;
+                startWhitneyCheckInTutorial();
+                return;
+            }
             if(questState.step===4&&dName.innerText==='BRONSON'){questState.step=5;gameEvents.pendingMikeOfficePage=true;triggerFlash();}
             if(completeMikeOfficePageIfNeeded()){
                 dContainer.style.display='none';
