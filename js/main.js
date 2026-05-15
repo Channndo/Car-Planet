@@ -31,6 +31,9 @@ function update() {
     if (bri && !bri.hidden) updateWanderer(bri);
 
     if (gameState === 'PLAYING') {
+        if (gameEvents.pendingMikeOfficePage && questState.step === 5 && currentMapKey === 'drive') {
+            checkMikeOfficePageOnDrive();
+        }
         gameEvents.tick++;
         if (gameEvents.tick >= 60) { gameEvents.tick = 0; if (gameEvents.timeMinutes < 1440) gameEvents.timeMinutes++; }
 
@@ -88,6 +91,7 @@ function update() {
             if (flash.alpha <= 0) {
                 flash.alpha = 0; flash.active = false; gameState = 'PLAYING';
                 tryStartDay2MeetingAfterFlash();
+                tryTriggerMikeOfficePageOnDrive();
             }
         }
         return;
@@ -126,6 +130,8 @@ function update() {
                     }, 200);
                 } else if (transition.dest && transition.dest.afterDay2Meeting) {
                     setTimeout(() => onAfterDay2MeetingArriveDrive(), 200);
+                } else if (transition.dest && transition.dest.to === 'drive') {
+                    setTimeout(() => tryTriggerMikeOfficePageOnDrive(), 200);
                 }
             }
         }

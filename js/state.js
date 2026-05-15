@@ -7,7 +7,8 @@ let currentMapKey = 'drive';
 let gameEvents = {
     firstCustomerTriggered: false, currentDay: 1, dailyWalkIn: false,
     dailyAptsCompleted: 0, dailyWalkInDone: false, timeMinutes: 420, tick: 0,
-    isAfterHours: false, carWaitingForRO: false
+    isAfterHours: false, carWaitingForRO: false,
+    pendingMikeOfficePage: false, mikeOfficePageActive: false
 };
 let questState = { active: false, step: 0, talkedToMike: false, assignedTo: null, roNumber: 600000 };
 let probation = {
@@ -75,6 +76,8 @@ function migrateSaveData(s) {
         if (gameEvents.inDay2Meeting === undefined) gameEvents.inDay2Meeting = false;
         if (gameEvents.pendingDay2Meeting === undefined) gameEvents.pendingDay2Meeting = false;
         if (gameEvents.intradayWalkInRolled === undefined) gameEvents.intradayWalkInRolled = false;
+        if (gameEvents.pendingMikeOfficePage === undefined) gameEvents.pendingMikeOfficePage = false;
+        if (gameEvents.mikeOfficePageActive === undefined) gameEvents.mikeOfficePageActive = false;
     }
     if (s.probation && !probation.metCustomerIds) probation.metCustomerIds = [];
     if (s.questState) questState = s.questState;

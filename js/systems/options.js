@@ -8,7 +8,8 @@ const MENU_FRAMES = [
     { id: 'firered', label: 'FIRE RED' },
     { id: 'leafgreen', label: 'LEAF GREEN' },
     { id: 'diamond', label: 'DIAMOND' },
-    { id: 'platinum', label: 'PLATINUM' }
+    { id: 'platinum', label: 'PLATINUM' },
+    { id: 'pearl', label: 'PEARL' }
 ];
 
 let gameSettings = { menuFrame: 'classic' };
