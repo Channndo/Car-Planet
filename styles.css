@@ -77,7 +77,6 @@ canvas {
   object-position: center;
 }
 
-#dialogue-container {
   position: absolute;
   left: 5%;
   right: 5%;
@@ -476,6 +475,10 @@ canvas {
   contain: layout style;
 }
 
+#controls #device-brand {
+  display: none;
+}
+
 /* Control board color themes (Game Boy Color shells) */
 #controls.control-board-black { background: #000; }
 #controls.control-board-grape { background: #6b5b7a; }
@@ -726,18 +729,27 @@ canvas {
 
   html {
     width: 100%;
-    height: 100%;
     overflow: hidden;
+    height: 100%;
+    height: 100svh;
+    max-height: 100svh;
+    min-height: 0;
   }
 
   body {
-    display: block;
+    display: flex;
+    flex-direction: column;
     margin: 0;
-    padding: var(--safe-top) 0 var(--safe-bottom);
-    width: 100vw;
-    max-width: 100vw;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
     height: 100%;
-    min-height: 100dvh;
+    max-height: 100%;
+    min-height: 0;
     overflow: hidden;
     background: #000;
   }
@@ -746,9 +758,10 @@ canvas {
     display: grid;
     grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-columns: 1fr;
-    width: 100vw;
-    max-width: 100vw;
-    height: calc(100dvh - var(--safe-top) - var(--safe-bottom));
+    width: 100%;
+    max-width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
     margin: 0;
     padding: 0;
     overflow: hidden;
@@ -786,7 +799,7 @@ canvas {
     flex: 1 1 auto;
     width: 100% !important;
     max-width: 100%;
-    height: 100%;
+    height: auto;
     min-height: 0;
     min-width: 0;
     object-fit: contain;
@@ -796,11 +809,35 @@ canvas {
   #dialogue-container {
     left: 4%;
     right: 4%;
-    bottom: 6px;
+    bottom: 8px;
     height: clamp(80px, 32%, 120px);
     max-height: 38%;
   }
 
+  /* omni.games on control bezel — centered overlay; PNG alpha preserved */
+  #controls #device-brand {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 8px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    pointer-events: none;
+    z-index: 5;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  #controls #device-brand img {
+    display: block;
+    height: clamp(10px, 2.8vmin, 15px);
+    width: auto;
+    max-height: clamp(11px, 3vmin, 16px);
+    opacity: 0.85;
+    object-fit: contain;
+  }
   #portrait-box {
     width: clamp(68px, 26%, 100px);
   }
@@ -839,8 +876,8 @@ canvas {
     grid-row: 1;
     justify-self: center;
     align-self: center;
-    width: min(40vw, 32vh, 190px);
-    height: min(40vw, 32vh, 190px);
+    width: min(40vw, 32svh, 190px);
+    height: min(40vw, 32svh, 190px);
     max-width: 190px;
     max-height: 190px;
   }
@@ -850,8 +887,8 @@ canvas {
     grid-row: 1;
     justify-self: center;
     align-self: center;
-    width: min(36vw, 28vh, 170px);
-    height: min(36vw, 28vh, 170px);
+    width: min(36vw, 28svh, 170px);
+    height: min(36vw, 28svh, 170px);
     max-width: 170px;
     max-height: 170px;
   }
@@ -931,11 +968,19 @@ canvas {
   #game-screen {
     position: absolute;
     inset: 0;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
   }
 
   canvas {
-    height: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    width: 100%;
+    object-fit: contain;
+    object-position: center center;
   }
 
   #dialogue-container {
@@ -969,13 +1014,13 @@ canvas {
   }
 
   #controls .dpad {
-    width: min(42vw, 30vh, 170px);
-    height: min(42vw, 30vh, 170px);
+    width: min(42vw, 30svh, 170px);
+    height: min(42vw, 30svh, 170px);
   }
 
   #controls .action {
-    width: min(38vw, 26vh, 155px);
-    height: min(38vw, 26vh, 155px);
+    width: min(38vw, 26svh, 155px);
+    height: min(38vw, 26svh, 155px);
   }
 
   #controls {
