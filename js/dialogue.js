@@ -38,6 +38,7 @@ function startNewGameFromTitle(e){
     beginIntro();
 }
 function triggerPAAnnouncement(){
+    if(typeof notifyDriveCustomerPresent==='function')notifyDriveCustomerPresent('pa');
     activeDialogue=["[P.A. SYSTEM]\n"+playerDetails.name+" to the service drive,\nguest is waiting."];
     activeLine=0; dName.innerText="SYSTEM"; dText.innerText=activeDialogue[0];
     drawPortrait('NONE'); dContainer.style.display='flex';
@@ -251,6 +252,9 @@ function confirmName(){if(introScript[introIndex].action!=='[SHOW_NAME]')return;
 function confirmRivalName(){if(introScript[introIndex].action!=='[SHOW_RIVAL_NAME]')return;let n=document.getElementById('rival-name-input').value.toUpperCase();if(n.trim()==='')n='KASEY';playerDetails.rivalName=n;const rivalObj=maps.shop.npcs.find(npc=>npc.id==='rival');if(rivalObj){rivalObj.name=playerDetails.rivalName;rivalObj.dialogue=[`Whatever, ${playerDetails.name}.\nI only wrench for Mike or Ryan.`];}document.getElementById('rival-name-box').style.display='none';dContainer.style.display='flex';introIndex++;playIntroLine();}
 function advanceDialogue(){
     if(cBox.style.display==='flex')return;
+    if(gameState==='STORY'&&typeof advanceCinematicDialogue==='function'){
+        if(advanceCinematicDialogue())return;
+    }
     if(gameState==='INTRO'){
         if(introScript[introIndex]&&introScript[introIndex].type==='ACTION')return;
         introIndex++; if(introIndex<introScript.length) playIntroLine();
@@ -296,6 +300,8 @@ function advanceDialogue(){
             }
             if(questState.step===6&&dName.innerText==='MIKE'){
                 questState.step=7; playerDetails.hasRunningShoes=true;
+                gameEvents.pendingRyanTour=true;
+                if (typeof playMusicJingle === 'function') playMusicJingle('fanfare');
                 activeDialogue=[
                     "You received the Non-Slip Running Shoes!\nHold 'B' (or Shift) while moving to run.",
                     "MIKE: By the way, don't tell anyone\nI told you to run in here.",
@@ -314,7 +320,8 @@ function advanceDialogue(){
                 gameState='PLAYING';
                 gameEvents.firstCustomerTriggered=true;
                 questState.active=true;
-                startWhitneyCheckInTutorial();
+                if(typeof beginWhitneyApproachCinematic==='function')beginWhitneyApproachCinematic();
+                else startWhitneyCheckInTutorial();
                 return;
             }
             if(questState.step===4&&dName.innerText==='BRONSON'){questState.step=5;gameEvents.pendingMikeOfficePage=true;triggerFlash();}

@@ -9,7 +9,9 @@ let gameEvents = {
     dailyAptsCompleted: 0, dailyWalkInDone: false, timeMinutes: 420, tick: 0,
     isAfterHours: false, carWaitingForRO: false,
     pendingMikeOfficePage: false, mikeOfficePageActive: false,
-    inWhitneyCheckInTutorial: false, whitneyCheckInTutorialDone: false
+    inWhitneyCheckInTutorial: false, whitneyCheckInTutorialDone: false,
+    pendingRyanTour: false, ryanTourComplete: false,
+    storyTimeFrozen: false, driveIntercomTag: null
 };
 let questState = { active: false, step: 0, talkedToMike: false, assignedTo: null, roNumber: 600000 };
 let probation = {
@@ -83,6 +85,12 @@ function migrateSaveData(s) {
         if (gameEvents.whitneyCheckInTutorialDone === undefined) {
             gameEvents.whitneyCheckInTutorialDone = !!(questState && questState.step >= 1);
         }
+        if (gameEvents.pendingRyanTour === undefined) {
+            gameEvents.pendingRyanTour = !!(questState && questState.step === 7 && playerDetails.hasRunningShoes);
+        }
+        if (gameEvents.ryanTourComplete === undefined) gameEvents.ryanTourComplete = false;
+        if (gameEvents.storyTimeFrozen === undefined) gameEvents.storyTimeFrozen = false;
+        if (gameEvents.driveIntercomTag === undefined) gameEvents.driveIntercomTag = null;
     }
     if (s.probation && !probation.metCustomerIds) probation.metCustomerIds = [];
     if (s.questState) questState = s.questState;
@@ -126,7 +134,9 @@ function resetGameStateForNewGame() {
         dailyAptsCompleted: 0, dailyWalkInDone: false, timeMinutes: 420, tick: 0,
         isAfterHours: false, carWaitingForRO: false,
         pendingMikeOfficePage: false, mikeOfficePageActive: false,
-        inWhitneyCheckInTutorial: false, whitneyCheckInTutorialDone: false
+        inWhitneyCheckInTutorial: false, whitneyCheckInTutorialDone: false,
+        pendingRyanTour: false, ryanTourComplete: false,
+        storyTimeFrozen: false, driveIntercomTag: null
     };
     questState = { active: false, step: 0, talkedToMike: false, assignedTo: null, roNumber: 600000 };
     probation = defaultProbation();

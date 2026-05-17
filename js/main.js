@@ -36,6 +36,11 @@ function initWorldAfterLoad() {
 }
 
 function update() {
+    if (typeof syncGameMusic === 'function') syncGameMusic();
+    if (gameState === 'STORY') {
+        if (typeof updateCinematic === 'function') updateCinematic();
+        return;
+    }
     if (gameState === 'MENU') return;
     if (gameState === 'TITLE' || gameState === 'INTRO' || activeDialogue || gameState === 'CUTSCENE') return;
     let joe = (maps && maps[currentMapKey] && maps[currentMapKey].npcs) ? maps[currentMapKey].npcs.find(n => n.id === 'coolant_joe') : null;
@@ -48,7 +53,13 @@ function update() {
             checkMikeOfficePageOnDrive();
         }
         gameEvents.tick++;
-        if (gameEvents.tick >= 60) { gameEvents.tick = 0; if (gameEvents.timeMinutes < 1440) gameEvents.timeMinutes++; }
+        if (!gameEvents.storyTimeFrozen && gameEvents.tick >= 60) {
+            gameEvents.tick = 0;
+            if (gameEvents.timeMinutes < 1440) gameEvents.timeMinutes++;
+        }
+        if (questState.step === 7 && gameEvents.pendingRyanTour && !gameEvents.ryanTourComplete && currentMapKey === 'drive') {
+            if (typeof tryStartRyanTourOnDrive === 'function') tryStartRyanTourOnDrive();
+        }
 
         if (gameEvents.currentDay === 1 && questState.step === 7 && gameEvents.timeMinutes >= 720) {
             questState.step = 8;
@@ -145,6 +156,9 @@ function update() {
                     setTimeout(() => onAfterDay2MeetingArriveDrive(), 200);
                 } else if (transition.dest && transition.dest.to === 'drive') {
                     setTimeout(() => tryTriggerMikeOfficePageOnDrive(), 200);
+                    setTimeout(() => {
+                        if (typeof tryStartRyanTourOnDrive === 'function') tryStartRyanTourOnDrive();
+                    }, 400);
                 }
             }
         }
@@ -231,9 +245,11 @@ document.getElementById('btn-start').addEventListener('touchstart', e => { e.pre
 
 function boot() {
     loadGameSettings();
+    if (typeof initGameMusic === 'function') initGameMusic();
     initPlayer(false);
     initWorldAfterLoad();
     refreshTitleScreen();
+    if (typeof syncGameMusic === 'function') syncGameMusic(true);
     loop();
 }
 

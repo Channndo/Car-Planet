@@ -158,6 +158,7 @@ function spawnCurrentDriveCustomer() {
 
     applyCustomerToDriveNpc(cust, visit.customer, visit);
     applyVehicleToDriveCar(car, visit.customer);
+    if (typeof notifyDriveCustomerPresent === 'function') notifyDriveCustomerPresent('spawn');
 }
 
 function syncDriveDailyCustomers() {

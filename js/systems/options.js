@@ -23,7 +23,7 @@ const CONTROL_BOARDS = [
     { id: 'classic', label: 'CLASSIC GRAY' }
 ];
 
-let gameSettings = { menuFrame: 'classic', controlBoard: 'black' };
+let gameSettings = { menuFrame: 'classic', controlBoard: 'black', musicEnabled: true };
 
 function loadGameSettings() {
     try {
@@ -32,10 +32,12 @@ function loadGameSettings() {
             const s = JSON.parse(raw);
             if (s.menuFrame) gameSettings.menuFrame = s.menuFrame;
             if (s.controlBoard) gameSettings.controlBoard = s.controlBoard;
+            if (s.musicEnabled !== undefined) gameSettings.musicEnabled = !!s.musicEnabled;
         }
     } catch (e) {}
     applyMenuFrame(gameSettings.menuFrame, false);
     applyControlBoard(gameSettings.controlBoard, false);
+    applyMusicSetting(gameSettings.musicEnabled, false);
 }
 
 function persistGameSettings() {
@@ -89,6 +91,26 @@ function updateControlBoardLabel() {
     if (el) el.textContent = getControlBoardLabel(gameSettings.controlBoard);
 }
 
+function applyMusicSetting(on, save) {
+    gameSettings.musicEnabled = !!on;
+    updateMusicLabel();
+    if (typeof setMusicEnabled === 'function') setMusicEnabled(gameSettings.musicEnabled);
+    if (save !== false) persistGameSettings();
+}
+
+function updateMusicLabel() {
+    const el = document.getElementById('music-label');
+    if (el) el.textContent = gameSettings.musicEnabled ? 'ON' : 'OFF';
+}
+
+function cycleMusic(e) {
+    if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+    applyMusicSetting(!gameSettings.musicEnabled, true);
+}
+
 function showMenuPanel(panelId) {
     document.querySelectorAll('.menu-panel').forEach(p => {
         p.style.display = p.id === panelId ? 'block' : 'none';
@@ -102,6 +124,7 @@ function openOptionsMenu() {
     document.getElementById('options-header').innerText = 'OPTIONS';
     updateMenuFrameLabel();
     updateControlBoardLabel();
+    updateMusicLabel();
 }
 
 function closeOptionsMenu() {
@@ -167,6 +190,7 @@ window.openOptionsMenu = openOptionsMenu;
 window.closeOptionsMenu = closeOptionsMenu;
 window.cycleMenuFrame = cycleMenuFrame;
 window.cycleControlBoard = cycleControlBoard;
+window.cycleMusic = cycleMusic;
 window.openResetGameConfirm = openResetGameConfirm;
 window.resetGameToTitle = resetGameToTitle;
 window.openStartMenu = openStartMenu;
