@@ -183,9 +183,46 @@ function applyVehicleToDriveCar(carNpc, customer) {
     carNpc._vehicleDirty = !!(customer.portrait && customer.portrait.acc && customer.portrait.acc.dirty);
 }
 
+const DRIVE_CUSTOMER_HOME = {
+    angry_customer: { tx: 8, ty: 3, dir: 'up' },
+    customer_car: { tx: 4, ty: 3 }
+};
+
+/** Park John / daily customer at fixed tiles — no pixel drift or drive-in motion. */
+function resetDriveCustomerSlots() {
+    if (!maps.drive) return;
+    const cust = maps.drive.npcs.find(n => n.id === 'angry_customer');
+    const car = maps.drive.npcs.find(n => n.id === 'customer_car');
+    if (cust) {
+        cust.tx = DRIVE_CUSTOMER_HOME.angry_customer.tx;
+        cust.ty = DRIVE_CUSTOMER_HOME.angry_customer.ty;
+        cust.dir = DRIVE_CUSTOMER_HOME.angry_customer.dir;
+        delete cust.x;
+        delete cust.y;
+        delete cust.isMoving;
+        delete cust.moveTimer;
+        delete cust.speed;
+        delete cust._homeTx;
+        delete cust._homeTy;
+        delete cust._homeDir;
+    }
+    if (car) {
+        car.tx = DRIVE_CUSTOMER_HOME.customer_car.tx;
+        car.ty = DRIVE_CUSTOMER_HOME.customer_car.ty;
+        delete car.x;
+        delete car.y;
+        delete car.isMoving;
+        delete car.moveTimer;
+        delete car.speed;
+        delete car._homeTx;
+        delete car._homeTy;
+    }
+}
+
 function hideDriveCustomerSlots() {
     const cust = maps.drive.npcs.find(n => n.id === 'angry_customer');
     const car = maps.drive.npcs.find(n => n.id === 'customer_car');
+    resetDriveCustomerSlots();
     if (cust) cust.hidden = true;
     if (car) car.hidden = true;
 }
@@ -204,10 +241,13 @@ function spawnCurrentDriveCustomer() {
         return;
     }
 
+    resetDriveCustomerSlots();
     applyCustomerToDriveNpc(cust, visit.customer, visit);
     applyVehicleToDriveCar(car, visit.customer);
     if (typeof notifyDriveCustomerPresent === 'function') notifyDriveCustomerPresent('spawn');
 }
+
+window.resetDriveCustomerSlots = resetDriveCustomerSlots;
 
 function syncDriveDailyCustomers() {
     if (questState.step >= 8 && !gameEvents.isAfterHours) {

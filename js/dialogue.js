@@ -336,6 +336,7 @@ function advanceDialogue(){
                 gameState='PLAYING';
                 gameEvents.firstCustomerTriggered=true;
                 questState.active=true;
+                questState.step=1;
                 if(typeof beginWhitneyApproachCinematic==='function')beginWhitneyApproachCinematic();
                 else startWhitneyCheckInTutorial();
                 return;
