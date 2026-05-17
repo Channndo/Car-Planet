@@ -242,7 +242,7 @@ const MusicEngine = (function () {
         if (gameState === 'TITLE') return 'title';
         if (gameState === 'INTRO') return 'intro';
         if (gameState === 'MENU') return playingId || mapTrack(currentMapKey);
-        if (gameState === 'STORY' || gameState === 'CUTSCENE' || gameState === 'CUSTOMER_SCENE') return 'battle';
+        if (gameState === 'STORY' || gameState === 'CUTSCENE') return 'battle';
         if (gameState === 'PLAYING') {
             if (gameEvents && gameEvents.isAfterHours) return 'night';
             return mapTrack(currentMapKey);

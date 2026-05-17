@@ -132,10 +132,10 @@ function makeChoice(val,e){
                  if(gameEvents.dailyAptsCompleted<3){
                      let nApt=gameEvents.dailyAptsCompleted===1?"mid-day":"afternoon";
                      activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!\nYour "+nApt+" appointment\nhas arrived.","[P.A. SYSTEM]\n"+playerDetails.name+" to the service drive,\nguest is waiting."];
-                     hideDriveCustomerSlots(function(){spawnCurrentDriveCustomer();});
+                     spawnCurrentDriveCustomer();
                  }else if(gameEvents.dailyWalkIn&&!gameEvents.dailyWalkInDone){
                      activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!\nWait, another car just pulled up.\nIt's a walk-in!","[P.A. SYSTEM]\n"+playerDetails.name+" to the service drive,\nguest is waiting."];
-                     hideDriveCustomerSlots(function(){spawnCurrentDriveCustomer();});
+                     spawnCurrentDriveCustomer();
                  }else{
                      activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!\nThat's it for today.\nEnd your shift at your computer."];
                      hideDriveCustomerSlots();

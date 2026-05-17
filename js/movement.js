@@ -1,5 +1,5 @@
 function triggerWarp(w){
-    if (gameState === 'STORY' || gameState === 'CUTSCENE' || gameState === 'CUSTOMER_SCENE') return;
+    if (gameState === 'STORY' || gameState === 'CUTSCENE') return;
     if (w.to === 'womens_locker_room' || w.to === 'showroom_womens') {
         if (playerDetails.gender === 'Boy') {
             activeDialogue=["That's the women's room.\nI shouldn't go in there."]; activeLine=0; dName.innerText="SYSTEM"; dText.innerText=activeDialogue[0]; drawPortrait('NONE'); dContainer.style.display='flex';

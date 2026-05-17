@@ -183,13 +183,11 @@ function applyVehicleToDriveCar(carNpc, customer) {
     carNpc._vehicleDirty = !!(customer.portrait && customer.portrait.acc && customer.portrait.acc.dirty);
 }
 
-function hideDriveCustomerSlots(onDone) {
-    if (typeof dismissDriveCustomer === 'function') {
-        dismissDriveCustomer(onDone);
-        return;
-    }
-    if (typeof hideDriveCustomerSlotsInstant === 'function') hideDriveCustomerSlotsInstant();
-    if (onDone) onDone();
+function hideDriveCustomerSlots() {
+    const cust = maps.drive.npcs.find(n => n.id === 'angry_customer');
+    const car = maps.drive.npcs.find(n => n.id === 'customer_car');
+    if (cust) cust.hidden = true;
+    if (car) car.hidden = true;
 }
 
 function spawnCurrentDriveCustomer() {
@@ -208,12 +206,7 @@ function spawnCurrentDriveCustomer() {
 
     applyCustomerToDriveNpc(cust, visit.customer, visit);
     applyVehicleToDriveCar(car, visit.customer);
-    if (typeof presentDriveCustomer === 'function') presentDriveCustomer();
-    else {
-        if (cust) cust.hidden = false;
-        if (car) car.hidden = false;
-        if (typeof notifyDriveCustomerPresent === 'function') notifyDriveCustomerPresent('spawn');
-    }
+    if (typeof notifyDriveCustomerPresent === 'function') notifyDriveCustomerPresent('spawn');
 }
 
 function syncDriveDailyCustomers() {

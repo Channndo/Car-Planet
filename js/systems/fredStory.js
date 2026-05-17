@@ -62,6 +62,7 @@ function completeFredStoryHappy() {
     gameEvents.dailyAptsCompleted++;
     recordProbationRO();
     if (typeof adjustCSI === 'function') adjustCSI(2);
+    hideDriveCustomerSlots();
     const cust = maps.drive.npcs.find(n => n.id === 'angry_customer');
     if (cust) {
         cust.dialogue = [
@@ -69,6 +70,7 @@ function completeFredStoryHappy() {
             'Interior actually smells better.',
             "I'll be back for the next one."
         ];
+        cust.hidden = false;
     }
     activeDialogue = [
         'FRED: Appreciate you, ' + playerDetails.name + '.',
@@ -80,17 +82,14 @@ function completeFredStoryHappy() {
     dText.innerText = activeDialogue[0];
     drawPortrait('FRED_NANDERS');
     dContainer.style.display = 'flex';
-    const afterFred = function () {
-        hideDriveCustomerSlots(function () {
-            if (gameEvents.dailyAptsCompleted < 3) {
-                spawnCurrentDriveCustomer();
-                if (typeof notifyDriveCustomerPresent === 'function') {
-                    notifyDriveCustomerPresent('fred_afternoon');
-                }
+    setTimeout(function () {
+        if (gameEvents.dailyAptsCompleted < 3) {
+            spawnCurrentDriveCustomer();
+            if (typeof notifyDriveCustomerPresent === 'function') {
+                notifyDriveCustomerPresent('fred_afternoon');
             }
-        });
-    };
-    setTimeout(afterFred, 1200);
+        }
+    }, 600);
 }
 
 function resolveStoryNpcDialogue(npc) {
