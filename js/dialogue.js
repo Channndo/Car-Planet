@@ -69,6 +69,8 @@ function drawPortrait(c) {
     else if(c==='JOHN'){pR(16,48,32,16,'#fff');pR(20,48,24,16,'#222');pR(22,22,20,24,'#ffdbac');pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(20,14,24,8,'#6b4c3a');pR(22,38,20,8,'#6b4c3a');pR(20,16,24,8,'#fff');pR(18,20,4,10,'#fff');pR(42,20,4,10,'#fff');pR(20,16,24,8,'#222');pR(24,30,6,4,'rgba(255,255,255,0.4)');pR(34,30,6,4,'rgba(255,255,255,0.4)');}
     else if(c==='TROY'){pR(16,48,32,16,'#111');pR(22,22,20,24,'#e8b898');pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(22,38,20,8,'#222');pR(20,16,24,8,'#111');pR(18,20,4,6,'#111');pR(42,20,4,6,'#111');pR(24,30,6,4,'rgba(255,255,255,0.4)');pR(34,30,6,4,'rgba(255,255,255,0.4)');}
     else if(c==='CUSTOMER'||c==='APPOINTMENT'||c==='WALK-IN'){pR(18,48,28,16,'#cc2222');pR(22,22,20,24,'#ffccaa');pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(20,16,24,8,'#222');pCtx.beginPath();pCtx.moveTo(24,28);pCtx.lineTo(30,30);pCtx.stroke();pCtx.beginPath();pCtx.moveTo(40,28);pCtx.lineTo(34,30);pCtx.stroke();pR(29,42,6,4,'#222');}
+    else if(c==='FRED_NANDERS'){let cust=maps.drive&&maps.drive.npcs?maps.drive.npcs.find(n=>n.id==='angry_customer'):null;let skin=cust?cust.color:'#c68642';let shirt=cust?cust.shirt:'#3d3d3d';let hair=cust?cust.hair:'#3d2817';pR(18,48,28,16,shirt);pR(22,22,20,24,skin);pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(20,16,24,8,hair);pR(18,20,4,8,'rgba(60,45,30,0.55)');pR(42,20,4,8,'rgba(60,45,30,0.55)');pR(20,26,10,6,'rgba(80,55,30,0.45)');pR(34,38,8,4,'rgba(70,50,25,0.5)');pR(24,40,16,3,'rgba(50,35,20,0.65)');}
+    else if(c==='BRI'){pR(18,48,28,16,'#222');pR(22,22,20,24,'#fff0f0');pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(20,16,24,8,'#cc0000');pR(16,24,6,20,'#cc0000');pR(42,24,6,20,'#cc0000');pR(28,42,8,2,'#fff');}
     else if(c==='PLAYER'){let skin=playerDetails.gender==='Boy'?'#ffccaa':'#ffdbac';let hair=playerDetails.gender==='Boy'?'#4a3121':'#f6c944';pR(18,48,28,16,playerDetails.inUniform?'#111':'#fff');pR(22,22,20,24,skin);pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');if(playerDetails.gender==='Boy'){pR(20,16,24,8,hair);pR(18,20,4,10,hair);}else{pR(18,16,28,10,hair);pR(18,26,6,18,hair);pR(40,26,6,18,hair);}}
     else if(c==='GUS'){ pR(16,48,32,16,'#111'); pR(22,18,20,26,'#ffdbac'); pR(26,28,2,2,'#111');pR(36,28,2,2,'#111'); pR(29,38,6,1,'#111'); pR(18,16,6,14,'#d4a017');pR(40,16,6,14,'#d4a017');pR(22,14,20,4,'#d4a017'); }
     else if(c==='PAINT_TECH'){ pR(16,48,32,16,'#e5e7eb'); pR(22,18,20,26,'#ffdbac'); pCtx.strokeStyle='#111';pCtx.lineWidth=1;pCtx.strokeRect(24,26,6,5);pCtx.strokeRect(34,26,6,5);pCtx.beginPath();pCtx.moveTo(30,28);pCtx.lineTo(34,28);pCtx.stroke(); pR(29,38,6,1,'#111'); }
@@ -130,10 +132,10 @@ function makeChoice(val,e){
                  if(gameEvents.dailyAptsCompleted<3){
                      let nApt=gameEvents.dailyAptsCompleted===1?"mid-day":"afternoon";
                      activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!\nYour "+nApt+" appointment\nhas arrived.","[P.A. SYSTEM]\n"+playerDetails.name+" to the service drive,\nguest is waiting."];
-                     spawnCurrentDriveCustomer();
+                     hideDriveCustomerSlots(function(){spawnCurrentDriveCustomer();});
                  }else if(gameEvents.dailyWalkIn&&!gameEvents.dailyWalkInDone){
                      activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!\nWait, another car just pulled up.\nIt's a walk-in!","[P.A. SYSTEM]\n"+playerDetails.name+" to the service drive,\nguest is waiting."];
-                     spawnCurrentDriveCustomer();
+                     hideDriveCustomerSlots(function(){spawnCurrentDriveCustomer();});
                  }else{
                      activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!\nThat's it for today.\nEnd your shift at your computer."];
                      hideDriveCustomerSlots();
@@ -143,6 +145,11 @@ function makeChoice(val,e){
                  recordProbationRO();
                  hideDriveCustomerSlots();
                  activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!\nThe drive is empty.","Time to clock out at your computer."];
+             } else if(gameEvents.carWaitingForRO==='fred_story'){
+                 gameEvents.carWaitingForRO=false;
+                 questState.roNumber++;
+                 if(typeof setFredPhase==='function')setFredPhase('need_mike');
+                 activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!","Take it to Mike for dispatch."];
              }
              activeLine=0; dText.innerText=activeDialogue[0];
         }
@@ -225,7 +232,15 @@ function makeChoice(val,e){
     }
     else if(currentChoiceType==='CHECKIN_DAILY'){
         if(val==='NO'){activeDialogue=["You ignored the vehicle."];activeLine=0;dText.innerText=activeDialogue[0];if(probation.active)adjustCSI(-2);}
-        if(val==='YES'){gameEvents.carWaitingForRO='daily';activeDialogue=["Vehicle checked in.\nGo to your computer to write the RO."];activeLine=0;dText.innerText=activeDialogue[0];}
+        if(val==='YES'){
+            if(typeof isFredAppointmentActive==='function'&&isFredAppointmentActive()&&typeof onFredCheckInConfirmed==='function'){
+                onFredCheckInConfirmed();
+            }else{
+                gameEvents.carWaitingForRO='daily';
+                activeDialogue=["Vehicle checked in.\nGo to your computer to write the RO."];
+                activeLine=0;dText.innerText=activeDialogue[0];
+            }
+        }
     }
     else if(currentChoiceType==='CHECKIN_WALKIN'){
         if(val==='NO'){activeDialogue=["You turned away the walk-in."];activeLine=0;dText.innerText=activeDialogue[0];if(probation.active){adjustCSI(-5);addWarning('Refused walk-in guest.');}}
@@ -249,7 +264,7 @@ function playIntroLine(){
 }
 function selectGender(g){playerDetails.gender=g;document.getElementById('choice-box').style.display='none';dContainer.style.display='flex';introIndex++;playIntroLine();}
 function confirmName(){if(introScript[introIndex].action!=='[SHOW_NAME]')return;let n=document.getElementById('player-name-input').value.toUpperCase();if(n.trim()==='')n='CHANDLER';playerDetails.name=n;document.getElementById('name-box').style.display='none';dContainer.style.display='flex';introIndex++;playIntroLine();}
-function confirmRivalName(){if(introScript[introIndex].action!=='[SHOW_RIVAL_NAME]')return;let n=document.getElementById('rival-name-input').value.toUpperCase();if(n.trim()==='')n='KASEY';playerDetails.rivalName=n;const rivalObj=maps.shop.npcs.find(npc=>npc.id==='rival');if(rivalObj){rivalObj.name=playerDetails.rivalName;rivalObj.dialogue=[`Whatever, ${playerDetails.name}.\nI only wrench for Mike or Ryan.`];}document.getElementById('rival-name-box').style.display='none';dContainer.style.display='flex';introIndex++;playIntroLine();}
+function confirmRivalName(){if(introScript[introIndex].action!=='[SHOW_RIVAL_NAME]')return;let n=document.getElementById('rival-name-input').value.toUpperCase();if(n.trim()==='')n='KASEY';playerDetails.rivalName=n;const rivalObj=maps.shop.npcs.find(npc=>npc.id==='rival');if(rivalObj){rivalObj.name=playerDetails.rivalName;rivalObj.dialogue=[`Whatever, ${playerDetails.name}.\nI only wrench for Mike or Ryan.`];}if(typeof syncAutoworldRivalName==='function')syncAutoworldRivalName();document.getElementById('rival-name-box').style.display='none';dContainer.style.display='flex';introIndex++;playIntroLine();}
 function advanceDialogue(){
     if(cBox.style.display==='flex')return;
     if(gameState==='STORY'&&typeof advanceCinematicDialogue==='function'){
@@ -324,7 +339,7 @@ function advanceDialogue(){
                 else startWhitneyCheckInTutorial();
                 return;
             }
-            if(questState.step===4&&dName.innerText==='BRONSON'){questState.step=5;gameEvents.pendingMikeOfficePage=true;triggerFlash();}
+            if(questState.step===4&&dName.innerText==='BRONSON'){questState.step=5;gameEvents.pendingMikeOfficePage=true;if(typeof dispatchVehicleToShopWithFlash==='function')dispatchVehicleToShopWithFlash();else triggerFlash();}
             if(completeMikeOfficePageIfNeeded()){
                 dContainer.style.display='none';
                 activeDialogue=null;

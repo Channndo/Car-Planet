@@ -32,6 +32,34 @@ const CORE_CUSTOMERS = [
     { id: 30, name: 'EARL DUNN', dexEntry: 'Claims he knew the previous owner.', personalityLine: "Bought it off the lot in '09.", complaintPool: ['Same rattle for three visits.', 'Fix it or I call corporate.'], portrait: { skin: '#dcb', shirt: '#b45309', sleeves: 'long', hair: '#888' }, vehicle: { make: 'Ford', model: 'F-150', year: 2014, color: '#8b4513' } }
 ];
 
+/** Day 2 noon story guest — appearance randomized in buildFredNandersCustomer() */
+const FRED_NANDERS_TEMPLATE = {
+    id: 151,
+    storyId: 'fred_oil_change_day2',
+    name: 'FRED NANDERS',
+    dexEntry: 'Mulch hauler. Interior smells like a barn.',
+    personalityLine: "Just an oil change. In and out.",
+    complaintPool: ['Just need an oil change.', 'Do not open the windows.'],
+    vehicle: { make: 'Ford', model: 'Escape', year: 2013, color: '#f4f4f4' },
+    carNote: 'White 2013 Escape. Mud inside and out.'
+};
+
+const FRED_DIRTY_SKINS = ['#c68642', '#8d5524', '#dcb', '#a67c52'];
+const FRED_DIRTY_SHIRTS = ['#3d3d3d', '#4a3728', '#5c4033', '#2f4f2f'];
+const FRED_DIRTY_HAIRS = ['#3d2817', '#4a3121', '#222222', '#5c4033'];
+
+function buildFredNandersCustomer() {
+    const c = JSON.parse(JSON.stringify(FRED_NANDERS_TEMPLATE));
+    c.portrait = {
+        skin: FRED_DIRTY_SKINS[Math.floor(Math.random() * FRED_DIRTY_SKINS.length)],
+        shirt: FRED_DIRTY_SHIRTS[Math.floor(Math.random() * FRED_DIRTY_SHIRTS.length)],
+        sleeves: Math.random() < 0.6 ? 'long' : 'short',
+        hair: FRED_DIRTY_HAIRS[Math.floor(Math.random() * FRED_DIRTY_HAIRS.length)],
+        acc: { dirty: true, stubble: true }
+    };
+    return c;
+}
+
 function getCoreCustomerById(id) {
     return CORE_CUSTOMERS.find(c => c.id === id) || null;
 }
@@ -42,3 +70,6 @@ function getRandomCoreCustomers(count, excludeIds) {
     const shuffled = pool.slice().sort(() => Math.random() - 0.5);
     return shuffled.slice(0, count);
 }
+
+window.buildFredNandersCustomer = buildFredNandersCustomer;
+window.FRED_NANDERS_TEMPLATE = FRED_NANDERS_TEMPLATE;

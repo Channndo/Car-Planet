@@ -157,6 +157,8 @@ function startCinematic(steps, onComplete) {
     cinematic.stepIndex = 0;
     cinematic.phase = 'idle';
     cinematic.waitFrames = 0;
+    cinematic.stuckFrames = 0;
+    cinematic.runawayFrames = 0;
     cinematic.onComplete = onComplete || null;
     cinematic.followLeaderId = null;
     gameState = 'STORY';
@@ -165,16 +167,47 @@ function startCinematic(steps, onComplete) {
     runCinematicStep();
 }
 
+function hideTourRyanOnOtherMaps() {
+    ['shop', 'parts', 'office'].forEach(function (mapKey) {
+        const r = getNpc(mapKey, 'ryan');
+        if (r) r.hidden = true;
+    });
+}
+
+function resetPlayerMotion() {
+    if (!player) return;
+    player.isMoving = false;
+    player.moveTimer = 0;
+    player.x = player.tx * TILE_SIZE;
+    player.y = player.ty * TILE_SIZE;
+}
+
 function endCinematic() {
     cinematic.active = false;
     cinematic.steps = [];
     cinematic.stepIndex = 0;
     cinematic.followLeaderId = null;
+    cinematic.stuckFrames = 0;
+    cinematic.walkTarget = null;
+    cinematic.followUntil = null;
+    hideTourRyanOnOtherMaps();
+    resetPlayerMotion();
     gameEvents.storyTimeFrozen = false;
     gameState = 'PLAYING';
     const done = cinematic.onComplete;
     cinematic.onComplete = null;
     if (done) done();
+}
+
+function skipCinematicStepIfStuck() {
+    cinematic.stuckFrames = (cinematic.stuckFrames || 0) + 1;
+    if (cinematic.stuckFrames > 120) {
+        cinematic.stuckFrames = 0;
+        cinematic.stepIndex++;
+        runCinematicStep();
+        return true;
+    }
+    return false;
 }
 
 function showCinematicDialogue(lines, speakerName, portrait) {
@@ -188,19 +221,26 @@ function showCinematicDialogue(lines, speakerName, portrait) {
 }
 
 function storyWarp(mapKey, px, py, npcId, ntx, nty) {
+    if (mapKey !== currentMapKey) hideTourRyanOnOtherMaps();
     currentMapKey = mapKey;
     player.tx = px;
     player.ty = py;
-    player.x = px * TILE_SIZE;
-    player.y = py * TILE_SIZE;
-    player.isMoving = false;
+    resetPlayerMotion();
     const npc = getNpc(mapKey, npcId);
     if (npc) {
         npc.hidden = false;
         npc.tx = ntx;
         npc.ty = nty;
+        ensureNpcMotion(npc);
         snapNpcToTile(npc);
     }
+}
+
+function forceEndCinematic() {
+    if (!cinematic.active) return;
+    dContainer.style.display = 'none';
+    activeDialogue = null;
+    endCinematic();
 }
 
 function runCinematicStep() {
@@ -277,6 +317,12 @@ function advanceCinematicDialogue() {
 function updateCinematic() {
     if (!cinematic.active) return;
 
+    cinematic.runawayFrames = (cinematic.runawayFrames || 0) + 1;
+    if (cinematic.runawayFrames > 3600) {
+        forceEndCinematic();
+        return;
+    }
+
     if (cinematic.phase === 'dialogue') return;
 
     if (cinematic.phase === 'wait') {
@@ -288,21 +334,27 @@ function updateCinematic() {
         return;
     }
 
-    const leader = cinematic.followLeaderId ? getNpc(currentMapKey, cinematic.followLeaderId) : null;
+    const followMap = cinematic.followUntil ? (cinematic.followUntil.map || currentMapKey) : currentMapKey;
+    const leader = cinematic.followLeaderId ? getNpc(followMap, cinematic.followLeaderId) : null;
     if (leader) advanceNpcMotion(leader);
     advancePlayerMotion();
 
     if (cinematic.phase === 'walk_npc' && cinematic.walkTarget) {
         const t = cinematic.walkTarget;
         const npc = getNpc(t.map, t.id);
-        if (npc) {
-            advanceNpcMotion(npc);
-            if (!npc.isMoving && npc.tx === t.tx && npc.ty === t.ty) {
-                cinematic.stepIndex++;
-                runCinematicStep();
-                return;
-            }
-            npcStepToward(npc, t.tx, t.ty, t.speed);
+        if (!npc) {
+            if (skipCinematicStepIfStuck()) return;
+            return;
+        }
+        cinematic.stuckFrames = 0;
+        advanceNpcMotion(npc);
+        if (!npc.isMoving && npc.tx === t.tx && npc.ty === t.ty) {
+            cinematic.stepIndex++;
+            runCinematicStep();
+            return;
+        }
+        if (!npc.isMoving && !npcStepToward(npc, t.tx, t.ty, t.speed)) {
+            if (skipCinematicStepIfStuck()) return;
         }
         return;
     }
@@ -318,8 +370,13 @@ function updateCinematic() {
         return;
     }
 
-    if (cinematic.phase === 'follow' && cinematic.followUntil && leader) {
+    if (cinematic.phase === 'follow' && cinematic.followUntil) {
         const u = cinematic.followUntil;
+        if (!leader) {
+            if (skipCinematicStepIfStuck()) return;
+            return;
+        }
+        cinematic.stuckFrames = 0;
         followNpc(cinematic.followLeaderId, cinematic.followOffset);
         if (!leader.isMoving && leader.tx === u.tx && leader.ty === u.ty) {
             const px = player.tx;
@@ -331,7 +388,9 @@ function updateCinematic() {
                 return;
             }
         }
-        if (!leader.isMoving) npcStepToward(leader, u.tx, u.ty, 1);
+        if (!leader.isMoving && !npcStepToward(leader, u.tx, u.ty, 1)) {
+            if (skipCinematicStepIfStuck()) return;
+        }
     }
 }
 
@@ -379,7 +438,9 @@ function beginRyanTourCinematic() {
         ryanSaved = { tx: ryan.tx, ty: ryan.ty, dir: ryan.dir || 'down' };
         ensureNpcMotion(ryan);
     }
+    resetPlayerMotion();
 
+    /* Warp + dialogue only — no follow (auto-walk pinned players on desk tiles). */
     startCinematic([
         { type: 'walk_npc', npcId: 'ryan', tx: 10, ty: 9, speed: 1 },
         { type: 'walk_npc', npcId: 'ryan', tx: 9, ty: 8, speed: 1 },
@@ -391,31 +452,34 @@ function beginRyanTourCinematic() {
             "RYAN: We've been a little slower\nthis week.",
             "RYAN: Come on — quick tour of the\nbuilding before your noon appointment."
         ]},
-        { type: 'follow', npcId: 'ryan', offset: 1, map: 'drive', tx: 9, ty: 12, ntx: 9, nty: 11, px: 9, py: 10 },
+        { type: 'callback', fn: function () {
+            storyWarp('drive', 8, 9, 'ryan', 6, 9);
+            const r = getNpc('drive', 'ryan');
+            if (r) r.dir = 'right';
+            player.dir = 'right';
+            resetPlayerMotion();
+        }},
         { type: 'dialogue', name: 'RYAN', portrait: 'RYAN', lines: [
             "RYAN: This is the service drive.\nGuests pull in right here.",
-            "RYAN: Your desk is over there —\nthat's Car Planet OS."
+            "RYAN: Your desk is over there —\nthat's Car Planet OS.",
+            "RYAN: Don't walk into the monitor.\nIt won't check you in."
         ]},
         { type: 'warp', map: 'shop', px: 9, py: 12, npcId: 'ryan', ntx: 9, nty: 11 },
-        { type: 'follow', npcId: 'ryan', offset: 1, map: 'shop', tx: 8, ty: 8, ntx: 9, nty: 9, px: 9, py: 10 },
         { type: 'dialogue', name: 'RYAN', portrait: 'RYAN', lines: [
             "RYAN: Shop floor — techs, toolbox drama,\nthe whole circus.",
             "RYAN: Locker rooms are through here\nif you need to change."
         ]},
         { type: 'warp', map: 'parts', px: 9, py: 12, npcId: 'ryan', ntx: 9, nty: 11 },
-        { type: 'follow', npcId: 'ryan', offset: 1, map: 'parts', tx: 9, ty: 8, ntx: 9, nty: 10, px: 9, py: 11 },
         { type: 'dialogue', name: 'RYAN', portrait: 'RYAN', lines: [
             "RYAN: Parts counter — EJ and Little Mike.\nDon't yell at Adam.",
             "RYAN: Jerry runs the back. He's... intense."
         ]},
         { type: 'warp', map: 'office', px: 9, py: 12, npcId: 'ryan', ntx: 9, nty: 10 },
-        { type: 'follow', npcId: 'ryan', offset: 1, map: 'office', tx: 9, ty: 7, ntx: 10, nty: 8, px: 9, py: 9 },
         { type: 'dialogue', name: 'RYAN', portrait: 'RYAN', lines: [
             "RYAN: Mike's office. You'll be in here\nwhen you're in trouble.",
             "RYAN: Or when CSI is on fire."
         ]},
-        { type: 'warp', map: 'drive', px: 9, py: 8, npcId: 'ryan', ntx: 10, nty: 9 },
-        { type: 'walk_npc', npcId: 'ryan', tx: 11, ty: 11, speed: 1 },
+        { type: 'warp', map: 'drive', px: 9, py: 8, npcId: 'ryan', ntx: 11, nty: 11 },
         { type: 'dialogue', name: 'RYAN', portrait: 'RYAN', lines: [
             "RYAN: And you're back on the drive.",
             "RYAN: You've got plenty of time before\nyour first appointment at noon.",
@@ -424,6 +488,7 @@ function beginRyanTourCinematic() {
         { type: 'callback', fn: function () {
             gameEvents.ryanTourComplete = true;
             if (gameEvents.timeMinutes > 660) gameEvents.timeMinutes = 540;
+            hideTourRyanOnOtherMaps();
             const r = getNpc('drive', 'ryan');
             if (r && ryanSaved) {
                 r.tx = ryanSaved.tx;
@@ -431,17 +496,22 @@ function beginRyanTourCinematic() {
                 r.dir = ryanSaved.dir;
                 snapNpcToTile(r);
             }
-            if (whitneySaved) { /* no-op */ }
+            resetPlayerMotion();
         }}
     ]);
 }
 
 function tryStartRyanTourOnDrive() {
-    if (gameState !== 'PLAYING' && gameState !== 'STORY') return;
+    if (gameState !== 'PLAYING') return;
     if (currentMapKey !== 'drive') return;
     if (questState.step !== 7) return;
     if (!gameEvents.pendingRyanTour || gameEvents.ryanTourComplete) return;
     if (cinematic.active || activeDialogue || gameState === 'CUTSCENE') return;
+    if (typeof isCustomerAnimActive === 'function' && isCustomerAnimActive()) return;
+    const ryan = getNpc('drive', 'ryan');
+    if (!ryan) return;
+    const dist = Math.abs(player.tx - ryan.tx) + Math.abs(player.ty - ryan.ty);
+    if (dist > 2) return;
     beginRyanTourCinematic();
 }
 
@@ -451,3 +521,5 @@ window.beginWhitneyApproachCinematic = beginWhitneyApproachCinematic;
 window.beginRyanTourCinematic = beginRyanTourCinematic;
 window.tryStartRyanTourOnDrive = tryStartRyanTourOnDrive;
 window.isCinematicActive = function () { return cinematic.active; };
+window.forceEndCinematic = forceEndCinematic;
+window.resetPlayerMotion = resetPlayerMotion;

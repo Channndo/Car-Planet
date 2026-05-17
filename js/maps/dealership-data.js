@@ -12,7 +12,8 @@ const dealershipMaps = {
     {id:'bri',tx:2,ty:2,x:2*TILE_SIZE,y:2*TILE_SIZE,isMoving:false,moveTimer:0,speed:1,nextMoveDelay:100,dir:'down',color:'#fff0f0',shirt:'#222',sleeves:'short',hair:'#cc0000',name:'BRI',charCode:'BRI',dialogue:["Ugh, my baby daddy is blowing up\nmy phone again.","Like, can't he see I'm trying\nto buff this clear coat?!","Damone thinks he's the only one\nwho can detail. As if."],acc:{isGirl:true}},
     {id:'b_toolbox',tx:2,ty:1,isObject:true,charCode:'TINY_BLUE_BOX',name:'BRI\'S TOOLBOX',dialogue:["It's a really tiny blue toolbox."]},
     {id:'damone',tx:18,ty:2,color:'#8d5524',shirt:'#111',sleeves:'long',hair:'#111',name:'DAMONE',charCode:'DAMONE',dir:'left',acc:{chain:true},dialogue:["Yo! I'm Damone. You got a Lincoln\nor an angry customer that needs a wash?", "Just page me, I'll knock it out in a jiffy.", "What you playin' on lately?\nI'm a gamer too."]},
-    {id:'d_toolbox',tx:18,ty:1,isObject:true,charCode:'TINY_BLUE_BOX',name:'D\'S TOOLBOX',dialogue:["It's a really tiny blue toolbox."]}]},
+    {id:'d_toolbox',tx:18,ty:1,isObject:true,charCode:'TINY_BLUE_BOX',name:'D\'S TOOLBOX',dialogue:["It's a really tiny blue toolbox."]},
+    {id:'ryan',tx:9,ty:11,color:'#ffccaa',shirt:'#111',sleeves:'long',hair:null,name:'RYAN',charCode:'RYAN',hidden:true,dialogue:[]}]},
     mens_locker_room:{bg:'#cccccc',layout:generateEmptyMap(),warps:[{tx:0,ty:7,to:'shop',px:18,py:6}],npcs:[
         {id:'locker',tx:3,ty:1,isObject:true,name:'YOUR LOCKER',charCode:'OBJ',dialogue:["It's your locker.\nChange into uniform?"]},
         {id:'stall_guy',tx:14,ty:1,isObject:false,color:'#ffccaa',shirt:'#fff',sleeves:'short',hair:'#222',name:'OCCUPIED STALL',charCode:'STALL_GUY',dialogue:["*Aggressive splashing*", "I'm gonna be a minute, man!\nFind another stall!"]}
@@ -27,7 +28,8 @@ const dealershipMaps = {
         {id:'jake',tx:5,ty:5,color:'#ffdbac',shirt:'#111',sleeves:'short',hair:'#cc3300',name:'JAKE',charCode:'JAKE',dir:'left',acc:{beard:'#cc3300'},dialogue:["Adam, you entered the wrong\npart number AGAIN!", "I swear I'm surrounded by idiots."]},
         {id:'adam',tx:5,ty:8,color:'#ffdbac',shirt:'#888',sleeves:'short',hair:'#111',name:'ADAM',charCode:'ADAM',dir:'left',acc:{beard:'#111',glasses:true},dialogue:["I think I ordered a\nwiper blade instead of an alternator.", "Is that bad?"]},
         {id:'jerry',tx:16,ty:2,color:'#ffdbac',shirt:'#fff',sleeves:'long',hair:'#fff',name:'JERRY',charCode:'JERRY',dir:'down',acc:{beard:'#fff',glasses:true},dialogue:["I've run this department for 30 years.", "These advisors don't know a spark plug\nfrom a strut.", "Eric is a good kid. The rest\nof them? Useless.", "Have I shown you pictures\nof my son Kevin?"]},
-        {id:'coolant_joe',tx:2,ty:3,x:2*TILE_SIZE,y:3*TILE_SIZE,isMoving:false,moveTimer:0,speed:1,nextMoveDelay:60,isDrinking:false,drinkTimer:0,dir:'down',name:'COOLANT JOE',charCode:'COOLANT_JOE',dialogue:["*Gulp gulp gulp*", "Dex-Cool hits different at 2 AM.", "I'm 40% ethylene glycol now."]}
+        {id:'coolant_joe',tx:2,ty:3,x:2*TILE_SIZE,y:3*TILE_SIZE,isMoving:false,moveTimer:0,speed:1,nextMoveDelay:60,isDrinking:false,drinkTimer:0,dir:'down',name:'COOLANT JOE',charCode:'COOLANT_JOE',dialogue:["*Gulp gulp gulp*", "Dex-Cool hits different at 2 AM.", "I'm 40% ethylene glycol now."]},
+        {id:'ryan',tx:9,ty:11,color:'#ffccaa',shirt:'#111',sleeves:'long',hair:null,name:'RYAN',charCode:'RYAN',hidden:true,dialogue:[]}
     ]},
     office:{bg:'#5a5a5a',layout:generateEmptyMap(),warps:[{tx:9,ty:14,to:'drive',px:16,py:1},{tx:10,ty:14,to:'drive',px:16,py:1},{tx:9,ty:0,to:'shop',px:17,py:13},{tx:10,ty:0,to:'shop',px:18,py:13}],npcs:[
     {id:'rick_desk',tx:9,ty:6,isObject:true,name:'BOSS DESK',charCode:'OBJ',dialogue:["Mike's desk.\nIt's covered in spreadsheets."]},
@@ -37,7 +39,8 @@ const dealershipMaps = {
     {id:'mike',tx:10,ty:5,color:'#e8b898',shirt:'#2c5a8c',sleeves:'long',hair:'#111',name:'MIKE',charCode:'MIKE',hidden:true,dir:'down',dialogue:["What are you doing in here?\nGet back out on the drive!"]},
     {id:'office_ryan',tx:9,ty:7,color:'#ffccaa',shirt:'#111',sleeves:'long',hair:null,name:'RYAN',charCode:'RYAN',hidden:true,dir:'up',dialogue:["Mike is in a mood today."]},
     {id:'office_zack',tx:11,ty:7,color:'#ffdbac',shirt:'#111',sleeves:'long',hair:'#4a3121',name:'ZACK',charCode:'ZACK',hidden:true,dir:'up',dialogue:["I can't believe Bronson."]},
-    {id:'office_whitney',tx:10,ty:8,color:'#c68642',shirt:'#111',sleeves:'long',hair:'#111',name:'WHITNEY',charCode:'WHITNEY',hidden:true,dir:'up',dialogue:["Meeting tomorrow? Ugh."],acc:{isGirl:true}}
+    {id:'office_whitney',tx:10,ty:8,color:'#c68642',shirt:'#111',sleeves:'long',hair:'#111',name:'WHITNEY',charCode:'WHITNEY',hidden:true,dir:'up',dialogue:["Meeting tomorrow? Ugh."],acc:{isGirl:true}},
+    {id:'ryan',tx:9,ty:10,color:'#ffccaa',shirt:'#111',sleeves:'long',hair:null,name:'RYAN',charCode:'RYAN',hidden:true,dialogue:[]}
     ]},
     showroom:{bg:'#fdfdfd',layout:generateEmptyMap(),warps:[{tx:2,ty:0,to:'drive',px:2,py:13},{tx:15,ty:0,to:'drive',px:18,py:13},{tx:9,ty:14,to:'parkinglot',px:9,py:12},{tx:10,ty:14,to:'parkinglot',px:10,py:12},{tx:0,ty:12,to:'parkinglot',px:3,py:9},{tx:0,ty:13,to:'parkinglot',px:3,py:9},{tx:19,ty:12,to:'parkinglot',px:16,py:9},{tx:19,ty:13,to:'parkinglot',px:16,py:9},
     {tx:0,ty:4,to:'showroom_mens',px:18,py:7}, {tx:0,ty:7,to:'showroom_womens',px:18,py:7}], 
@@ -80,6 +83,7 @@ const dealershipMaps = {
         {tx:14,ty:3,to:'bodyshop',px:9,py:1},{tx:15,ty:3,to:'bodyshop',px:10,py:1},
         {tx:4,ty:4,to:'drive',px:1,py:3},{tx:4,ty:5,to:'drive',px:1,py:4},{tx:4,ty:7,to:'drive',px:1,py:7},{tx:4,ty:8,to:'drive',px:1,py:8},{tx:4,ty:10,to:'drive',px:1,py:10},
         {tx:15,ty:4,to:'drive',px:18,py:3},{tx:15,ty:5,to:'drive',px:18,py:4},{tx:15,ty:7,to:'drive',px:18,py:7},{tx:15,ty:8,to:'drive',px:18,py:8},
+        {tx:16,ty:4,to:'liquor_store',px:2,py:8},{tx:16,ty:5,to:'liquor_store',px:2,py:9},
         {tx:9,ty:11,to:'showroom',px:9,py:13},{tx:10,ty:11,to:'showroom',px:10,py:13},
         {tx:4,ty:9,to:'showroom',px:1,py:12},{tx:15,ty:9,to:'showroom',px:18,py:12}
     ],npcs:[]}

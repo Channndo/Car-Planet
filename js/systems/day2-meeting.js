@@ -104,6 +104,10 @@ function applyEndOfShiftDayRollover() {
     gameEvents.zackComeback = false;
     gameEvents.lightsOut = false;
     gameEvents.carWaitingForRO = false;
+    gameEvents.fredStoryActive = false;
+    gameEvents.fredStoryComplete = false;
+    gameEvents.fredStoryPhase = 'idle';
+    if (typeof clearFredTimer === 'function') clearFredTimer();
     questState.step = 8;
     resetNpcsForNewDay();
     gameEvents.dailySchedule = null;

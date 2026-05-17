@@ -22,6 +22,8 @@ function drawTile(tx,ty,t){
             dR(px,py,TILE_SIZE,TILE_SIZE,'#2a1f1a');
         } else if(currentMapKey === 'fast_food') {
             dR(px,py,TILE_SIZE,TILE_SIZE,'#fff7ed');
+        } else if(currentMapKey === 'autoworld') {
+            dR(px,py,TILE_SIZE,TILE_SIZE,'#1a1f2e');
         } else {
             dR(px,py,TILE_SIZE,TILE_SIZE,'#5a5a5a'); if((tx+ty)%4 === 0) dR(px+4, py+4, 8, 8, '#636363'); 
         }
@@ -72,6 +74,7 @@ function drawTile(tx,ty,t){
         case 54: dR(px+2,py+2,12,12,'#1e3a8a'); dR(px+4,py+4,8,8,'#cce6ff'); dR(px+6,py+6,4,4,'#fff'); break;
         case 55: dR(px+1,py+1,TILE_SIZE-2,TILE_SIZE-2,'#ea580c'); dR(px+3,py+3,TILE_SIZE-6,4,'#fff'); dR(px+3,py+8,TILE_SIZE-6,2,'#111'); dR(px+3,py+11,TILE_SIZE-6,2,'#111'); break;
         case 56: dR(px+2,py+4,12,8,'#dc2626'); dR(px+4,py+2,8,4,'#991b1b'); dR(px+6,py+6,4,4,'#fbbf24'); break;
+        case 57: dR(px,py,TILE_SIZE,TILE_SIZE,'#1e3a8a'); dR(px+2,py+2,TILE_SIZE-4,6,'#f8fafc'); dR(px+3,py+4,TILE_SIZE-6,2,'#dc2626'); dR(px+3,py+7,TILE_SIZE-6,2,'#94a3b8'); dR(px+3,py+10,TILE_SIZE-6,2,'#dc2626'); break;
         case 6: dR(px+3,py+2,10,12,'#33aa33'); dR(px+3,py+2,10,3,'#111'); break;
         case 7: dR(px+2,py,12,TILE_SIZE,'#888'); dR(px+4,py+2,2,8,'#555'); break;
         case 8: dR(px,py,TILE_SIZE,TILE_SIZE,'#ddd'); if(currentMapKey!=='parkinglot'){ dR(px,py+4,TILE_SIZE,2,'#aaa'); dR(px,py+10,TILE_SIZE,2,'#aaa'); } break;
@@ -144,9 +147,21 @@ function draw(){
     } else if(currentMapKey==='street'){
         ctx.fillStyle = '#5a6b4a';
         ctx.fillRect(0,0,canvas.width,canvas.height);
+    } else if(currentMapKey==='autoworld'){
+        ctx.fillStyle = '#1a1f2e';
+        ctx.fillRect(0,0,canvas.width,canvas.height);
     }
     
     for(let y=0;y<MAP_ROWS;y++){for(let x=0;x<MAP_COLS;x++){drawTile(x,y,maps[currentMapKey].layout[y][x]);}}
+
+    if(currentMapKey==='street'){
+        ctx.fillStyle='#111';ctx.font='7px "Press Start 2P"';ctx.textAlign="center";
+        ctx.fillText("CLUTCH BURGER",9*TILE_SIZE,2*TILE_SIZE);
+        ctx.fillText("LAST CALL",13.5*TILE_SIZE,2*TILE_SIZE);
+        ctx.fillStyle='#dc2626';ctx.fillText("AUTOWORLD",17.5*TILE_SIZE,2*TILE_SIZE);
+        ctx.fillStyle='#111';ctx.fillText("QUICK FILL",3*TILE_SIZE,2*TILE_SIZE);
+        ctx.textAlign="left";
+    }
     
     if(currentMapKey==='parkinglot'){
         ctx.fillStyle='#fff';
@@ -156,6 +171,10 @@ function draw(){
         let fx=7*TILE_SIZE;let fy=11*TILE_SIZE-12;let fw=6*TILE_SIZE;
         dR(fx,fy,fw,24,'#f8f9fa');dR(fx,fy,fw,2,'#0055a4');dR(fx,fy+22,fw,2,'#0055a4');
         ctx.fillStyle='#0055a4';ctx.font='10px "Press Start 2P"';ctx.textAlign="center";ctx.fillText("CAR PLANET",fx+(fw/2),fy+16);ctx.textAlign="left";
+        let lx=15*TILE_SIZE;let ly=3*TILE_SIZE-12;let lw=4*TILE_SIZE;
+        dR(lx,ly,lw,24,'#2a1f1a');dR(lx,ly,lw,2,'#4c1d95');dR(lx,ly+22,lw,2,'#4c1d95');
+        ctx.fillStyle='#c4b5fd';ctx.font='8px "Press Start 2P"';ctx.textAlign="center";ctx.fillText("LAST CALL",lx+(lw/2),ly+11);ctx.fillText("LIQUORS",lx+(lw/2),ly+20);ctx.textAlign="left";
+        ctx.fillStyle='rgba(30,58,138,0.85)';ctx.font='7px "Press Start 2P"';ctx.textAlign="center";ctx.fillText("AUTOWORLD →",canvas.width-56,ly+8);ctx.textAlign="left";
     }
     
     // Draw NPCs and Objects
@@ -177,6 +196,20 @@ function draw(){
             let px = n.tx * TILE_SIZE; let py = n.ty * TILE_SIZE;
             dR(px+4, py+2, 8, 12, '#374151'); dR(px+2, py, 12, 6, '#f8fafc');
             dR(px+4, py+1, 8, 2, '#0055a4');
+        }
+        else if(n.charCode === 'CROSSWALK') {
+            let px = n.tx * TILE_SIZE; let py = n.ty * TILE_SIZE;
+            dR(px, py+10, TILE_SIZE, 4, '#f5f5f5');
+            dR(px+2, py+8, TILE_SIZE-4, 2, '#f5f5f5');
+        }
+        else if(n.charCode === 'AW_SIGN') {
+            let px = n.tx * TILE_SIZE; let py = n.ty * TILE_SIZE;
+            dR(px-8, py, 48, 20, '#1e3a8a');
+            dR(px-6, py+2, 44, 14, '#f8fafc');
+            ctx.fillStyle='#dc2626';ctx.font='8px "Press Start 2P"';ctx.textAlign="center";
+            ctx.fillText("AUTOWORLD", px+8, py+10);
+            ctx.fillStyle='#1e3a8a';ctx.fillText("Drive Different", px+8, py+18);
+            ctx.textAlign="left";
         }
         else if(n.charCode === 'GAS_PUMP') {
             let px = n.tx * TILE_SIZE; let py = n.ty * TILE_SIZE;
@@ -200,10 +233,24 @@ function draw(){
         }
         else if(!n.isObject){
             let txOff=0;if(n.id==='bronson'&&Math.random()<0.02){txOff=2;}
-            drawSprite((n.tx*TILE_SIZE)+txOff,n.ty*TILE_SIZE,n.color,n.shirt,n.sleeves,n.hair,n.dir||'down',n.isShort,n.acc);
+            let sx=(n.x!==undefined?n.x:n.tx*TILE_SIZE)+txOff;
+            let sy=n.y!==undefined?n.y:n.ty*TILE_SIZE;
+            drawSprite(sx,sy,n.color,n.shirt,n.sleeves,n.hair,n.dir||'down',n.isShort,n.acc);
         } 
         else if(n.charCode==='CAR'){
-            let cx=n.tx*TILE_SIZE;let cy=n.ty*TILE_SIZE;dR(cx,cy,48,24,'#3a5a80');dR(cx+8,cy+4,24,16,'#111');dR(cx+10,cy+6,20,12,'#6699cc');dR(cx+6,cy-4,8,4,'#111');dR(cx+34,cy-4,8,4,'#111');dR(cx+6,cy+24,8,4,'#111');dR(cx+34,cy+24,8,4,'#111');
+            let cx=n.x!==undefined?n.x:n.tx*TILE_SIZE;
+            let cy=n.y!==undefined?n.y:n.ty*TILE_SIZE;
+            let bodyCol=n._vehicleColor||'#3a5a80';
+            let glassCol=n._vehicleDirty?'#4a5a48':'#6699cc';
+            dR(cx,cy,48,24,bodyCol);
+            dR(cx+8,cy+4,24,16,'#111');
+            dR(cx+10,cy+6,20,12,glassCol);
+            dR(cx+6,cy-4,8,4,'#111');dR(cx+34,cy-4,8,4,'#111');dR(cx+6,cy+24,8,4,'#111');dR(cx+34,cy+24,8,4,'#111');
+            if(n._vehicleDirty){
+                dR(cx+2,cy+2,44,20,'rgba(70,55,35,0.4)');
+                dR(cx+12,cy+8,8,6,'rgba(50,40,25,0.55)');
+                dR(cx+28,cy+14,10,5,'rgba(45,35,20,0.5)');
+            }
         } 
         else if(n.charCode==='SUV_BLACK'){
             let cx=n.tx*TILE_SIZE;let cy=n.ty*TILE_SIZE;dR(cx,cy-4,52,28,'#151515');dR(cx+8,cy,26,18,'#050505');dR(cx+10,cy+2,22,14,'#222');dR(cx+6,cy-8,10,4,'#050505');dR(cx+36,cy-8,10,4,'#050505');dR(cx+6,cy+24,10,4,'#050505');dR(cx+36,cy+24,10,4,'#050505');
@@ -230,7 +277,7 @@ function draw(){
     drawSprite(player.x,player.y,skin,shirt,sleeves,hair,player.dir,isShort,acc);
     
     if(gameEvents.isAfterHours) {
-        if(['drive', 'shop', 'parts', 'breakroom', 'womens_locker_room', 'mens_locker_room', 'bodyshop', 'paintroom', 'street', 'gas_station', 'liquor_store', 'fast_food'].includes(currentMapKey)) {
+        if(['drive', 'shop', 'parts', 'breakroom', 'womens_locker_room', 'mens_locker_room', 'bodyshop', 'paintroom', 'street', 'gas_station', 'liquor_store', 'fast_food', 'autoworld'].includes(currentMapKey)) {
             ctx.fillStyle = 'rgba(0,10,30,0.5)';
             ctx.fillRect(0,0,canvas.width,canvas.height);
         }

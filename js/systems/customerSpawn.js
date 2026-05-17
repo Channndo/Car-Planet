@@ -61,16 +61,57 @@ function generateDailyCustomerSchedule() {
     if (questState.step < 8) return;
     ensureRosterState();
 
-    const three = getRandomCoreCustomers(3, []);
-    const appointmentIds = three.map(c => c.id);
+    let appointments;
+    let appointmentIds;
 
-    gameEvents.dailySchedule = {
-        appointments: three.map((c, i) => ({
+    if (gameEvents.currentDay === 2 && typeof buildFredNandersCustomer === 'function') {
+        const morning = getRandomCoreCustomers(1, [151])[0];
+        const afternoon = getRandomCoreCustomers(1, [151, morning.id])[0];
+        const fred = buildFredNandersCustomer();
+        appointments = [
+            {
+                customerId: morning.id,
+                customer: cloneCustomer(morning),
+                slot: 'morning',
+                attitude: rollAttitude(),
+                scheduledMinutes: 450
+            },
+            {
+                customerId: fred.id,
+                customer: fred,
+                slot: 'mid-day',
+                attitude: rollAttitude(),
+                scheduledMinutes: 720,
+                storyId: 'fred_oil_change_day2'
+            },
+            {
+                customerId: afternoon.id,
+                customer: cloneCustomer(afternoon),
+                slot: 'afternoon',
+                attitude: rollAttitude(),
+                scheduledMinutes: 900
+            }
+        ];
+        appointmentIds = appointments.map(a => a.customerId);
+        gameEvents.fredStoryActive = true;
+        gameEvents.fredStoryPhase = 'idle';
+        gameEvents.fredStoryComplete = false;
+        gameEvents.fredNoonPing = false;
+        gameEvents.fredStoryPaDoneForPhase = null;
+        if (typeof clearFredTimer === 'function') clearFredTimer();
+    } else {
+        const three = getRandomCoreCustomers(3, []);
+        appointmentIds = three.map(c => c.id);
+        appointments = three.map((c, i) => ({
             customerId: c.id,
             customer: cloneCustomer(c),
             slot: getAppointmentSlotName(i),
             attitude: rollAttitude()
-        })),
+        }));
+    }
+
+    gameEvents.dailySchedule = {
+        appointments: appointments,
         walkIn: null,
         walkInAttitude: null
     };
@@ -94,6 +135,7 @@ function resolveActiveVisit() {
     if (gameEvents.dailyAptsCompleted < 3) {
         const apt = sched.appointments[gameEvents.dailyAptsCompleted];
         if (!apt) return null;
+        if (apt.scheduledMinutes != null && gameEvents.timeMinutes < apt.scheduledMinutes) return null;
         return {
             type: 'appointment',
             customer: apt.customer,
@@ -122,6 +164,11 @@ function applyCustomerToDriveNpc(npc, customer, visit) {
     npc.hair = customer.portrait.hair;
     npc.acc = customer.portrait.acc || undefined;
     npc.charCode = visit.type === 'walkin' ? 'WALK-IN' : 'APPOINTMENT';
+    if (customer.storyId === 'fred_oil_change_day2' || customer.id === 151) {
+        npc._portraitCode = 'FRED_NANDERS';
+    } else {
+        npc._portraitCode = null;
+    }
     npc.dialogue = buildCustomerDialogue(customer, visit.attitude, visit.type === 'walkin' ? 'walkin' : 'appointment');
     npc._visitCustomerId = customer.id;
     markCustomerMet(customer);
@@ -133,13 +180,16 @@ function applyVehicleToDriveCar(carNpc, customer) {
     carNpc.name = formatVehicleLabel(customer.vehicle);
     carNpc.dialogue = buildCarDialogue(customer);
     carNpc._vehicleColor = customer.vehicle.color;
+    carNpc._vehicleDirty = !!(customer.portrait && customer.portrait.acc && customer.portrait.acc.dirty);
 }
 
-function hideDriveCustomerSlots() {
-    const cust = maps.drive.npcs.find(n => n.id === 'angry_customer');
-    const car = maps.drive.npcs.find(n => n.id === 'customer_car');
-    if (cust) cust.hidden = true;
-    if (car) car.hidden = true;
+function hideDriveCustomerSlots(onDone) {
+    if (typeof dismissDriveCustomer === 'function') {
+        dismissDriveCustomer(onDone);
+        return;
+    }
+    if (typeof hideDriveCustomerSlotsInstant === 'function') hideDriveCustomerSlotsInstant();
+    if (onDone) onDone();
 }
 
 function spawnCurrentDriveCustomer() {
@@ -158,7 +208,12 @@ function spawnCurrentDriveCustomer() {
 
     applyCustomerToDriveNpc(cust, visit.customer, visit);
     applyVehicleToDriveCar(car, visit.customer);
-    if (typeof notifyDriveCustomerPresent === 'function') notifyDriveCustomerPresent('spawn');
+    if (typeof presentDriveCustomer === 'function') presentDriveCustomer();
+    else {
+        if (cust) cust.hidden = false;
+        if (car) car.hidden = false;
+        if (typeof notifyDriveCustomerPresent === 'function') notifyDriveCustomerPresent('spawn');
+    }
 }
 
 function syncDriveDailyCustomers() {

@@ -11,7 +11,10 @@ let gameEvents = {
     pendingMikeOfficePage: false, mikeOfficePageActive: false,
     inWhitneyCheckInTutorial: false, whitneyCheckInTutorialDone: false,
     pendingRyanTour: false, ryanTourComplete: false,
-    storyTimeFrozen: false, driveIntercomTag: null
+    storyTimeFrozen: false, driveIntercomTag: null,
+    fredStoryPhase: 'idle', fredStoryComplete: false, fredStoryActive: false,
+    fredStoryTimerUntil: null, fredStoryTimerPhase: null, fredStoryPaDoneForPhase: null,
+    fredNoonPing: false
 };
 let questState = { active: false, step: 0, talkedToMike: false, assignedTo: null, roNumber: 600000 };
 let probation = {
@@ -91,6 +94,13 @@ function migrateSaveData(s) {
         if (gameEvents.ryanTourComplete === undefined) gameEvents.ryanTourComplete = false;
         if (gameEvents.storyTimeFrozen === undefined) gameEvents.storyTimeFrozen = false;
         if (gameEvents.driveIntercomTag === undefined) gameEvents.driveIntercomTag = null;
+        if (gameEvents.fredStoryPhase === undefined) gameEvents.fredStoryPhase = 'idle';
+        if (gameEvents.fredStoryComplete === undefined) gameEvents.fredStoryComplete = false;
+        if (gameEvents.fredStoryActive === undefined) gameEvents.fredStoryActive = false;
+        if (gameEvents.fredStoryTimerUntil === undefined) gameEvents.fredStoryTimerUntil = null;
+        if (gameEvents.fredStoryTimerPhase === undefined) gameEvents.fredStoryTimerPhase = null;
+        if (gameEvents.fredStoryPaDoneForPhase === undefined) gameEvents.fredStoryPaDoneForPhase = null;
+        if (gameEvents.fredNoonPing === undefined) gameEvents.fredNoonPing = false;
     }
     if (s.probation && !probation.metCustomerIds) probation.metCustomerIds = [];
     if (s.questState) questState = s.questState;
@@ -136,7 +146,10 @@ function resetGameStateForNewGame() {
         pendingMikeOfficePage: false, mikeOfficePageActive: false,
         inWhitneyCheckInTutorial: false, whitneyCheckInTutorialDone: false,
         pendingRyanTour: false, ryanTourComplete: false,
-        storyTimeFrozen: false, driveIntercomTag: null
+        storyTimeFrozen: false, driveIntercomTag: null,
+        fredStoryPhase: 'idle', fredStoryComplete: false, fredStoryActive: false,
+        fredStoryTimerUntil: null, fredStoryTimerPhase: null, fredStoryPaDoneForPhase: null,
+        fredNoonPing: false
     };
     questState = { active: false, step: 0, talkedToMike: false, assignedTo: null, roNumber: 600000 };
     probation = defaultProbation();

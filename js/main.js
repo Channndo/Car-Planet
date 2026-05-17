@@ -32,6 +32,7 @@ function initWorldAfterLoad() {
     applyDealershipLayouts();
     applyNeighborhoodLayouts();
     applyParkingStreetWarps();
+    if (typeof syncAutoworldRivalName === 'function') syncAutoworldRivalName();
     syncDriveDailyCustomers();
 }
 
@@ -41,8 +42,12 @@ function update() {
         if (typeof updateCinematic === 'function') updateCinematic();
         return;
     }
+    if (gameState === 'CUSTOMER_SCENE') {
+        if (typeof updateCustomerArrival === 'function') updateCustomerArrival();
+        return;
+    }
     if (gameState === 'MENU') return;
-    if (gameState === 'TITLE' || gameState === 'INTRO' || activeDialogue || gameState === 'CUTSCENE') return;
+    if (gameState === 'TITLE' || gameState === 'INTRO' || activeDialogue || gameState === 'CUTSCENE' || gameState === 'CUSTOMER_SCENE') return;
     let joe = (maps && maps[currentMapKey] && maps[currentMapKey].npcs) ? maps[currentMapKey].npcs.find(n => n.id === 'coolant_joe') : null;
     if (joe && !joe.hidden) updateWanderer(joe);
     let bri = (maps && maps[currentMapKey] && maps[currentMapKey].npcs) ? maps[currentMapKey].npcs.find(n => n.id === 'bri') : null;
@@ -71,6 +76,7 @@ function update() {
         }
 
         tickIntradayWalkIn();
+        if (typeof tickFredStory === 'function') tickFredStory();
 
         if (gameEvents.timeMinutes === 900 && !gameEvents.zackComeback) {
             gameEvents.zackComeback = true;
@@ -135,7 +141,13 @@ function update() {
                 transition.alpha = 0; transition.active = false; gameState = 'PLAYING';
                 if (currentMapKey === 'drive' && playerDetails.inUniform && !gameEvents.firstCustomerTriggered) {
                     let customer = maps.drive.npcs.find(n => n.id === 'angry_customer');
-                    if (customer) triggerCutscene(customer);
+                    if (customer) {
+                        if (typeof presentDriveCustomer === 'function') {
+                            presentDriveCustomer(function () { triggerCutscene(customer); });
+                        } else {
+                            triggerCutscene(customer);
+                        }
+                    }
                 }
                 if (transition.dest && transition.dest.isDay2Meeting) {
                     setTimeout(() => beginDay2OfficeDialogue(), 200);
