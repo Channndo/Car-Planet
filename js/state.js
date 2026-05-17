@@ -10,7 +10,7 @@ let gameEvents = {
     isAfterHours: false, carWaitingForRO: false,
     pendingMikeOfficePage: false, mikeOfficePageActive: false,
     inWhitneyCheckInTutorial: false, whitneyCheckInTutorialDone: false,
-    pendingRyanTour: false, ryanTourComplete: false,
+    pendingRyanTour: false, ryanTourComplete: false, ryanMentorActive: false, ryanHintIndex: 0,
     storyTimeFrozen: false, driveIntercomTag: null,
     fredStoryPhase: 'idle', fredStoryComplete: false, fredStoryActive: false,
     fredStoryTimerUntil: null, fredStoryTimerPhase: null, fredStoryPaDoneForPhase: null,
@@ -92,6 +92,8 @@ function migrateSaveData(s) {
             gameEvents.pendingRyanTour = !!(questState && questState.step === 7 && playerDetails.hasRunningShoes);
         }
         if (gameEvents.ryanTourComplete === undefined) gameEvents.ryanTourComplete = false;
+        if (gameEvents.ryanMentorActive === undefined) gameEvents.ryanMentorActive = false;
+        if (gameEvents.ryanHintIndex === undefined) gameEvents.ryanHintIndex = 0;
         if (gameEvents.storyTimeFrozen === undefined) gameEvents.storyTimeFrozen = false;
         if (gameEvents.driveIntercomTag === undefined) gameEvents.driveIntercomTag = null;
         if (gameEvents.fredStoryPhase === undefined) gameEvents.fredStoryPhase = 'idle';
@@ -145,7 +147,7 @@ function resetGameStateForNewGame() {
         isAfterHours: false, carWaitingForRO: false,
         pendingMikeOfficePage: false, mikeOfficePageActive: false,
         inWhitneyCheckInTutorial: false, whitneyCheckInTutorialDone: false,
-        pendingRyanTour: false, ryanTourComplete: false,
+        pendingRyanTour: false, ryanTourComplete: false, ryanMentorActive: false, ryanHintIndex: 0,
         storyTimeFrozen: false, driveIntercomTag: null,
         fredStoryPhase: 'idle', fredStoryComplete: false, fredStoryActive: false,
         fredStoryTimerUntil: null, fredStoryTimerPhase: null, fredStoryPaDoneForPhase: null,

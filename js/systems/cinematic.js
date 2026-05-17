@@ -427,99 +427,9 @@ function beginWhitneyApproachCinematic() {
     ]);
 }
 
-/* —— Ryan dealership tour (after running shoes) —— */
-let ryanSaved = null;
-
-function beginRyanTourCinematic() {
-    gameEvents.pendingRyanTour = false;
-    const ryan = getNpc('drive', 'ryan');
-    if (ryan) {
-        ryan.hidden = false;
-        ryanSaved = { tx: ryan.tx, ty: ryan.ty, dir: ryan.dir || 'down' };
-        ensureNpcMotion(ryan);
-    }
-    resetPlayerMotion();
-
-    /* Warp + dialogue only — no follow (auto-walk pinned players on desk tiles). */
-    startCinematic([
-        { type: 'walk_npc', npcId: 'ryan', tx: 10, ty: 9, speed: 1 },
-        { type: 'walk_npc', npcId: 'ryan', tx: 9, ty: 8, speed: 1 },
-        { type: 'wait', frames: 16 },
-        { type: 'dialogue', name: 'RYAN', portrait: 'RYAN', lines: [
-            "RYAN: Hey — you must be " + playerDetails.name + ".",
-            "RYAN: I'm Ryan. I normally wouldn't\nhave time to do this...",
-            "RYAN: ...but you came at a good time\nto get trained.",
-            "RYAN: We've been a little slower\nthis week.",
-            "RYAN: Come on — quick tour of the\nbuilding before your noon appointment."
-        ]},
-        { type: 'callback', fn: function () {
-            storyWarp('drive', 8, 9, 'ryan', 6, 9);
-            const r = getNpc('drive', 'ryan');
-            if (r) r.dir = 'right';
-            player.dir = 'right';
-            resetPlayerMotion();
-        }},
-        { type: 'dialogue', name: 'RYAN', portrait: 'RYAN', lines: [
-            "RYAN: This is the service drive.\nGuests pull in right here.",
-            "RYAN: Your desk is over there —\nthat's Car Planet OS.",
-            "RYAN: Don't walk into the monitor.\nIt won't check you in."
-        ]},
-        { type: 'warp', map: 'shop', px: 9, py: 12, npcId: 'ryan', ntx: 9, nty: 11 },
-        { type: 'dialogue', name: 'RYAN', portrait: 'RYAN', lines: [
-            "RYAN: Shop floor — techs, toolbox drama,\nthe whole circus.",
-            "RYAN: Locker rooms are through here\nif you need to change."
-        ]},
-        { type: 'warp', map: 'parts', px: 9, py: 12, npcId: 'ryan', ntx: 9, nty: 11 },
-        { type: 'dialogue', name: 'RYAN', portrait: 'RYAN', lines: [
-            "RYAN: Parts counter — EJ and Little Mike.\nDon't yell at Adam.",
-            "RYAN: Jerry runs the back. He's... intense."
-        ]},
-        { type: 'warp', map: 'office', px: 9, py: 12, npcId: 'ryan', ntx: 9, nty: 10 },
-        { type: 'dialogue', name: 'RYAN', portrait: 'RYAN', lines: [
-            "RYAN: Mike's office. You'll be in here\nwhen you're in trouble.",
-            "RYAN: Or when CSI is on fire."
-        ]},
-        { type: 'warp', map: 'drive', px: 9, py: 8, npcId: 'ryan', ntx: 11, nty: 11 },
-        { type: 'dialogue', name: 'RYAN', portrait: 'RYAN', lines: [
-            "RYAN: And you're back on the drive.",
-            "RYAN: You've got plenty of time before\nyour first appointment at noon.",
-            "RYAN: Explore, look sharp, and don't\nlet Whitney steal your CSI."
-        ]},
-        { type: 'callback', fn: function () {
-            gameEvents.ryanTourComplete = true;
-            if (gameEvents.timeMinutes > 660) gameEvents.timeMinutes = 540;
-            hideTourRyanOnOtherMaps();
-            const r = getNpc('drive', 'ryan');
-            if (r && ryanSaved) {
-                r.tx = ryanSaved.tx;
-                r.ty = ryanSaved.ty;
-                r.dir = ryanSaved.dir;
-                snapNpcToTile(r);
-            }
-            resetPlayerMotion();
-        }}
-    ]);
-}
-
-function tryStartRyanTourOnDrive() {
-    if (gameState !== 'PLAYING') return;
-    if (currentMapKey !== 'drive') return;
-    if (questState.step !== 7) return;
-    if (!gameEvents.pendingRyanTour || gameEvents.ryanTourComplete) return;
-    if (cinematic.active || activeDialogue || gameState === 'CUTSCENE') return;
-    if (typeof isCustomerAnimActive === 'function' && isCustomerAnimActive()) return;
-    const ryan = getNpc('drive', 'ryan');
-    if (!ryan) return;
-    const dist = Math.abs(player.tx - ryan.tx) + Math.abs(player.ty - ryan.ty);
-    if (dist > 2) return;
-    beginRyanTourCinematic();
-}
-
 window.updateCinematic = updateCinematic;
 window.advanceCinematicDialogue = advanceCinematicDialogue;
 window.beginWhitneyApproachCinematic = beginWhitneyApproachCinematic;
-window.beginRyanTourCinematic = beginRyanTourCinematic;
-window.tryStartRyanTourOnDrive = tryStartRyanTourOnDrive;
 window.isCinematicActive = function () { return cinematic.active; };
 window.forceEndCinematic = forceEndCinematic;
 window.resetPlayerMotion = resetPlayerMotion;

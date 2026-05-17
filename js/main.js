@@ -62,10 +62,6 @@ function update() {
             gameEvents.tick = 0;
             if (gameEvents.timeMinutes < 1440) gameEvents.timeMinutes++;
         }
-        if (questState.step === 7 && gameEvents.pendingRyanTour && !gameEvents.ryanTourComplete && currentMapKey === 'drive') {
-            if (typeof tryStartRyanTourOnDrive === 'function') tryStartRyanTourOnDrive();
-        }
-
         if (gameEvents.currentDay === 1 && questState.step === 7 && gameEvents.timeMinutes >= 720) {
             questState.step = 8;
             gameEvents.dailyAptsCompleted = 2;
@@ -168,9 +164,6 @@ function update() {
                     setTimeout(() => onAfterDay2MeetingArriveDrive(), 200);
                 } else if (transition.dest && transition.dest.to === 'drive') {
                     setTimeout(() => tryTriggerMikeOfficePageOnDrive(), 200);
-                    setTimeout(() => {
-                        if (typeof tryStartRyanTourOnDrive === 'function') tryStartRyanTourOnDrive();
-                    }, 400);
                 }
             }
         }
