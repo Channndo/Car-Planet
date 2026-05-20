@@ -437,7 +437,8 @@ const RYAN_DRIVE_DESK_TY = 11;
 
 function beginRyanApproachCinematic() {
     if (cinematic.active) return;
-    if (gameEvents.ryanTourComplete || !gameEvents.pendingRyanTour) return;
+    if (gameEvents.ryanTourComplete) return;
+    if (!gameEvents.pendingRyanTour && !gameEvents.pendingRyanDriveArrival) return;
 
     gameEvents._ryanApproachPlaying = true;
     if (typeof restoreDriveWhitneyToDesk === 'function') restoreDriveWhitneyToDesk();

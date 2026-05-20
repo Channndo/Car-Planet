@@ -10,7 +10,7 @@ let gameEvents = {
     isAfterHours: false, carWaitingForRO: false,
     pendingMikeOfficePage: false, mikeOfficePageActive: false,
     inWhitneyCheckInTutorial: false, whitneyCheckInTutorialDone: false,
-    pendingRyanTour: false, ryanTourComplete: false, ryanMentorActive: false, ryanHintIndex: 0,
+    pendingRyanTour: false, pendingRyanDriveArrival: false, ryanTourComplete: false, ryanMentorActive: false, ryanHintIndex: 0,
     storyTimeFrozen: false, driveIntercomTag: null,
     fredStoryPhase: 'idle', fredStoryComplete: false, fredStoryActive: false,
     fredStoryTimerUntil: null, fredStoryTimerPhase: null, fredStoryPaDoneForPhase: null,
@@ -91,6 +91,9 @@ function migrateSaveData(s) {
         if (gameEvents.pendingRyanTour === undefined) {
             gameEvents.pendingRyanTour = !!(questState && questState.step === 7 && playerDetails.hasRunningShoes);
         }
+        if (gameEvents.pendingRyanDriveArrival === undefined) {
+            gameEvents.pendingRyanDriveArrival = !!(questState && questState.step >= 7 && playerDetails.hasRunningShoes && !gameEvents.ryanTourComplete);
+        }
         if (gameEvents.ryanTourComplete === undefined) gameEvents.ryanTourComplete = false;
         if (gameEvents.ryanMentorActive === undefined) gameEvents.ryanMentorActive = false;
         if (gameEvents.ryanHintIndex === undefined) gameEvents.ryanHintIndex = 0;
@@ -149,7 +152,7 @@ function resetGameStateForNewGame() {
         isAfterHours: false, carWaitingForRO: false,
         pendingMikeOfficePage: false, mikeOfficePageActive: false,
         inWhitneyCheckInTutorial: false, whitneyCheckInTutorialDone: false,
-        pendingRyanTour: false, ryanTourComplete: false, ryanMentorActive: false, ryanHintIndex: 0,
+        pendingRyanTour: false, pendingRyanDriveArrival: false, ryanTourComplete: false, ryanMentorActive: false, ryanHintIndex: 0,
         storyTimeFrozen: false, driveIntercomTag: null,
         fredStoryPhase: 'idle', fredStoryComplete: false, fredStoryActive: false,
         fredStoryTimerUntil: null, fredStoryTimerPhase: null, fredStoryPaDoneForPhase: null,

@@ -133,7 +133,7 @@ function update() {
             transition.alpha -= 0.05;
             if (transition.alpha <= 0) {
                 transition.alpha = 0; transition.active = false; gameState = 'PLAYING';
-                if (currentMapKey === 'drive' && playerDetails.inUniform && !gameEvents.firstCustomerTriggered) {
+                if (currentMapKey === 'drive' && playerDetails.inUniform && !gameEvents.firstCustomerTriggered && questState.step < 2) {
                     let customer = maps.drive.npcs.find(n => n.id === 'angry_customer');
                     if (customer) triggerCutscene(customer);
                 }
@@ -154,12 +154,13 @@ function update() {
                     }, 200);
                 } else if (transition.dest && transition.dest.afterDay2Meeting) {
                     setTimeout(() => onAfterDay2MeetingArriveDrive(), 200);
-                } else if (transition.dest && transition.dest.to === 'drive') {
+                }
+                if (currentMapKey === 'drive') {
                     const fromMap = transition.fromMap;
                     transition.fromMap = null;
                     setTimeout(() => tryTriggerMikeOfficePageOnDrive(), 200);
                     if (typeof onArriveDrive === 'function') {
-                        setTimeout(() => onArriveDrive(fromMap), 250);
+                        setTimeout(() => onArriveDrive(fromMap), 100);
                     }
                 }
             }

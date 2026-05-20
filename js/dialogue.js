@@ -317,6 +317,7 @@ function advanceDialogue(){
             if(questState.step===6&&dName.innerText==='MIKE'){
                 questState.step=7; playerDetails.hasRunningShoes=true;
                 gameEvents.pendingRyanTour=true;
+                gameEvents.pendingRyanDriveArrival=true;
                 if (typeof playMusicJingle === 'function') playMusicJingle('fanfare');
                 activeDialogue=[
                     "You received the Non-Slip Running Shoes!\nHold 'B' (or Shift) while moving to run.",
