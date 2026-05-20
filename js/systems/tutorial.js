@@ -1,6 +1,18 @@
 /* Tutorial beats — post-Bronson office page, Whitney check-in, etc. */
 
 let whitneyTutorialSaved = null;
+const WHITNEY_DRIVE_DESK = { tx: 7, ty: 11, dir: 'down' };
+
+function restoreDriveWhitneyToDesk() {
+    const whit = maps.drive && maps.drive.npcs ? maps.drive.npcs.find(n => n.id === 'whitney') : null;
+    if (!whit) return;
+    whit.hidden = false;
+    whit.tx = WHITNEY_DRIVE_DESK.tx;
+    whit.ty = WHITNEY_DRIVE_DESK.ty;
+    whit.dir = WHITNEY_DRIVE_DESK.dir;
+    if (typeof ensureNpcMotion === 'function') ensureNpcMotion(whit);
+    if (typeof snapNpcToTile === 'function') snapNpcToTile(whit);
+}
 
 function startWhitneyCheckInTutorial() {
     gameEvents.inWhitneyCheckInTutorial = true;
@@ -32,6 +44,7 @@ function completeWhitneyCheckInTutorial() {
         whit.ty = whitneyTutorialSaved.ty;
         whit.dir = whitneyTutorialSaved.dir;
         whitneyTutorialSaved = null;
+        if (typeof snapNpcToTile === 'function') snapNpcToTile(whit);
     }
     gameEvents.whitneyCheckInTutorialDone = true;
     questState.step = 1;
@@ -74,6 +87,7 @@ function completeMikeOfficePageIfNeeded() {
 
 window.startWhitneyCheckInTutorial = startWhitneyCheckInTutorial;
 window.completeWhitneyCheckInTutorial = completeWhitneyCheckInTutorial;
+window.restoreDriveWhitneyToDesk = restoreDriveWhitneyToDesk;
 window.triggerMikeOfficePage = triggerMikeOfficePage;
 window.checkMikeOfficePageOnDrive = checkMikeOfficePageOnDrive;
 window.tryTriggerMikeOfficePageOnDrive = tryTriggerMikeOfficePageOnDrive;

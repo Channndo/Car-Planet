@@ -109,6 +109,8 @@ function migrateSaveData(s) {
     if (s.probation) probation = Object.assign(defaultProbation(), s.probation);
     if (s.playerDetails) playerDetails = s.playerDetails;
     if (s.currentMapKey) currentMapKey = s.currentMapKey;
+    const disabledNeighborhoodMaps = ['liquor_store', 'street', 'gas_station', 'fast_food', 'autoworld'];
+    if (disabledNeighborhoodMaps.includes(currentMapKey)) currentMapKey = 'drive';
     if (playerDetails.hasRunningShoes === undefined) playerDetails.hasRunningShoes = false;
     if (!gameEvents.currentDay) gameEvents.currentDay = 1;
 }

@@ -1,7 +1,7 @@
 /* Original Game Boy–style chiptune BGM (homage — not Nintendo assets) */
 
 const OUTDOOR_MAPS = new Set([
-    'drive', 'parkinglot', 'street', 'gas_station', 'fast_food', 'liquor_store', 'autoworld'
+    'drive', 'parkinglot'
 ]);
 
 const MusicEngine = (function () {

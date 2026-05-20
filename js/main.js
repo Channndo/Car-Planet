@@ -123,6 +123,7 @@ function update() {
             transition.alpha += 0.05;
             if (transition.alpha >= 1) {
                 transition.alpha = 1; transition.state = 'fade_in';
+                transition.fromMap = currentMapKey;
                 currentMapKey = transition.dest.to;
                 player.tx = transition.dest.px; player.ty = transition.dest.py;
                 player.x = player.tx * TILE_SIZE; player.y = player.ty * TILE_SIZE;
@@ -153,7 +154,12 @@ function update() {
                 } else if (transition.dest && transition.dest.afterDay2Meeting) {
                     setTimeout(() => onAfterDay2MeetingArriveDrive(), 200);
                 } else if (transition.dest && transition.dest.to === 'drive') {
+                    const fromMap = transition.fromMap;
+                    transition.fromMap = null;
                     setTimeout(() => tryTriggerMikeOfficePageOnDrive(), 200);
+                    if (typeof onArriveDrive === 'function') {
+                        setTimeout(() => onArriveDrive(fromMap), 250);
+                    }
                 }
             }
         }

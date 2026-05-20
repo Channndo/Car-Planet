@@ -422,7 +422,52 @@ function beginWhitneyApproachCinematic() {
             "WHITNEY: After that, take the RO to Mike.\nDon't mess up my CSI."
         ]},
         { type: 'callback', fn: function () {
+            if (whitneySaved) {
+                whitneyTutorialSaved = whitneySaved;
+                whitneySaved = null;
+            }
             completeWhitneyCheckInTutorial();
+        }}
+    ]);
+}
+
+/* —— Ryan mentor approach (after Mike's office / running shoes) —— */
+function beginRyanApproachCinematic() {
+    if (cinematic.active) return;
+    if (gameEvents.ryanTourComplete || !gameEvents.pendingRyanTour) return;
+
+    gameEvents._ryanApproachPlaying = true;
+    if (typeof restoreDriveWhitneyToDesk === 'function') restoreDriveWhitneyToDesk();
+
+    const ryan = getNpc('drive', 'ryan');
+    if (ryan) {
+        ryan.hidden = false;
+        ryan.tx = 11;
+        ryan.ty = 11;
+        ryan.dir = 'down';
+        ensureNpcMotion(ryan);
+        snapNpcToTile(ryan);
+    }
+
+    player.dir = 'up';
+    const introLines = typeof getRyanIntroLines === 'function'
+        ? getRyanIntroLines()
+        : ["RYAN: Hey — welcome to the drive."];
+
+    startCinematic([
+        { type: 'wait', frames: 20 },
+        { type: 'walk_npc', npcId: 'ryan', tx: 11, ty: 9, speed: 1 },
+        { type: 'walk_npc', npcId: 'ryan', tx: 13, ty: 6, speed: 1 },
+        { type: 'walk_npc', npcId: 'ryan', tx: 15, ty: 3, speed: 1 },
+        { type: 'wait', frames: 24 },
+        { type: 'callback', fn: function () {
+            const r = getNpc('drive', 'ryan');
+            if (r) { r.dir = 'left'; player.dir = 'right'; }
+        }},
+        { type: 'dialogue', name: 'RYAN', portrait: 'RYAN', lines: introLines },
+        { type: 'callback', fn: function () {
+            gameEvents._ryanApproachPlaying = false;
+            if (typeof completeRyanIntro === 'function') completeRyanIntro();
         }}
     ]);
 }
@@ -430,6 +475,7 @@ function beginWhitneyApproachCinematic() {
 window.updateCinematic = updateCinematic;
 window.advanceCinematicDialogue = advanceCinematicDialogue;
 window.beginWhitneyApproachCinematic = beginWhitneyApproachCinematic;
+window.beginRyanApproachCinematic = beginRyanApproachCinematic;
 window.isCinematicActive = function () { return cinematic.active; };
 window.forceEndCinematic = forceEndCinematic;
 window.resetPlayerMotion = resetPlayerMotion;

@@ -1,17 +1,9 @@
-/* Ryan — intro chat (no tour) + ongoing mentor hints */
+/* Ryan — walk-up intro + ongoing mentor hints */
 
-function completeRyanIntro() {
-    gameEvents._ryanIntroPlaying = false;
-    gameEvents.pendingRyanTour = false;
-    gameEvents.ryanTourComplete = true;
-    gameEvents.ryanMentorActive = true;
-    if (gameEvents.timeMinutes > 660) gameEvents.timeMinutes = 540;
-}
+const RYAN_DRIVE_DESK = { tx: 11, ty: 11, dir: 'down' };
 
-function beginRyanIntroDialogue() {
-    gameEvents.pendingRyanTour = false;
-    gameEvents._ryanIntroPlaying = true;
-    activeDialogue = [
+function getRyanIntroLines() {
+    return [
         "RYAN: Hey — you must be " + playerDetails.name + ".",
         "RYAN: I'm Ryan. I normally wouldn't\nhave time for this...",
         "RYAN: ...but we are a little slower\nthis week.",
@@ -21,6 +13,31 @@ function beginRyanIntroDialogue() {
         "RYAN: If you have any specific questions,\ndon't hesitate to ask.",
         "RYAN: I'll be around — think of me as\nyour mentor on the drive."
     ];
+}
+
+function resetDriveRyanToDesk() {
+    const ryan = maps.drive && maps.drive.npcs ? maps.drive.npcs.find(n => n.id === 'ryan') : null;
+    if (!ryan) return;
+    ryan.hidden = false;
+    ryan.tx = RYAN_DRIVE_DESK.tx;
+    ryan.ty = RYAN_DRIVE_DESK.ty;
+    ryan.dir = RYAN_DRIVE_DESK.dir;
+    if (typeof ensureNpcMotion === 'function') ensureNpcMotion(ryan);
+    if (typeof snapNpcToTile === 'function') snapNpcToTile(ryan);
+}
+
+function completeRyanIntro() {
+    gameEvents._ryanIntroPlaying = false;
+    gameEvents._ryanApproachPlaying = false;
+    gameEvents.pendingRyanTour = false;
+    gameEvents.ryanTourComplete = true;
+    gameEvents.ryanMentorActive = true;
+    if (gameEvents.timeMinutes > 660) gameEvents.timeMinutes = 540;
+}
+
+function beginRyanIntroDialogue() {
+    gameEvents._ryanIntroPlaying = true;
+    activeDialogue = getRyanIntroLines();
     activeLine = 0;
     dName.innerText = 'RYAN';
     dText.innerText = activeDialogue[0];
@@ -71,10 +88,9 @@ function getRyanMentorHint() {
 function getRyanMentorDialogue() {
     const tips = [
         "Hold B while moving if you've got the running shoes.",
-        "The neighborhood out back has gas, food, and a liquor store if you need a break.",
         "Whitney cares about CSI — prompt check-ins help everybody.",
         "If a tech refuses a car, talk to Mike. There's usually a workaround.",
-        "AUTOWORLD is the rival store east on Main Street — don't confuse the drives."
+        "The parking lot connects shop, showroom, and drive — learn the warps."
     ];
     const idx = (gameEvents.ryanHintIndex || 0) % tips.length;
     gameEvents.ryanHintIndex = idx + 1;
@@ -93,8 +109,36 @@ function showRyanMentorHints() {
     dContainer.style.display = 'flex';
 }
 
+function tryTriggerRyanApproachAfterOfficeExit() {
+    if (currentMapKey !== 'drive') return;
+    if (questState.step < 7) return;
+    if (!gameEvents.pendingRyanTour || gameEvents.ryanTourComplete) return;
+    if (gameEvents._ryanApproachPlaying) return;
+    if (typeof isCinematicActive === 'function' && isCinematicActive()) return;
+    if (activeDialogue || gameState === 'MENU' || gameState === 'TRANSITION' || gameState === 'FLASH') return;
+
+    setTimeout(function () {
+        if (currentMapKey !== 'drive') return;
+        if (!gameEvents.pendingRyanTour || gameEvents.ryanTourComplete) return;
+        if (activeDialogue || gameState === 'STORY') return;
+        if (typeof beginRyanApproachCinematic === 'function') beginRyanApproachCinematic();
+    }, 350);
+}
+
+function onArriveDrive(fromMap) {
+    if (questState.step >= 7 && fromMap === 'office') {
+        if (typeof restoreDriveWhitneyToDesk === 'function') restoreDriveWhitneyToDesk();
+        tryTriggerRyanApproachAfterOfficeExit();
+        return;
+    }
+    if (gameEvents.ryanTourComplete && fromMap && fromMap !== 'drive') {
+        resetDriveRyanToDesk();
+    }
+}
+
 function handleRyanInteract(npc) {
     if (!npc || npc.id !== 'ryan' || currentMapKey !== 'drive') return false;
+    if (gameEvents._ryanApproachPlaying || (typeof isCinematicActive === 'function' && isCinematicActive())) return false;
 
     if (questState.step < 7) {
         activeDialogue = npc.dialogue && npc.dialogue.length
@@ -109,7 +153,8 @@ function handleRyanInteract(npc) {
     }
 
     if (gameEvents.pendingRyanTour && !gameEvents.ryanTourComplete) {
-        beginRyanIntroDialogue();
+        if (typeof beginRyanApproachCinematic === 'function') beginRyanApproachCinematic();
+        else beginRyanIntroDialogue();
         return true;
     }
 
@@ -132,3 +177,7 @@ function onRyanDialogueFinished() {
 window.handleRyanInteract = handleRyanInteract;
 window.onRyanDialogueFinished = onRyanDialogueFinished;
 window.beginRyanIntroDialogue = beginRyanIntroDialogue;
+window.getRyanIntroLines = getRyanIntroLines;
+window.resetDriveRyanToDesk = resetDriveRyanToDesk;
+window.onArriveDrive = onArriveDrive;
+window.tryTriggerRyanApproachAfterOfficeExit = tryTriggerRyanApproachAfterOfficeExit;

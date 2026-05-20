@@ -83,7 +83,6 @@ const dealershipMaps = {
         {tx:14,ty:3,to:'bodyshop',px:9,py:1},{tx:15,ty:3,to:'bodyshop',px:10,py:1},
         {tx:4,ty:4,to:'drive',px:1,py:3},{tx:4,ty:5,to:'drive',px:1,py:4},{tx:4,ty:7,to:'drive',px:1,py:7},{tx:4,ty:8,to:'drive',px:1,py:8},{tx:4,ty:10,to:'drive',px:1,py:10},
         {tx:15,ty:4,to:'drive',px:18,py:3},{tx:15,ty:5,to:'drive',px:18,py:4},{tx:15,ty:7,to:'drive',px:18,py:7},{tx:15,ty:8,to:'drive',px:18,py:8},
-        {tx:16,ty:4,to:'liquor_store',px:2,py:8},{tx:16,ty:5,to:'liquor_store',px:2,py:9},
         {tx:9,ty:11,to:'showroom',px:9,py:13},{tx:10,ty:11,to:'showroom',px:10,py:13},
         {tx:4,ty:9,to:'showroom',px:1,py:12},{tx:15,ty:9,to:'showroom',px:18,py:12}
     ],npcs:[]}

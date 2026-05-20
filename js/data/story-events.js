@@ -206,31 +206,6 @@ const STORY_EVENTS = [
         effects: { csi: 2 }
     },
     {
-        id: 'liquor_run',
-        minDay: 15, maxDay: 90, weight: 1,
-        lines: [
-            { name: 'SYSTEM', portrait: 'NONE', text: 'Rita from Last Call waves\nfrom the sidewalk.' },
-            { name: 'SYSTEM', portrait: 'NONE', text: '"Tell Mike the seltzer\nshipment came in!"' }
-        ]
-    },
-    {
-        id: 'clutch_burger',
-        minDay: 8, maxDay: 90, weight: 1,
-        lines: [
-            { name: 'SYSTEM', portrait: 'NONE', text: 'Ty from Clutch Burger delivers\na bag of fries to the parts desk.' },
-            { name: 'JAKE', portrait: 'JAKE', text: 'These are mine now.' }
-        ]
-    },
-    {
-        id: 'gas_spill',
-        minDay: 10, maxDay: 90, weight: 1,
-        lines: [
-            { name: 'SYSTEM', portrait: 'NONE', text: 'Pete pages the lot:\n"Someone topped off diesel\nin a gas Fusion."' },
-            { name: 'MIKE', portrait: 'MIKE', text: 'Not our bay. But the guest\nis on OUR drive.' }
-        ],
-        effects: { csi: -2 }
-    },
-    {
         id: 'zack_comeback_echo',
         minDay: 25, maxDay: 90, weight: 1,
         lines: [
