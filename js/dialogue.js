@@ -314,10 +314,12 @@ function advanceDialogue(){
                 let om=maps.office.npcs.find(n=>n.id==='mike');if(om)om.hidden=false;
                 activeDialogue=["You put on the black Advisor Uniform.\nYour shift has officially begun."];activeLine=0;dText.innerText=activeDialogue[0];drawPortrait('PLAYER');return;
             }
-            if(questState.step===6&&dName.innerText==='MIKE'){
+            if((questState.step===6&&dName.innerText==='MIKE')||gameEvents._mikeOfficeShoesTalk){
+                gameEvents._mikeOfficeShoesTalk=false;
                 questState.step=7; playerDetails.hasRunningShoes=true;
                 gameEvents.pendingRyanTour=true;
                 gameEvents.pendingRyanDriveArrival=true;
+                if(typeof armRyanWalkAroundAfterMikeOffice==='function')armRyanWalkAroundAfterMikeOffice();
                 if (typeof playMusicJingle === 'function') playMusicJingle('fanfare');
                 activeDialogue=[
                     "You received the Non-Slip Running Shoes!\nHold 'B' (or Shift) while moving to run.",

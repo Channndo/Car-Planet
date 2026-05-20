@@ -10,7 +10,8 @@ let gameEvents = {
     isAfterHours: false, carWaitingForRO: false,
     pendingMikeOfficePage: false, mikeOfficePageActive: false,
     inWhitneyCheckInTutorial: false, whitneyCheckInTutorialDone: false,
-    pendingRyanTour: false, pendingRyanDriveArrival: false, ryanTourComplete: false, ryanMentorActive: false, ryanHintIndex: 0,
+    pendingRyanTour: false, pendingRyanDriveArrival: false, _mikeOfficeShoesTalk: false,
+    ryanTourComplete: false, ryanMentorActive: false, ryanHintIndex: 0,
     storyTimeFrozen: false, driveIntercomTag: null,
     fredStoryPhase: 'idle', fredStoryComplete: false, fredStoryActive: false,
     fredStoryTimerUntil: null, fredStoryTimerPhase: null, fredStoryPaDoneForPhase: null,
@@ -94,6 +95,11 @@ function migrateSaveData(s) {
         if (gameEvents.pendingRyanDriveArrival === undefined) {
             gameEvents.pendingRyanDriveArrival = !!(questState && questState.step >= 7 && playerDetails.hasRunningShoes && !gameEvents.ryanTourComplete);
         }
+        if (gameEvents._mikeOfficeShoesTalk === undefined) gameEvents._mikeOfficeShoesTalk = false;
+        if (gameEvents.pendingRyanDriveArrival && gameEvents.ryanTourComplete && questState.step >= 7 && playerDetails.hasRunningShoes) {
+            gameEvents.ryanTourComplete = false;
+            gameEvents.ryanMentorActive = false;
+        }
         if (gameEvents.ryanTourComplete === undefined) gameEvents.ryanTourComplete = false;
         if (gameEvents.ryanMentorActive === undefined) gameEvents.ryanMentorActive = false;
         if (gameEvents.ryanHintIndex === undefined) gameEvents.ryanHintIndex = 0;
@@ -152,7 +158,8 @@ function resetGameStateForNewGame() {
         isAfterHours: false, carWaitingForRO: false,
         pendingMikeOfficePage: false, mikeOfficePageActive: false,
         inWhitneyCheckInTutorial: false, whitneyCheckInTutorialDone: false,
-        pendingRyanTour: false, pendingRyanDriveArrival: false, ryanTourComplete: false, ryanMentorActive: false, ryanHintIndex: 0,
+        pendingRyanTour: false, pendingRyanDriveArrival: false, _mikeOfficeShoesTalk: false,
+    ryanTourComplete: false, ryanMentorActive: false, ryanHintIndex: 0,
         storyTimeFrozen: false, driveIntercomTag: null,
         fredStoryPhase: 'idle', fredStoryComplete: false, fredStoryActive: false,
         fredStoryTimerUntil: null, fredStoryTimerPhase: null, fredStoryPaDoneForPhase: null,

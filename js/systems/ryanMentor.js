@@ -113,24 +113,57 @@ function showRyanMentorHints() {
 
 function shouldPlayRyanWalkAroundBeat() {
     return questState.step >= 7
-        && (gameEvents.pendingRyanTour || gameEvents.pendingRyanDriveArrival)
+        && !!playerDetails.hasRunningShoes
         && !gameEvents.ryanTourComplete
+        && !gameEvents._ryanIntroPlaying
         && !gameEvents._ryanApproachPlaying;
 }
 
+function armRyanWalkAroundAfterMikeOffice() {
+    if (questState.step < 7 || !playerDetails.hasRunningShoes || gameEvents.ryanTourComplete) return;
+    gameEvents.pendingRyanTour = true;
+    gameEvents.pendingRyanDriveArrival = true;
+}
+
+function startRyanWalkAroundOnDrive() {
+    if (!shouldPlayRyanWalkAroundBeat()) return;
+
+    gameEvents._ryanApproachPlaying = true;
+    if (typeof restoreDriveWhitneyToDesk === 'function') restoreDriveWhitneyToDesk();
+
+    const ryan = maps.drive && maps.drive.npcs ? maps.drive.npcs.find(function (n) { return n.id === 'ryan'; }) : null;
+    if (ryan) {
+        ryan.hidden = false;
+        var rtx = Math.max(1, player.tx - 1);
+        var rty = Math.min(MAP_ROWS - 2, player.ty + 1);
+        if (typeof isSolid === 'function' && isSolid(rtx, rty)) {
+            rtx = player.tx;
+            rty = Math.min(MAP_ROWS - 2, player.ty + 1);
+        }
+        ryan.tx = rtx;
+        ryan.ty = rty;
+        ryan.dir = rtx < player.tx ? 'right' : 'left';
+        if (typeof ensureNpcMotion === 'function') ensureNpcMotion(ryan);
+        if (typeof snapNpcToTile === 'function') snapNpcToTile(ryan);
+    }
+    player.dir = 'up';
+
+    beginRyanIntroDialogue();
+}
+
 function tryTriggerRyanApproachAfterOfficeExit(attempt) {
-    const tryNum = attempt || 0;
+    var tryNum = attempt || 0;
     if (currentMapKey !== 'drive') return;
     if (!shouldPlayRyanWalkAroundBeat()) return;
     if (typeof isCinematicActive === 'function' && isCinematicActive()) {
-        if (tryNum < 25) setTimeout(function () { tryTriggerRyanApproachAfterOfficeExit(tryNum + 1); }, 200);
+        if (tryNum < 30) setTimeout(function () { tryTriggerRyanApproachAfterOfficeExit(tryNum + 1); }, 200);
         return;
     }
     if (activeDialogue || gameState === 'MENU' || gameState === 'TRANSITION' || gameState === 'FLASH') {
-        if (tryNum < 25) setTimeout(function () { tryTriggerRyanApproachAfterOfficeExit(tryNum + 1); }, 200);
+        if (tryNum < 30) setTimeout(function () { tryTriggerRyanApproachAfterOfficeExit(tryNum + 1); }, 200);
         return;
     }
-    if (typeof beginRyanApproachCinematic === 'function') beginRyanApproachCinematic();
+    startRyanWalkAroundOnDrive();
 }
 
 function onLeaveDrive() {
@@ -174,8 +207,7 @@ function handleRyanInteract(npc) {
     }
 
     if (shouldPlayRyanWalkAroundBeat()) {
-        if (typeof beginRyanApproachCinematic === 'function') beginRyanApproachCinematic();
-        else beginRyanIntroDialogue();
+        startRyanWalkAroundOnDrive();
         return true;
     }
 
@@ -204,3 +236,6 @@ window.resetDriveRyanToDesk = resetDriveRyanToDesk;
 window.onLeaveDrive = onLeaveDrive;
 window.onArriveDrive = onArriveDrive;
 window.tryTriggerRyanApproachAfterOfficeExit = tryTriggerRyanApproachAfterOfficeExit;
+window.startRyanWalkAroundOnDrive = startRyanWalkAroundOnDrive;
+window.armRyanWalkAroundAfterMikeOffice = armRyanWalkAroundAfterMikeOffice;
+window.shouldPlayRyanWalkAroundBeat = shouldPlayRyanWalkAroundBeat;

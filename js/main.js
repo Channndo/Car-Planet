@@ -124,6 +124,9 @@ function update() {
             if (transition.alpha >= 1) {
                 transition.alpha = 1; transition.state = 'fade_in';
                 transition.fromMap = currentMapKey;
+                if (currentMapKey === 'office' && transition.dest && transition.dest.to === 'drive') {
+                    if (typeof armRyanWalkAroundAfterMikeOffice === 'function') armRyanWalkAroundAfterMikeOffice();
+                }
                 if (currentMapKey === 'drive' && typeof onLeaveDrive === 'function') onLeaveDrive();
                 currentMapKey = transition.dest.to;
                 player.tx = transition.dest.px; player.ty = transition.dest.py;
