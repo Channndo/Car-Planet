@@ -322,7 +322,7 @@ function advanceDialogue(){
                     "You received the Non-Slip Running Shoes!\nHold 'B' (or Shift) while moving to run.",
                     "MIKE: By the way, don't tell anyone\nI told you to run in here.",
                     "MIKE: I don't need OSHA up in here.",
-                    "(Tutorial Complete. Talk to Ryan on the drive\nif you need pointers before noon.)"
+                    "(Look around the shop, parts, and drive\nbefore noon.)"
                 ];
                 activeLine=0;dName.innerText="SYSTEM";dText.innerText=activeDialogue[0];drawPortrait('NONE');return;
             }

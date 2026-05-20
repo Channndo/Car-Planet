@@ -431,7 +431,10 @@ function beginWhitneyApproachCinematic() {
     ]);
 }
 
-/* —— Ryan mentor approach (after Mike's office / running shoes) —— */
+/* —— Ryan walk-up after Mike's office (no follow tour; player stays put) —— */
+const RYAN_DRIVE_DESK_TX = 11;
+const RYAN_DRIVE_DESK_TY = 11;
+
 function beginRyanApproachCinematic() {
     if (cinematic.active) return;
     if (gameEvents.ryanTourComplete || !gameEvents.pendingRyanTour) return;
@@ -442,29 +445,29 @@ function beginRyanApproachCinematic() {
     const ryan = getNpc('drive', 'ryan');
     if (ryan) {
         ryan.hidden = false;
-        ryan.tx = 11;
-        ryan.ty = 11;
+        ryan.tx = RYAN_DRIVE_DESK_TX;
+        ryan.ty = RYAN_DRIVE_DESK_TY;
         ryan.dir = 'down';
         ensureNpcMotion(ryan);
         snapNpcToTile(ryan);
     }
 
+    resetPlayerMotion();
     player.dir = 'up';
-    const introLines = typeof getRyanIntroLines === 'function'
-        ? getRyanIntroLines()
-        : ["RYAN: Hey — welcome to the drive."];
+    const lines = typeof getRyanWalkAroundLines === 'function'
+        ? getRyanWalkAroundLines()
+        : (typeof getRyanIntroLines === 'function' ? getRyanIntroLines() : ["RYAN: Look around before noon."]);
 
     startCinematic([
         { type: 'wait', frames: 20 },
         { type: 'walk_npc', npcId: 'ryan', tx: 11, ty: 9, speed: 1 },
-        { type: 'walk_npc', npcId: 'ryan', tx: 13, ty: 6, speed: 1 },
-        { type: 'walk_npc', npcId: 'ryan', tx: 15, ty: 3, speed: 1 },
+        { type: 'walk_npc', npcId: 'ryan', tx: 14, ty: 4, speed: 1 },
         { type: 'wait', frames: 24 },
         { type: 'callback', fn: function () {
             const r = getNpc('drive', 'ryan');
             if (r) { r.dir = 'left'; player.dir = 'right'; }
         }},
-        { type: 'dialogue', name: 'RYAN', portrait: 'RYAN', lines: introLines },
+        { type: 'dialogue', name: 'RYAN', portrait: 'RYAN', lines: lines },
         { type: 'callback', fn: function () {
             gameEvents._ryanApproachPlaying = false;
             if (typeof completeRyanIntro === 'function') completeRyanIntro();

@@ -124,6 +124,7 @@ function update() {
             if (transition.alpha >= 1) {
                 transition.alpha = 1; transition.state = 'fade_in';
                 transition.fromMap = currentMapKey;
+                if (currentMapKey === 'drive' && typeof onLeaveDrive === 'function') onLeaveDrive();
                 currentMapKey = transition.dest.to;
                 player.tx = transition.dest.px; player.ty = transition.dest.py;
                 player.x = player.tx * TILE_SIZE; player.y = player.ty * TILE_SIZE;

@@ -2,17 +2,18 @@
 
 const RYAN_DRIVE_DESK = { tx: 11, ty: 11, dir: 'down' };
 
-function getRyanIntroLines() {
+/* Short beat after Mike's office — explore the dealership, no tour/follow */
+function getRyanWalkAroundLines() {
     return [
-        "RYAN: Hey — you must be " + playerDetails.name + ".",
-        "RYAN: I'm Ryan. I normally wouldn't\nhave time for this...",
-        "RYAN: ...but we are a little slower\nthis week.",
-        "RYAN: If you haven't yet, I'd get familiar\nwith the place and everyone here",
-        "RYAN: before your next appointment.",
-        "RYAN: You've got plenty of time.",
-        "RYAN: If you have any specific questions,\ndon't hesitate to ask.",
-        "RYAN: I'll be around — think of me as\nyour mentor on the drive."
+        "RYAN: Hey — " + playerDetails.name + ".",
+        "RYAN: Mike just hooked you up with\nthose running shoes.",
+        "RYAN: Look around the shop, parts, and drive\nbefore noon.",
+        "RYAN: I'll be at my desk if you need anything."
     ];
+}
+
+function getRyanIntroLines() {
+    return getRyanWalkAroundLines();
 }
 
 function resetDriveRyanToDesk() {
@@ -37,7 +38,7 @@ function completeRyanIntro() {
 
 function beginRyanIntroDialogue() {
     gameEvents._ryanIntroPlaying = true;
-    activeDialogue = getRyanIntroLines();
+    activeDialogue = getRyanWalkAroundLines();
     activeLine = 0;
     dName.innerText = 'RYAN';
     dText.innerText = activeDialogue[0];
@@ -125,13 +126,23 @@ function tryTriggerRyanApproachAfterOfficeExit() {
     }, 350);
 }
 
+function onLeaveDrive() {
+    if (gameEvents.ryanTourComplete || gameEvents.ryanMentorActive) {
+        resetDriveRyanToDesk();
+    }
+}
+
 function onArriveDrive(fromMap) {
     if (questState.step >= 7 && fromMap === 'office') {
         if (typeof restoreDriveWhitneyToDesk === 'function') restoreDriveWhitneyToDesk();
+        if (gameEvents.ryanTourComplete || gameEvents.ryanMentorActive) {
+            resetDriveRyanToDesk();
+            return;
+        }
         tryTriggerRyanApproachAfterOfficeExit();
         return;
     }
-    if (gameEvents.ryanTourComplete && fromMap && fromMap !== 'drive') {
+    if ((gameEvents.ryanTourComplete || gameEvents.ryanMentorActive) && fromMap && fromMap !== 'drive') {
         resetDriveRyanToDesk();
     }
 }
@@ -178,6 +189,8 @@ window.handleRyanInteract = handleRyanInteract;
 window.onRyanDialogueFinished = onRyanDialogueFinished;
 window.beginRyanIntroDialogue = beginRyanIntroDialogue;
 window.getRyanIntroLines = getRyanIntroLines;
+window.getRyanWalkAroundLines = getRyanWalkAroundLines;
 window.resetDriveRyanToDesk = resetDriveRyanToDesk;
+window.onLeaveDrive = onLeaveDrive;
 window.onArriveDrive = onArriveDrive;
 window.tryTriggerRyanApproachAfterOfficeExit = tryTriggerRyanApproachAfterOfficeExit;
