@@ -34,6 +34,7 @@ function completeRyanIntro() {
     gameEvents.pendingRyanDriveArrival = false;
     gameEvents.ryanTourComplete = true;
     gameEvents.ryanMentorActive = true;
+    if (typeof beginStaffIntroTour === 'function') beginStaffIntroTour();
     if (gameEvents.timeMinutes > 660) gameEvents.timeMinutes = 540;
 }
 
