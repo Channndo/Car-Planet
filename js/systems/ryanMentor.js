@@ -73,6 +73,7 @@ function getRyanMentorHint() {
     if (s >= 8) {
         if (gameEvents.isAfterHours) return "End your shift at the desk when you're done.";
         if (gameEvents.carWaitingForRO) return "Finish the RO at your desk, then see Mike.";
+        if (gameEvents.pendingDispatch) return "Take that RO to Mike on the drive for dispatch.";
         if (gameEvents.dailyAptsCompleted < 3) {
             return "Next appointment — check in at the car, RO at desk, Mike dispatches.";
         }

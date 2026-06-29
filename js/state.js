@@ -7,7 +7,7 @@ let currentMapKey = 'drive';
 let gameEvents = {
     firstCustomerTriggered: false, currentDay: 1, dailyWalkIn: false,
     dailyAptsCompleted: 0, dailyWalkInDone: false, timeMinutes: 420, tick: 0,
-    isAfterHours: false, carWaitingForRO: false,
+    isAfterHours: false, carWaitingForRO: false, pendingDispatch: false,
     pendingMikeOfficePage: false, mikeOfficePageActive: false,
     inWhitneyCheckInTutorial: false, whitneyCheckInTutorialDone: false,
     pendingRyanTour: false, pendingRyanDriveArrival: false, _mikeOfficeShoesTalk: false,
@@ -81,6 +81,7 @@ function migrateSaveData(s) {
         if (gameEvents.tick === undefined) gameEvents.tick = 0;
         if (gameEvents.isAfterHours === undefined) gameEvents.isAfterHours = false;
         if (gameEvents.carWaitingForRO === undefined) gameEvents.carWaitingForRO = false;
+        if (gameEvents.pendingDispatch === undefined) gameEvents.pendingDispatch = false;
         if (gameEvents.inDay2Meeting === undefined) gameEvents.inDay2Meeting = false;
         if (gameEvents.pendingDay2Meeting === undefined) gameEvents.pendingDay2Meeting = false;
         if (gameEvents.intradayWalkInRolled === undefined) gameEvents.intradayWalkInRolled = false;
@@ -160,7 +161,7 @@ function resetGameStateForNewGame() {
     gameEvents = {
         firstCustomerTriggered: false, currentDay: 1, dailyWalkIn: false,
         dailyAptsCompleted: 0, dailyWalkInDone: false, timeMinutes: 420, tick: 0,
-        isAfterHours: false, carWaitingForRO: false,
+        isAfterHours: false, carWaitingForRO: false, pendingDispatch: false,
         pendingMikeOfficePage: false, mikeOfficePageActive: false,
         inWhitneyCheckInTutorial: false, whitneyCheckInTutorialDone: false,
         pendingRyanTour: false, pendingRyanDriveArrival: false, _mikeOfficeShoesTalk: false,
