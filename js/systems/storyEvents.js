@@ -140,7 +140,10 @@ function applyDialogueSpeakerPortrait(line) {
         return;
     }
     const driveCust = typeof getDriveCustomerNpc === 'function' ? getDriveCustomerNpc() : null;
-    if (driveCust && dName.innerText === driveCust.name) {
+    if (driveCust && (dName.innerText === driveCust.name || line.indexOf(driveCust.name + ':') === 0)) {
+        if (line.indexOf(driveCust.name + ':') === 0) {
+            dName.innerText = driveCust.name;
+        }
         drawCustomerPortraitFromNpc(driveCust);
     }
 }

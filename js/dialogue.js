@@ -106,6 +106,22 @@ function drawCustomerPortraitFromNpc(npc) {
     }
 }
 
+function drawPortraitForNpc(npc) {
+    if (!npc) {
+        drawPortrait('NONE');
+        return;
+    }
+    if (npc.id === 'angry_customer' ||
+        npc.charCode === 'CUSTOMER' ||
+        npc.charCode === 'APPOINTMENT' ||
+        npc.charCode === 'WALK-IN' ||
+        npc._portraitCode === 'FRED_NANDERS') {
+        drawCustomerPortraitFromNpc(npc);
+        return;
+    }
+    drawPortrait(npc._portraitCode || npc.charCode);
+}
+
 function drawPortrait(c) {
     if (c === 'CUSTOMER' || c === 'APPOINTMENT' || c === 'WALK-IN' || c === 'FRED_NANDERS') {
         drawCustomerPortraitFromNpc(getDriveCustomerNpc());
@@ -501,6 +517,7 @@ window.continueGameFromTitle = continueGameFromTitle;
 window.startNewGameFromTitle = startNewGameFromTitle;
 window.triggerPAAnnouncement = triggerPAAnnouncement;
 window.getDriveCustomerNpc = getDriveCustomerNpc;
+window.drawPortraitForNpc = drawPortraitForNpc;
 window.drawCustomerPortraitFromNpc = drawCustomerPortraitFromNpc;
 window.drawPortrait = drawPortrait;
 window.resetChoices = resetChoices;
