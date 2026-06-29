@@ -81,6 +81,78 @@ function drawPortrait(c) {
 }
 function resetChoices() { cBox.innerHTML = '<button class="choice-btn" onclick="makeChoice(\'YES\', event)">YES</button><button class="choice-btn" onclick="makeChoice(\'NO\', event)">NO</button>'; }
 
+const RO_NUMBER_BASE = 600000;
+
+function getPlayerROsWritten() {
+    return Math.max(0, (questState.roNumber || RO_NUMBER_BASE) - RO_NUMBER_BASE);
+}
+
+function getOpenROCount() {
+    const written = getPlayerROsWritten();
+    if (written === 0) return 0;
+
+    if (questState.step >= 3 && questState.step < 8) return 1;
+
+    if (questState.step >= 8) {
+        let open = (gameEvents.dailyAptsCompleted || 0) + (gameEvents.dailyWalkInDone ? 1 : 0);
+        if (gameEvents.carWaitingForRO) open += 1;
+        return open;
+    }
+    return 0;
+}
+
+function getClosedROCount() {
+    if (questState.step < 8) return 0;
+    return Math.max(0, getPlayerROsWritten() - getOpenROCount());
+}
+
+function getOpenRODialogue() {
+    const count = getOpenROCount();
+    const written = getPlayerROsWritten();
+
+    if (count === 0) {
+        if (questState.step === 2) {
+            return "No open ROs yet.\nYou have a vehicle checked in\nwaiting to be written up.";
+        }
+        if (written === 0) {
+            return "You have 0 Open ROs.\nYour desk is clean — for now.";
+        }
+        if (questState.step >= 8) {
+            return "You have 0 Open ROs.\nEverything's dispatched\nfor now.";
+        }
+        return "You have 0 Open ROs.";
+    }
+
+    if (count === 1 && questState.step >= 3 && questState.step < 8) {
+        return "You have 1 Open RO.\nRO #" + questState.roNumber + " — Hughes\nExplorer. Engine job in\nBronson's bay.";
+    }
+
+    if (count === 1) {
+        return "You have 1 Open RO.\nRO #" + questState.roNumber + "\nIn progress on the floor.";
+    }
+
+    return "You have " + count + " Open ROs.\nAll in progress on the floor.";
+}
+
+function getClosedRODialogue() {
+    const count = getClosedROCount();
+
+    if (count === 0) {
+        if (questState.step < 8 || getPlayerROsWritten() === 0) {
+            return "0 Closed ROs.\nYou haven't invoiced\nanything yet.";
+        }
+        if (gameEvents.currentDay <= 2) {
+            return "0 Closed ROs.\nStill getting your lane\nset up.";
+        }
+        return "0 Closed ROs.\nDave is going to yell at you.";
+    }
+
+    if (count === 1) {
+        return "1 Closed RO.\nNice — keep the lane moving.";
+    }
+    return count + " Closed ROs.\nYou're staying on top of it.";
+}
+
 function checkChoiceTrigger(){
     let txt = activeDialogue[activeLine];
     if(txt==="[CHOICE_MIKE_YESNO]"){currentChoiceType='MIKE';dText.innerText="Did you talk to Mike\nabout this ticket?";cBox.style.display='flex';arrow.style.display='none';}
@@ -113,8 +185,8 @@ function makeChoice(val,e){
     if(currentChoiceType==='PC_MAIN'){
         resetChoices();
         if(val==='EXIT'){ activeDialogue=["Logged off."]; activeLine=0; dText.innerText=activeDialogue[0]; } 
-        else if(val==='OPEN_ROS'){ activeDialogue=["You have 3 Open ROs.\nAll waiting on parts."]; activeLine=0; dText.innerText=activeDialogue[0]; } 
-        else if(val==='CLOSED_ROS'){ activeDialogue=["0 Closed ROs.\nDave is going to yell at you."]; activeLine=0; dText.innerText=activeDialogue[0]; } 
+        else if(val==='OPEN_ROS'){ activeDialogue=[getOpenRODialogue()]; activeLine=0; dText.innerText=activeDialogue[0]; }
+        else if(val==='CLOSED_ROS'){ activeDialogue=[getClosedRODialogue()]; activeLine=0; dText.innerText=activeDialogue[0]; } 
         else if(val==='TIME_CLOCK'){
             if(questState.step>=8 || gameEvents.timeMinutes >= 1080) {
                 activeDialogue=["End your shift and clock out?","[CHOICE_END_SHIFT]"];
