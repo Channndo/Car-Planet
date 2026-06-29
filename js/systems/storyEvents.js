@@ -137,6 +137,11 @@ function applyDialogueSpeakerPortrait(line) {
     if (line.indexOf('SHIFT REPORT') === 0 || line.indexOf('FINAL PROBATION') === 0 || line.indexOf('Day ') === 0) {
         dName.innerText = 'SYSTEM';
         drawPortrait('NONE');
+        return;
+    }
+    const driveCust = typeof getDriveCustomerNpc === 'function' ? getDriveCustomerNpc() : null;
+    if (driveCust && dName.innerText === driveCust.name) {
+        drawCustomerPortraitFromNpc(driveCust);
     }
 }
 
