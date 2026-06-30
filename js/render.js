@@ -214,6 +214,7 @@ function draw(){
             let bodyCol=n._vehicleColor||'#3a5a80';
             let glassCol=n._vehicleDirty?'#4a5a48':'#6699cc';
             dR(cx,cy,48,24,bodyCol);
+            ctx.strokeStyle='rgba(0,0,0,0.35)';ctx.lineWidth=1;ctx.strokeRect(cx+0.5,cy+0.5,47,23);
             dR(cx+8,cy+4,24,16,'#111');
             dR(cx+10,cy+6,20,12,glassCol);
             dR(cx+6,cy-4,8,4,'#111');dR(cx+34,cy-4,8,4,'#111');dR(cx+6,cy+24,8,4,'#111');dR(cx+34,cy+24,8,4,'#111');
