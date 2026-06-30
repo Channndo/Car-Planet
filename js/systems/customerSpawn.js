@@ -150,7 +150,8 @@ function resolveActiveVisit() {
             type: 'appointment',
             customer: apt.customer,
             attitude: apt.attitude,
-            slot: apt.slot
+            slot: apt.slot,
+            complaint: apt.complaint || null
         };
     }
     if (gameEvents.dailyWalkIn && !gameEvents.dailyWalkInDone && sched.walkIn) {
@@ -158,7 +159,8 @@ function resolveActiveVisit() {
             type: 'walkin',
             customer: sched.walkIn,
             attitude: sched.walkInAttitude,
-            slot: null
+            slot: null,
+            complaint: sched.walkInComplaint || null
         };
     }
     return null;
@@ -189,7 +191,10 @@ function applyVehicleToDriveCar(carNpc, customer) {
     carNpc.hidden = false;
     carNpc.name = formatVehicleLabel(customer.vehicle);
     carNpc.dialogue = buildCarDialogue(customer);
-    carNpc._vehicleColor = customer.vehicle.color;
+    let color = customer.vehicle.color || '#3a5a80';
+    const light = color.toLowerCase();
+    if (light === '#cccccc' || light === '#ffffff' || light === '#fff') color = '#9aa3ad';
+    carNpc._vehicleColor = color;
     carNpc._vehicleDirty = !!(customer.portrait && customer.portrait.acc && customer.portrait.acc.dirty);
 }
 
@@ -254,6 +259,7 @@ function spawnCurrentDriveCustomer() {
     resetDriveCustomerSlots();
     applyCustomerToDriveNpc(cust, visit.customer, visit);
     applyVehicleToDriveCar(car, visit.customer);
+    if (typeof ensureVisitComplaint === 'function') ensureVisitComplaint(visit);
     if (typeof notifyDriveCustomerPresent === 'function') notifyDriveCustomerPresent('spawn');
 }
 
