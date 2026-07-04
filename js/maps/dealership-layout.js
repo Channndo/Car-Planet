@@ -29,13 +29,13 @@ br[6][5]=39; br[6][14]=39; br[10][9]=39;
 for(let y=1;y<14;y++)for(let x=1;x<19;x++)maps.parts.layout[y][x]=0; 
 maps.parts.layout[7][0]=9; maps.parts.layout[12][0]=9; maps.parts.layout[14][9]=9; maps.parts.layout[14][10]=9; maps.parts.layout[0][9]=9; maps.parts.layout[0][10]=9;
 for(let x=5; x<=12; x++) maps.parts.layout[10][x] = 31; 
-for(let y=2; y<=9; y++) maps.parts.layout[y][4] = 33; 
-maps.parts.layout[10][4] = 35; maps.parts.layout[5][4] = 32; maps.parts.layout[8][4] = 32; 
-maps.parts.layout[11][7]=12; maps.parts.layout[11][11]=12; maps.parts.layout[5][3]=12; maps.parts.layout[8][3]=12;
+for(let y=2; y<=5; y++) maps.parts.layout[y][4] = 33; 
+maps.parts.layout[10][4] = 35; maps.parts.layout[3][3] = 32; maps.parts.layout[4][3] = 32; 
+maps.parts.layout[13][4]=12; maps.parts.layout[11][11]=12; maps.parts.layout[5][3]=12; maps.parts.layout[8][3]=12;
 for(let x=13; x<=18; x++) maps.parts.layout[5][x] = 1; 
 for(let y=1; y<=5; y++) maps.parts.layout[y][13] = 1; 
 maps.parts.layout[5][15] = 0; maps.parts.layout[3][16] = 34; 
-for(let y=2; y<=8; y++) { maps.parts.layout[y][8]=29; maps.parts.layout[y][9]=29; }
+for(let y=2; y<=6; y++) { maps.parts.layout[y][8]=29; maps.parts.layout[y][9]=29; }
 maps.parts.layout[8][16] = 30;
 maps.parts.layout[1][15]=43; maps.parts.layout[1][16]=43; maps.parts.layout[1][17]=43; 
 

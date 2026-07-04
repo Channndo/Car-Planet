@@ -91,4 +91,18 @@ window.restoreDriveWhitneyToDesk = restoreDriveWhitneyToDesk;
 window.triggerMikeOfficePage = triggerMikeOfficePage;
 window.checkMikeOfficePageOnDrive = checkMikeOfficePageOnDrive;
 window.tryTriggerMikeOfficePageOnDrive = tryTriggerMikeOfficePageOnDrive;
+function dispatchVehicleToShopWithFlash() {
+    const driveCar = maps.drive && maps.drive.npcs ? maps.drive.npcs.find(n => n.id === 'customer_car') : null;
+    const driveCust = maps.drive && maps.drive.npcs ? maps.drive.npcs.find(n => n.id === 'angry_customer') : null;
+    const shopCar = maps.shop && maps.shop.npcs ? maps.shop.npcs.find(n => n.id === 'shop_car') : null;
+    if (driveCar) driveCar.hidden = true;
+    if (driveCust) driveCust.hidden = true;
+    if (shopCar) {
+        shopCar.hidden = false;
+        shopCar.name = "JOHN'S 2020 EXPLORER";
+    }
+    if (typeof triggerFlash === 'function') triggerFlash();
+}
+
+window.dispatchVehicleToShopWithFlash = dispatchVehicleToShopWithFlash;
 window.completeMikeOfficePageIfNeeded = completeMikeOfficePageIfNeeded;

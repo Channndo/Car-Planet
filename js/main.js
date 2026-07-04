@@ -43,6 +43,7 @@ function update() {
         return;
     }
     if (gameState === 'MENU') return;
+    if (gameState === 'DMS') return;
     if (gameState === 'TITLE' || gameState === 'INTRO' || activeDialogue || gameState === 'CUTSCENE') return;
     let joe = (maps && maps[currentMapKey] && maps[currentMapKey].npcs) ? maps[currentMapKey].npcs.find(n => n.id === 'coolant_joe') : null;
     if (joe && !joe.hidden) updateWanderer(joe);
@@ -60,7 +61,7 @@ function update() {
         }
         if (gameEvents.currentDay === 1 && questState.step === 7 && gameEvents.timeMinutes >= 720) {
             questState.step = 8;
-            gameEvents.dailyAptsCompleted = 2;
+            gameEvents.dailyAptsCompleted = 0;
             gameEvents.dailyWalkIn = false;
             gameEvents.dailySchedule = null;
             generateDailyCustomerSchedule();
@@ -69,8 +70,10 @@ function update() {
 
         tickIntradayWalkIn();
         if (typeof tickFredStory === 'function') tickFredStory();
+        if (typeof tickStoryArcs === 'function') tickStoryArcs();
+        if (typeof tickScheduledAppointments === 'function') tickScheduledAppointments();
 
-        if (gameEvents.timeMinutes === 900 && !gameEvents.zackComeback) {
+        if (gameEvents.currentDay === 1 && gameEvents.timeMinutes === 900 && !gameEvents.zackComeback) {
             gameEvents.zackComeback = true;
             let zCust = maps.drive.npcs.find(n => n.id === 'zack_cust');
             let zCar = maps.drive.npcs.find(n => n.id === 'zack_car');
@@ -81,7 +84,7 @@ function update() {
             drawPortrait('NONE'); dContainer.style.display = 'flex';
         }
 
-        if (gameEvents.timeMinutes === 1050 && !gameEvents.meeting) {
+        if (gameEvents.currentDay === 1 && gameEvents.timeMinutes === 1050 && !gameEvents.meeting) {
             gameEvents.meeting = true;
             activeDialogue = ["[P.A. SYSTEM]\nAll service advisors report\nto Mike's office immediately."];
             activeLine = 0; dName.innerText = "SYSTEM"; dText.innerText = activeDialogue[0];

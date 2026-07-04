@@ -100,14 +100,47 @@ function generateDailyCustomerSchedule() {
         gameEvents.fredStoryPaDoneForPhase = null;
         if (typeof clearFredTimer === 'function') clearFredTimer();
     } else {
-        const three = getRandomCoreCustomers(3, []);
-        appointmentIds = three.map(c => c.id);
-        appointments = three.map((c, i) => ({
-            customerId: c.id,
-            customer: cloneCustomer(c),
-            slot: getAppointmentSlotName(i),
-            attitude: rollAttitude()
-        }));
+        const arc = typeof getStoryArcForToday === 'function' ? getStoryArcForToday() : null;
+        if (arc) {
+            const others = getRandomCoreCustomers(2, [arc.customerId]);
+            const arcCustomer = buildArcCustomer(arc);
+            appointments = [
+                {
+                    customerId: others[0].id,
+                    customer: cloneCustomer(others[0]),
+                    slot: 'morning',
+                    attitude: rollAttitude(),
+                    scheduledMinutes: 450
+                },
+                {
+                    customerId: arcCustomer.id,
+                    customer: arcCustomer,
+                    slot: 'mid-day',
+                    attitude: rollAttitude(),
+                    scheduledMinutes: 720,
+                    storyId: arc.id
+                },
+                {
+                    customerId: others[1].id,
+                    customer: cloneCustomer(others[1]),
+                    slot: 'afternoon',
+                    attitude: rollAttitude(),
+                    scheduledMinutes: 900
+                }
+            ];
+            appointmentIds = appointments.map(a => a.customerId);
+            initArcStateForToday(arc);
+        } else {
+            if (gameEvents.storyArc && gameEvents.storyArc.day !== gameEvents.currentDay) gameEvents.storyArc = null;
+            const three = getRandomCoreCustomers(3, []);
+            appointmentIds = three.map(c => c.id);
+            appointments = three.map((c, i) => ({
+                customerId: c.id,
+                customer: cloneCustomer(c),
+                slot: getAppointmentSlotName(i),
+                attitude: rollAttitude()
+            }));
+        }
     }
 
     gameEvents.dailySchedule = {
@@ -274,4 +307,3 @@ function showRosterMenu() {
 }
 
 window.showRosterMenu = showRosterMenu;
-window.showStatusMenu = showStatusMenu;

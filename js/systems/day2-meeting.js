@@ -89,8 +89,11 @@ function resetNpcsForNewDay() {
             if (n.id === 'mike' && m === maps.drive) n.hidden = true;
             if (n.id === 'zack_cust' || n.id === 'zack_car') n.hidden = true;
             if (n.id.startsWith('office_')) n.hidden = true;
+            /* tour-path Ryan placeholders live hidden on non-drive maps */
+            if (n.id === 'ryan' && m !== maps.drive) n.hidden = true;
         });
     });
+    if (typeof resetDriveRyanToDesk === 'function') resetDriveRyanToDesk();
 }
 
 function applyEndOfShiftDayRollover() {

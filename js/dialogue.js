@@ -44,7 +44,85 @@ function triggerPAAnnouncement(){
     drawPortrait('NONE'); dContainer.style.display='flex';
 }
 function pR(x,y,w,h,c){pCtx.fillStyle=c;pCtx.fillRect(x,y,w,h);}
+let portraitSubjectNpc = null;
+
+function isGuestPortraitCode(code) {
+    return code === 'CUSTOMER' || code === 'APPOINTMENT' || code === 'WALK-IN' || code === 'FRED_NANDERS';
+}
+
+function getDriveGuestNpc() {
+    if (!maps.drive || !maps.drive.npcs) return null;
+    const c = maps.drive.npcs.find(n => n.id === 'angry_customer' && !n.hidden);
+    return c || null;
+}
+
+function setPortraitSubject(npc) {
+    portraitSubjectNpc = npc || null;
+}
+
+function drawGuestPortrait(npc) {
+    pCtx.clearRect(0, 0, 64, 64);
+    pR(0, 0, 64, 64, '#6d8fa8');
+    if (!npc) {
+        pR(18, 48, 28, 16, '#cc2222');
+        pR(22, 22, 20, 24, '#ffccaa');
+        pR(26, 32, 2, 2, '#111');
+        pR(36, 32, 2, 2, '#111');
+        pR(20, 16, 24, 8, '#222');
+        return;
+    }
+    const skin = npc.color || '#ffccaa';
+    const shirt = npc.shirt || '#cc2222';
+    const hair = npc.hair || '#222';
+    const isFred = npc._portraitCode === 'FRED_NANDERS' ||
+        (typeof isFredAppointmentActive === 'function' && isFredAppointmentActive());
+    const isGirl = npc.acc && npc.acc.isGirl;
+    pR(18, 48, 28, 16, shirt);
+    pR(22, 22, 20, 24, skin);
+    pR(26, 32, 2, 2, '#111');
+    pR(36, 32, 2, 2, '#111');
+    if (isGirl) {
+        pR(18, 16, 28, 10, hair);
+        pR(18, 26, 6, 18, hair);
+        pR(40, 26, 6, 18, hair);
+    } else if (hair) {
+        pR(20, 16, 24, 8, hair);
+        if (npc.sleeves === 'long') {
+            pR(18, 20, 4, 10, hair);
+            pR(42, 20, 4, 10, hair);
+        }
+    }
+    if (isFred) {
+        pR(18, 20, 4, 8, 'rgba(60,45,30,0.55)');
+        pR(42, 20, 4, 8, 'rgba(60,45,30,0.55)');
+        pR(20, 26, 10, 6, 'rgba(80,55,30,0.45)');
+        pR(34, 38, 8, 4, 'rgba(70,50,25,0.5)');
+        pR(24, 40, 16, 3, 'rgba(50,35,20,0.65)');
+    } else {
+        pCtx.strokeStyle = '#222';
+        pCtx.lineWidth = 1;
+        pCtx.beginPath();
+        pCtx.moveTo(24, 28);
+        pCtx.lineTo(30, 30);
+        pCtx.stroke();
+        pCtx.beginPath();
+        pCtx.moveTo(40, 28);
+        pCtx.lineTo(34, 30);
+        pCtx.stroke();
+        pR(29, 42, 6, 4, '#222');
+    }
+}
+
 function drawPortrait(c) {
+    const guest = portraitSubjectNpc || (isGuestPortraitCode(c) ? getDriveGuestNpc() : null);
+    if (guest && (isGuestPortraitCode(c) || c === guest.charCode || c === guest._portraitCode)) {
+        drawGuestPortrait(guest);
+        return;
+    }
+    if (c === 'FRED_NANDERS') {
+        drawGuestPortrait(getDriveGuestNpc());
+        return;
+    }
     pCtx.clearRect(0,0,64,64); pR(0,0,64,64,'#6d8fa8');
     if(c==='RICK'){pR(16,48,32,16,'#222');pCtx.fillStyle='#fff';pCtx.beginPath();pCtx.moveTo(32,48);pCtx.lineTo(26,64);pCtx.lineTo(38,64);pCtx.fill();pR(31,52,2,12,'#cc0000');pR(22,18,20,26,'#e8b898');pR(26,28,2,2,'#111');pR(36,28,2,2,'#111');pR(18,16,6,14,'#8a5a44');pR(40,16,6,14,'#8a5a44');pR(22,14,20,4,'#8a5a44');pCtx.strokeStyle='#222';pCtx.lineWidth=1;pCtx.strokeRect(24,26,6,5);pCtx.strokeRect(34,26,6,5);pCtx.beginPath();pCtx.moveTo(30,28);pCtx.lineTo(34,28);pCtx.stroke();pR(29,38,6,1,'#111');}
     else if(c==='MIKE'){pR(16,48,32,16,'#2c5a8c');pCtx.fillStyle='#fff';pCtx.beginPath();pCtx.moveTo(32,48);pCtx.lineTo(28,56);pCtx.lineTo(36,56);pCtx.fill();pR(31,56,2,8,'#999');pR(22,22,20,24,'#e8b898');pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(20,16,24,6,'#111');pR(22,40,20,6,'#111');pR(20,36,4,10,'#111');pR(40,36,4,10,'#111');pCtx.strokeStyle='#222';pCtx.lineWidth=1;pCtx.strokeRect(24,30,6,5);pCtx.strokeRect(34,30,6,5);pCtx.beginPath();pCtx.moveTo(30,32);pCtx.lineTo(34,32);pCtx.stroke();}
@@ -68,8 +146,8 @@ function drawPortrait(c) {
     else if(c==='BRAD'){pR(16,48,32,16,'#c2b280');pR(22,22,20,24,'#ffccaa');pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(20,14,24,8,'#cc3300');pR(20,16,24,8,'#ccc');pR(18,20,4,10,'#ccc');pR(42,20,4,10,'#ccc');}
     else if(c==='JOHN'){pR(16,48,32,16,'#fff');pR(20,48,24,16,'#222');pR(22,22,20,24,'#ffdbac');pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(20,14,24,8,'#6b4c3a');pR(22,38,20,8,'#6b4c3a');pR(20,16,24,8,'#fff');pR(18,20,4,10,'#fff');pR(42,20,4,10,'#fff');pR(20,16,24,8,'#222');pR(24,30,6,4,'rgba(255,255,255,0.4)');pR(34,30,6,4,'rgba(255,255,255,0.4)');}
     else if(c==='TROY'){pR(16,48,32,16,'#111');pR(22,22,20,24,'#e8b898');pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(22,38,20,8,'#222');pR(20,16,24,8,'#111');pR(18,20,4,6,'#111');pR(42,20,4,6,'#111');pR(24,30,6,4,'rgba(255,255,255,0.4)');pR(34,30,6,4,'rgba(255,255,255,0.4)');}
-    else if(c==='CUSTOMER'||c==='APPOINTMENT'||c==='WALK-IN'){pR(18,48,28,16,'#cc2222');pR(22,22,20,24,'#ffccaa');pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(20,16,24,8,'#222');pCtx.beginPath();pCtx.moveTo(24,28);pCtx.lineTo(30,30);pCtx.stroke();pCtx.beginPath();pCtx.moveTo(40,28);pCtx.lineTo(34,30);pCtx.stroke();pR(29,42,6,4,'#222');}
-    else if(c==='FRED_NANDERS'){let cust=maps.drive&&maps.drive.npcs?maps.drive.npcs.find(n=>n.id==='angry_customer'):null;let skin=cust?cust.color:'#c68642';let shirt=cust?cust.shirt:'#3d3d3d';let hair=cust?cust.hair:'#3d2817';pR(18,48,28,16,shirt);pR(22,22,20,24,skin);pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(20,16,24,8,hair);pR(18,20,4,8,'rgba(60,45,30,0.55)');pR(42,20,4,8,'rgba(60,45,30,0.55)');pR(20,26,10,6,'rgba(80,55,30,0.45)');pR(34,38,8,4,'rgba(70,50,25,0.5)');pR(24,40,16,3,'rgba(50,35,20,0.65)');}
+    else if(c==='CUSTOMER'||c==='APPOINTMENT'||c==='WALK-IN'){drawGuestPortrait(getDriveGuestNpc());}
+    else if(c==='FRED_NANDERS'){drawGuestPortrait(getDriveGuestNpc());}
     else if(c==='BRI'){pR(18,48,28,16,'#222');pR(22,22,20,24,'#fff0f0');pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(20,16,24,8,'#cc0000');pR(16,24,6,20,'#cc0000');pR(42,24,6,20,'#cc0000');pR(28,42,8,2,'#fff');}
     else if(c==='PLAYER'){let skin=playerDetails.gender==='Boy'?'#ffccaa':'#ffdbac';let hair=playerDetails.gender==='Boy'?'#4a3121':'#f6c944';pR(18,48,28,16,playerDetails.inUniform?'#111':'#fff');pR(22,22,20,24,skin);pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');if(playerDetails.gender==='Boy'){pR(20,16,24,8,hair);pR(18,20,4,10,hair);}else{pR(18,16,28,10,hair);pR(18,26,6,18,hair);pR(40,26,6,18,hair);}}
     else if(c==='GUS'){ pR(16,48,32,16,'#111'); pR(22,18,20,26,'#ffdbac'); pR(26,28,2,2,'#111');pR(36,28,2,2,'#111'); pR(29,38,6,1,'#111'); pR(18,16,6,14,'#d4a017');pR(40,16,6,14,'#d4a017');pR(22,14,20,4,'#d4a017'); }
@@ -95,7 +173,7 @@ function checkChoiceTrigger(){
     else if(txt==="[CHOICE_PC_MAIN]"){
         currentChoiceType='PC_MAIN'; dText.innerText="Select an option:";
         
-        let canCheckIn = (questState.step === 2 || gameEvents.carWaitingForRO);
+        let canCheckIn = (questState.step === 2 || !!gameEvents.carWaitingForRO);
         let menuHTML = '';
         if(canCheckIn) {
             menuHTML += '<button class="choice-btn" style="color:#22aa22;" onclick="makeChoice(\'DO_CHECKIN\', event)">CHECK IN</button>';
@@ -113,21 +191,36 @@ function makeChoice(val,e){
     if(currentChoiceType==='PC_MAIN'){
         resetChoices();
         if(val==='EXIT'){ activeDialogue=["Logged off."]; activeLine=0; dText.innerText=activeDialogue[0]; } 
-        else if(val==='OPEN_ROS'){ activeDialogue=["You have 3 Open ROs.\nAll waiting on parts."]; activeLine=0; dText.innerText=activeDialogue[0]; } 
-        else if(val==='CLOSED_ROS'){ activeDialogue=["0 Closed ROs.\nDave is going to yell at you."]; activeLine=0; dText.innerText=activeDialogue[0]; } 
+        else if(val==='OPEN_ROS'){
+            const summary = typeof getDmsOpenRosSummary === 'function' ? getDmsOpenRosSummary() : 'No RO data.';
+            activeDialogue = summary.split('\n');
+            activeLine = 0; dText.innerText = activeDialogue[0];
+            dName.innerText = 'OPEN ROs'; drawPortrait('NONE');
+        }
+        else if(val==='CLOSED_ROS'){
+            const summary = typeof getDmsClosedRosSummary === 'function' ? getDmsClosedRosSummary() : 'No RO data.';
+            activeDialogue = summary.split('\n');
+            activeLine = 0; dText.innerText = activeDialogue[0];
+            dName.innerText = 'CLOSED ROs'; drawPortrait('NONE');
+        }
         else if(val==='TIME_CLOCK'){
-            if(questState.step>=8 || gameEvents.timeMinutes >= 1080) {
+            if(gameEvents.timeMinutes >= 1080) {
                 activeDialogue=["End your shift and clock out?","[CHOICE_END_SHIFT]"];
                 activeLine=0; dText.innerText=activeDialogue[0];
                 checkChoiceTrigger(); 
-            } else { activeDialogue=["Your shift isn't over yet!"]; activeLine=0; dText.innerText=activeDialogue[0]; }
+            } else { activeDialogue=["Your shift isn't over yet!\nShift ends at 6:00 PM."]; activeLine=0; dText.innerText=activeDialogue[0]; }
         }
         else if(val==='DO_CHECKIN') {
-             if(questState.step===2){
-                 questState.step=3; questState.roNumber++;
-                 activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!","Take it to Mike to dispatch."];
-             } else if(gameEvents.carWaitingForRO==='daily'){
-                 gameEvents.carWaitingForRO=false; gameEvents.dailyAptsCompleted++; questState.roNumber++;
+             if(questState.step===2||gameEvents.carWaitingForRO==='tutorial'){
+                 questState.step=3;
+                 gameEvents.carWaitingForRO=false;
+                 if(typeof onRepairOrderPrinted==='function')onRepairOrderPrinted('tutorial');
+                 else questState.roNumber++;
+                 activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!","Take it to Mike on the drive\nto dispatch."];
+             } else if(questState.step>=8&&gameEvents.carWaitingForRO==='daily'){
+                 gameEvents.carWaitingForRO=false; gameEvents.dailyAptsCompleted++;
+                 if(typeof onRepairOrderPrinted==='function')onRepairOrderPrinted('daily');
+                 else questState.roNumber++;
                  recordProbationRO();
                  if(gameEvents.dailyAptsCompleted<3){
                      let nApt=gameEvents.dailyAptsCompleted===1?"mid-day":"afternoon";
@@ -140,25 +233,36 @@ function makeChoice(val,e){
                      activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!\nThat's it for today.\nEnd your shift at your computer."];
                      hideDriveCustomerSlots();
                  }
-             } else if(gameEvents.carWaitingForRO==='walkin'){
-                 gameEvents.carWaitingForRO=false; gameEvents.dailyWalkInDone=true; questState.roNumber++;
+             } else if(questState.step>=8&&gameEvents.carWaitingForRO==='walkin'){
+                 gameEvents.carWaitingForRO=false; gameEvents.dailyWalkInDone=true;
+                 if(typeof onRepairOrderPrinted==='function')onRepairOrderPrinted('walkin');
+                 else questState.roNumber++;
                  recordProbationRO();
                  hideDriveCustomerSlots();
                  activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!\nThe drive is empty.","Time to clock out at your computer."];
-             } else if(gameEvents.carWaitingForRO==='fred_story'){
+             } else if(questState.step>=8&&gameEvents.carWaitingForRO==='fred_story'){
                  gameEvents.carWaitingForRO=false;
-                 questState.roNumber++;
+                 if(typeof onRepairOrderPrinted==='function')onRepairOrderPrinted('fred_story');
+                 else questState.roNumber++;
                  if(typeof setFredPhase==='function')setFredPhase('need_mike');
+                 activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!","Take it to Mike for dispatch."];
+             } else if(questState.step>=8&&gameEvents.carWaitingForRO==='story_arc'){
+                 gameEvents.carWaitingForRO=false;
+                 if(typeof onRepairOrderPrinted==='function')onRepairOrderPrinted('story_arc');
+                 else questState.roNumber++;
+                 if(typeof onArcRoPrinted==='function')onArcRoPrinted();
                  activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!","Take it to Mike for dispatch."];
              }
              activeLine=0; dText.innerText=activeDialogue[0];
+             dName.innerText='SYSTEM'; drawPortrait('NONE');
+             dContainer.style.display='flex';
         }
         return;
     }
     
     resetChoices();
-    if(currentChoiceType==='CHECKIN'){if(val==='NO'){activeDialogue=["You backed away from the vehicle."];activeLine=0;dText.innerText=activeDialogue[0];}if(val==='YES'){questState.step=2;activeDialogue=["Vehicle checked in.\nGo to your computer to write the RO."];activeLine=0;dText.innerText=activeDialogue[0];}}
-    else if(currentChoiceType==='MIKE'){if(val==='NO'){activeDialogue=["I'm not working on that until\nyou talk to Mike."];activeLine=0;dText.innerText=activeDialogue[0];}if(val==='YES'){if(!questState.talkedToMike){activeDialogue=["Don't lie to me.\nI didn't hear him page me."];activeLine=0;dText.innerText=activeDialogue[0];}else{if(questState.assignedTo===dName.innerText){activeDialogue=["Mike sent you? Fine, pull it\ninto my bay.","Hope there's no comebacks\non this one..."];activeLine=0;dText.innerText=activeDialogue[0];questState.step=4;}else{activeDialogue=["Mike didn't assign that to me.\nKick rocks."];activeLine=0;dText.innerText=activeDialogue[0];}}}}
+    if(currentChoiceType==='CHECKIN'){if(val==='NO'){activeDialogue=["You backed away from the vehicle."];activeLine=0;dText.innerText=activeDialogue[0];}if(val==='YES'){questState.step=2;gameEvents.carWaitingForRO='tutorial';if(typeof registerVehicleCheckIn==='function')registerVehicleCheckIn('tutorial');activeDialogue=["Vehicle checked in.\nGo to your computer to write the RO."];activeLine=0;dText.innerText=activeDialogue[0];}}
+    else if(currentChoiceType==='MIKE'){if(val==='NO'){activeDialogue=["I'm not working on that until\nyou talk to Mike."];activeLine=0;dText.innerText=activeDialogue[0];}if(val==='YES'){if(!questState.talkedToMike){activeDialogue=["Don't lie to me.\nI didn't hear him page me."];activeLine=0;dText.innerText=activeDialogue[0];}else{if(questState.assignedTo===dName.innerText){activeDialogue=["Mike sent you? Fine, pull it\ninto my bay.","Hope there's no comebacks\non this one..."];activeLine=0;dText.innerText=activeDialogue[0];questState.step=4;if(typeof syncActiveRoFromQuest==='function')syncActiveRoFromQuest();}else{activeDialogue=["Mike didn't assign that to me.\nKick rocks."];activeLine=0;dText.innerText=activeDialogue[0];}}}}
     else if(currentChoiceType==='END_SHIFT'){
         if(val==='NO'){activeDialogue=["You backed away from the terminal."];activeLine=0;dText.innerText=activeDialogue[0];}
         if(val==='YES'){
@@ -166,19 +270,28 @@ function makeChoice(val,e){
             if(probation.active&&probation.outcome!=='fired'&&probation.outcome!=='passed'){
                 debriefLines=processProbationEndOfShift();
             }
-            if(probation.finalReviewComplete){
-                triggerFlash();
-                activeDialogue=debriefLines||buildFinalReviewDialogue(probation.outcome==='passed');
-                activeLine=0;dText.innerText=activeDialogue[0];dName.innerText="SYSTEM";drawPortrait('NONE');
-                return;
-            }
             if(probation.outcome==='fired'){
                 triggerFlash();
                 activeDialogue=debriefLines||["MIKE: \"You're done here.\"","[CHOICE_PROBATION_FIRED]"];
-                activeLine=0;dText.innerText=activeDialogue[0];dName.innerText="MIKE";drawPortrait('MIKE');
+                activeLine=0;dText.innerText=activeDialogue[0];dName.innerText="SYSTEM";drawPortrait('NONE');
                 return;
             }
-            if(shouldRunDay2Meeting()){
+            if(probation.outcome==='passed'&&!probation.graduationShown){
+                probation.graduationShown=true;
+                probation.active=false;
+                applyEndOfShiftDayRollover();
+                resetDriveCustomersForNewDay();
+                triggerFlash();
+                if (typeof playMusicJingle === 'function') playMusicJingle('fanfare');
+                let gradLines=(debriefLines||buildFinalReviewDialogue(true));
+                if(typeof buildGraduationEpilogueLines==='function'){
+                    gradLines=gradLines.concat(buildGraduationEpilogueLines());
+                }
+                activeDialogue=gradLines.concat(buildDayStartLinesWithStory());
+                activeLine=0;dText.innerText=activeDialogue[0];dName.innerText="SYSTEM";drawPortrait('NONE');
+                return;
+            }
+            if(gameEvents.currentDay===1&&!probation.day2MeetingComplete){
                 applyEndOfShiftDayRollover();
                 day2MeetingPhase='idle';
                 gameEvents.pendingDay2Meeting=true;
@@ -235,8 +348,11 @@ function makeChoice(val,e){
         if(val==='YES'){
             if(typeof isFredAppointmentActive==='function'&&isFredAppointmentActive()&&typeof onFredCheckInConfirmed==='function'){
                 onFredCheckInConfirmed();
+            }else if(typeof isArcAppointmentActive==='function'&&isArcAppointmentActive()&&typeof onArcCheckInConfirmed==='function'){
+                onArcCheckInConfirmed();
             }else{
                 gameEvents.carWaitingForRO='daily';
+                if(typeof registerVehicleCheckIn==='function')registerVehicleCheckIn('daily');
                 activeDialogue=["Vehicle checked in.\nGo to your computer to write the RO."];
                 activeLine=0;dText.innerText=activeDialogue[0];
             }
@@ -244,7 +360,7 @@ function makeChoice(val,e){
     }
     else if(currentChoiceType==='CHECKIN_WALKIN'){
         if(val==='NO'){activeDialogue=["You turned away the walk-in."];activeLine=0;dText.innerText=activeDialogue[0];if(probation.active){adjustCSI(-5);addWarning('Refused walk-in guest.');}}
-        if(val==='YES'){gameEvents.carWaitingForRO='walkin';activeDialogue=["Vehicle checked in.\nGo to your computer to write the RO."];activeLine=0;dText.innerText=activeDialogue[0];}
+        if(val==='YES'){gameEvents.carWaitingForRO='walkin';if(typeof registerVehicleCheckIn==='function')registerVehicleCheckIn('walkin');activeDialogue=["Vehicle checked in.\nGo to your computer to write the RO."];activeLine=0;dText.innerText=activeDialogue[0];}
     }
     else if(currentChoiceType==='SAVE_GAME'){if(val==='NO'){activeDialogue=["Save cancelled."];activeLine=0;dText.innerText=activeDialogue[0];}if(val==='YES'){persistGame();activeDialogue=["Saving...\nDon't turn off the power.",playerDetails.name+" saved the game!"];activeLine=0;dText.innerText=activeDialogue[0];}}
 }
@@ -344,16 +460,24 @@ function advanceDialogue(){
                 else startWhitneyCheckInTutorial();
                 return;
             }
-            if(questState.step===4&&dName.innerText==='BRONSON'){questState.step=5;gameEvents.pendingMikeOfficePage=true;if(typeof dispatchVehicleToShopWithFlash==='function')dispatchVehicleToShopWithFlash();else triggerFlash();}
+            if(questState.step>=3&&questState.step<5&&dName.innerText==='JOE'&&questState.talkedToMike&&questState.assignedTo==='JOE'){
+                questState.step=5;gameEvents.pendingMikeOfficePage=true;gameEvents.carWaitingForRO=false;
+                if(typeof syncActiveRoFromQuest==='function')syncActiveRoFromQuest();
+                if(typeof dispatchVehicleToShopWithFlash==='function')dispatchVehicleToShopWithFlash();
+                else if(typeof triggerFlash==='function')triggerFlash();
+            }
             if(completeMikeOfficePageIfNeeded()){
                 dContainer.style.display='none';
                 activeDialogue=null;
                 return;
             }
+            if(typeof setPortraitSubject==='function')setPortraitSubject(null);
             dContainer.style.display='none';activeDialogue=null;
         }else{
             dText.innerText=activeDialogue[activeLine];
             applyDialogueSpeakerPortrait(activeDialogue[activeLine]);
+            const guest=getDriveGuestNpc();
+            if(guest&&portraitSubjectNpc&&isGuestPortraitCode(portraitSubjectNpc.charCode))drawGuestPortrait(guest);
             checkChoiceTrigger();
         }
     }
@@ -365,6 +489,10 @@ window.continueGameFromTitle = continueGameFromTitle;
 window.startNewGameFromTitle = startNewGameFromTitle;
 window.triggerPAAnnouncement = triggerPAAnnouncement;
 window.drawPortrait = drawPortrait;
+window.drawGuestPortrait = drawGuestPortrait;
+window.setPortraitSubject = setPortraitSubject;
+window.getDriveGuestNpc = getDriveGuestNpc;
+window.isGuestPortraitCode = isGuestPortraitCode;
 window.resetChoices = resetChoices;
 window.checkChoiceTrigger = checkChoiceTrigger;
 window.makeChoice = makeChoice;

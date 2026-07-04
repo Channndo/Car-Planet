@@ -51,7 +51,10 @@ function pickStoryEventForToday() {
 function formatStoryLine(line) {
     let text = line.text
         .replace(/\[PLAYER_NAME\]/g, playerDetails.name)
-        .replace(/\[RIVAL_NAME\]/g, playerDetails.rivalName);
+        .replace(/\[RIVAL_NAME\]/g, playerDetails.rivalName)
+        .replace(/\[RO_PREV\]/g, String(questState.roNumber || 600000))
+        .replace(/\[STRIKES\]/g, String(probation.strikes || 0))
+        .replace(/\[CSI\]/g, String(probation.csiScore || 100));
     if (line.name === 'SYSTEM' || line.name === 'P.A.') {
         if (text.indexOf('[P.A.') === 0 || text.indexOf('[') === 0) return text;
         return text;
@@ -132,6 +135,21 @@ function applyDialogueSpeakerPortrait(line) {
     if (line.indexOf(playerDetails.rivalName + ':') === 0 || line.indexOf('KASEY:') === 0) {
         dName.innerText = playerDetails.rivalName;
         drawPortrait('RIVAL');
+        return;
+    }
+    if (line.indexOf('FRED:') === 0 || line.indexOf('FRED NANDERS:') === 0) {
+        dName.innerText = 'FRED NANDERS';
+        const guest = typeof getDriveGuestNpc === 'function' ? getDriveGuestNpc() : null;
+        if (typeof setPortraitSubject === 'function') setPortraitSubject(guest);
+        if (typeof drawGuestPortrait === 'function') drawGuestPortrait(guest);
+        else drawPortrait('FRED_NANDERS');
+        return;
+    }
+    const driveGuest = typeof getDriveGuestNpc === 'function' ? getDriveGuestNpc() : null;
+    if (driveGuest && line.indexOf(driveGuest.name + ':') === 0) {
+        dName.innerText = driveGuest.name;
+        if (typeof setPortraitSubject === 'function') setPortraitSubject(driveGuest);
+        if (typeof drawGuestPortrait === 'function') drawGuestPortrait(driveGuest);
         return;
     }
     if (line.indexOf('SHIFT REPORT') === 0 || line.indexOf('FINAL PROBATION') === 0 || line.indexOf('Day ') === 0) {

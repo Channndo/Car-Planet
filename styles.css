@@ -714,6 +714,28 @@ canvas {
   text-align: center;
 }
 
+.dms-banner {
+  background: #e0f2fe;
+  border: 2px solid #2244cc;
+  padding: 8px;
+  margin-bottom: 12px;
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.dms-ro-line {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 8px;
+  padding: 8px;
+  font-size: 8px;
+  line-height: 1.4;
+  background: #f8fafc;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
 /* Mobile: Game Boy face — full screen width, top 50% screen / bottom 50% controls */
 @media (max-width: 799px) {
   #game-screen.control-board-screen-black,

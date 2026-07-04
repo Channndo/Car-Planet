@@ -54,11 +54,16 @@ function getRyanMentorHint() {
     if (s < 8) {
         if (s <= 1) return "Walk up to the customer's vehicle and check them in.";
         if (s === 2) return "Use your desk — CHECK IN — to write the RO.";
-        if (s === 3) return "Take the RO to Mike on the drive for dispatch.";
+        if (s === 3) return "Take the RO to Mike, then Joe in the shop.";
         if (s === 4) return "Find the tech Mike assigned in the shop.";
         if (s === 5) return "Check your desk email. Mike wants you in his office.";
         if (s === 6) return "Mike's office is upstairs when you're ready.";
         if (s === 7) return "Look around the shop, parts, and drive before noon.";
+    }
+
+    if (typeof getActiveArcHint === 'function') {
+        const arcHint = getActiveArcHint();
+        if (arcHint) return arcHint;
     }
 
     if (gameEvents.currentDay === 2 && typeof isFredAppointmentActive === 'function' && isFredAppointmentActive()) {

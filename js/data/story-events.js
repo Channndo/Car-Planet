@@ -130,7 +130,7 @@ const STORY_EVENTS = [
         id: 'rival_prank_ro',
         minDay: 5, maxDay: 40, weight: 2,
         lines: [
-            { name: 'SYSTEM', portrait: 'NONE', text: 'RO #' + (questState.roNumber - 1) + ' printed\nwith the wrong VIN.' },
+            { name: 'SYSTEM', portrait: 'NONE', text: 'RO #[RO_PREV] printed\nwith the wrong VIN.' },
             { name: 'SYSTEM', portrait: 'NONE', text: '[RIVAL_NAME] grins from the\nlube lane. "Typo."' }
         ],
         effects: { csi: -2, warning: 'Paperwork error on the drive.' }
@@ -234,7 +234,7 @@ const STORY_EVENTS = [
         id: 'strike_scare',
         minDay: 50, maxDay: 88, weight: 1,
         lines: [
-            { name: 'MIKE', portrait: 'MIKE', text: 'You\'ve got ' + (probation.strikes || 0) + ' strike(s).\nThree ends it.' },
+            { name: 'MIKE', portrait: 'MIKE', text: 'You\'ve got [STRIKES] strike(s).\nThree ends it.' },
             { name: 'MIKE', portrait: 'MIKE', text: 'Play it straight till day 90.' }
         ]
     },

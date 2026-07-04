@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Car Planet</title>
-<link rel="stylesheet" href="styles.css?v=ryan-dialogue-fix-2">
+<link rel="stylesheet" href="styles.css?v=full-sim-2">
 </head>
 <body>
 <div id="game-wrapper">
@@ -35,10 +35,10 @@
                 <div class="menu-item" onclick="toggleStartMenu()"><span>RESUME</span><span class="menu-arrow">▶</span></div>
                 <div class="menu-item" onclick="showStatusMenu()"><span>STATUS</span><span class="menu-arrow">▶</span></div>
                 <div class="menu-item" onclick="showRosterMenu()"><span>ROSTER</span><span class="menu-arrow">▶</span></div>
-                <div class="menu-item" onclick="alert('TOOLS screen coming next.')"><span>TOOLS</span><span class="menu-arrow">▶</span></div>
+                <div class="menu-item" onclick="showToolsMenu()"><span>TOOLS</span><span class="menu-arrow">▶</span></div>
                 <div class="menu-item" onclick="saveGame()"><span>SAVE GAME</span><span class="menu-arrow">▶</span></div>
                 <div class="menu-item" onclick="openOptionsMenu()"><span>OPTIONS</span><span class="menu-arrow">▶</span></div>
-                <div class="menu-item" onclick="alert('v1.0.23 - Options & menu frames')"><span>INFO</span><span class="menu-arrow">▶</span></div>
+                <div class="menu-item" onclick="showInfoMenu()"><span>INFO</span><span class="menu-arrow">▶</span></div>
                 <div id="menu-footer">CAR PLANET MENU</div>
             </div>
             <div id="menu-panel-options" class="menu-panel" style="display:none;">
@@ -62,36 +62,40 @@
     </div>
 </div>
 
-<script src="js/config.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/state.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/maps/generate.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/maps/dealership-data.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/maps/neighborhood.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/maps/index.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/maps/dealership-layout.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/maps/neighborhood-layout.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/data/vehicles.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/data/procedural-names.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/data/attitudes.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/data/customers.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/systems/customerSpawn.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/systems/fredStory.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/systems/walkIns.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/systems/probation.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/data/story-events.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/systems/storyEvents.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/systems/music.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/systems/options.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/systems/day2-meeting.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/systems/sounds.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/systems/cinematic.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/systems/ryanMentor.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/systems/staffIntros.js?v=staff-intros-1"></script>
-<script src="js/systems/tutorial.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/dialogue.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/world.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/movement.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/render.js?v=ryan-dialogue-fix-2"></script>
-<script src="js/main.js?v=ryan-dialogue-fix-2"></script>
+<script src="js/config.js?v=full-sim-2"></script>
+<script src="js/state.js?v=full-sim-2"></script>
+<script src="js/maps/generate.js?v=full-sim-2"></script>
+<script src="js/maps/dealership-data.js?v=full-sim-2"></script>
+<script src="js/maps/neighborhood.js?v=full-sim-2"></script>
+<script src="js/maps/index.js?v=full-sim-2"></script>
+<script src="js/maps/dealership-layout.js?v=full-sim-2"></script>
+<script src="js/maps/neighborhood-layout.js?v=full-sim-2"></script>
+<script src="js/data/vehicles.js?v=full-sim-2"></script>
+<script src="js/data/procedural-names.js?v=full-sim-2"></script>
+<script src="js/data/attitudes.js?v=full-sim-2"></script>
+<script src="js/data/customers.js?v=full-sim-2"></script>
+<script src="js/systems/customerSpawn.js?v=full-sim-2"></script>
+<script src="js/systems/fredStory.js?v=full-sim-2"></script>
+<script src="js/systems/walkIns.js?v=full-sim-2"></script>
+<script src="js/systems/probation.js?v=full-sim-2"></script>
+<script src="js/data/story-events.js?v=full-sim-2"></script>
+<script src="js/systems/storyEvents.js?v=full-sim-2"></script>
+<script src="js/systems/music.js?v=full-sim-2"></script>
+<script src="js/systems/options.js?v=full-sim-2"></script>
+<script src="js/systems/day2-meeting.js?v=full-sim-2"></script>
+<script src="js/systems/sounds.js?v=full-sim-2"></script>
+<script src="js/systems/cinematic.js?v=full-sim-2"></script>
+<script src="js/systems/ryanMentor.js?v=full-sim-2"></script>
+<script src="js/systems/staffIntros.js?v=full-sim-2"></script>
+<script src="js/systems/dms.js?v=full-sim-2"></script>
+<script src="js/data/story-arcs.js?v=full-sim-2"></script>
+<script src="js/systems/storyArcs.js?v=full-sim-2"></script>
+<script src="js/systems/menus.js?v=full-sim-2"></script>
+<script src="js/systems/tutorial.js?v=full-sim-2"></script>
+<script src="js/dialogue.js?v=full-sim-2"></script>
+<script src="js/world.js?v=full-sim-2"></script>
+<script src="js/movement.js?v=full-sim-2"></script>
+<script src="js/render.js?v=full-sim-2"></script>
+<script src="js/main.js?v=full-sim-2"></script>
 </body>
 </html>

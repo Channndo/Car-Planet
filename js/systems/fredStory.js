@@ -60,6 +60,9 @@ function completeFredStoryHappy() {
     clearFredTimer();
     gameEvents.carWaitingForRO = false;
     gameEvents.dailyAptsCompleted++;
+    if (typeof gameEvents.dmsActiveRoId === 'string' && typeof setDmsOrderStatus === 'function') {
+        setDmsOrderStatus(gameEvents.dmsActiveRoId, 'closed');
+    }
     recordProbationRO();
     if (typeof adjustCSI === 'function') adjustCSI(2);
     hideDriveCustomerSlots();
@@ -147,7 +150,7 @@ function resolveStoryNpcDialogue(npc) {
         }
     }
 
-    if (npc.id === 'mike' && currentMapKey === 'drive') {
+    if (npc.id === 'mike' && (currentMapKey === 'drive' || currentMapKey === 'office')) {
         if (getFredPhase() === 'waiting_player') {
             activeDialogue = [
                 "MIKE: Vinnie sent it back?\nGo see what he said."
@@ -301,6 +304,7 @@ function tickFredStory() {
 function onFredCheckInConfirmed() {
     gameEvents.carWaitingForRO = 'fred_story';
     setFredPhase('checked_in');
+    if (typeof registerVehicleCheckIn === 'function') registerVehicleCheckIn('fred_story');
     activeDialogue = ['Vehicle checked in.\nGo to your computer to write the RO.'];
     activeLine = 0;
     dText.innerText = activeDialogue[0];

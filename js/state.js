@@ -67,7 +67,8 @@ function defaultProbation() {
         weekRosCompleted: 0, currentWeek: 1,
         lastDayGrade: null, outcome: null,
         firedReason: null, finalReviewComplete: false,
-        storyEventDays: [], storyEventDaysUsed: [], storyEventsPlayedIds: []
+        storyEventDays: [], storyEventDaysUsed: [], storyEventsPlayedIds: [],
+        storyArcsDone: [], graduationShown: false
     };
 }
 
@@ -117,6 +118,9 @@ function migrateSaveData(s) {
         if (gameEvents.fredStoryTimerPhase === undefined) gameEvents.fredStoryTimerPhase = null;
         if (gameEvents.fredStoryPaDoneForPhase === undefined) gameEvents.fredStoryPaDoneForPhase = null;
         if (gameEvents.fredNoonPing === undefined) gameEvents.fredNoonPing = false;
+        if (!gameEvents.dmsOrders) gameEvents.dmsOrders = [];
+        if (gameEvents.dmsActiveRoId === undefined) gameEvents.dmsActiveRoId = null;
+        if (gameEvents.storyArc === undefined) gameEvents.storyArc = null;
     }
     if (s.probation && !probation.metCustomerIds) probation.metCustomerIds = [];
     if (s.questState) questState = s.questState;
@@ -169,7 +173,8 @@ function resetGameStateForNewGame() {
         storyTimeFrozen: false, driveIntercomTag: null,
         fredStoryPhase: 'idle', fredStoryComplete: false, fredStoryActive: false,
         fredStoryTimerUntil: null, fredStoryTimerPhase: null, fredStoryPaDoneForPhase: null,
-        fredNoonPing: false
+        fredNoonPing: false,
+        dmsOrders: [], dmsActiveRoId: null, storyArc: null
     };
     questState = { active: false, step: 0, talkedToMike: false, assignedTo: null, roNumber: 600000 };
     probation = defaultProbation();
