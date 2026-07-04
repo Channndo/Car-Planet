@@ -218,28 +218,17 @@ function makeChoice(val,e){
                  else questState.roNumber++;
                  activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!","Take it to Mike on the drive\nto dispatch."];
              } else if(questState.step>=8&&gameEvents.carWaitingForRO==='daily'){
-                 gameEvents.carWaitingForRO=false; gameEvents.dailyAptsCompleted++;
+                 gameEvents.carWaitingForRO=false;
                  if(typeof onRepairOrderPrinted==='function')onRepairOrderPrinted('daily');
                  else questState.roNumber++;
-                 recordProbationRO();
-                 if(gameEvents.dailyAptsCompleted<3){
-                     let nApt=gameEvents.dailyAptsCompleted===1?"mid-day":"afternoon";
-                     activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!\nYour "+nApt+" appointment\nhas arrived.","[P.A. SYSTEM]\n"+playerDetails.name+" to the service drive,\nguest is waiting."];
-                     spawnCurrentDriveCustomer();
-                 }else if(gameEvents.dailyWalkIn&&!gameEvents.dailyWalkInDone){
-                     activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!\nWait, another car just pulled up.\nIt's a walk-in!","[P.A. SYSTEM]\n"+playerDetails.name+" to the service drive,\nguest is waiting."];
-                     spawnCurrentDriveCustomer();
-                 }else{
-                     activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!\nThat's it for today.\nEnd your shift at your computer."];
-                     hideDriveCustomerSlots();
-                 }
+                 gameEvents.pendingDispatch='daily';
+                 activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!","Take it to Mike for dispatch."];
              } else if(questState.step>=8&&gameEvents.carWaitingForRO==='walkin'){
-                 gameEvents.carWaitingForRO=false; gameEvents.dailyWalkInDone=true;
+                 gameEvents.carWaitingForRO=false;
                  if(typeof onRepairOrderPrinted==='function')onRepairOrderPrinted('walkin');
                  else questState.roNumber++;
-                 recordProbationRO();
-                 hideDriveCustomerSlots();
-                 activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!\nThe drive is empty.","Time to clock out at your computer."];
+                 gameEvents.pendingDispatch='walkin';
+                 activeDialogue=["Writing Repair Order...","RO #"+questState.roNumber+" printed!","Take it to Mike for dispatch."];
              } else if(questState.step>=8&&gameEvents.carWaitingForRO==='fred_story'){
                  gameEvents.carWaitingForRO=false;
                  if(typeof onRepairOrderPrinted==='function')onRepairOrderPrinted('fred_story');
@@ -415,6 +404,9 @@ function advanceDialogue(){
             }
         }
         if(activeLine>=activeDialogue.length){
+            if(typeof completeMikeDailyDispatchIfNeeded==='function'&&completeMikeDailyDispatchIfNeeded()){
+                return;
+            }
             if(typeof onRyanDialogueFinished==='function'&&onRyanDialogueFinished()){dContainer.style.display='none';activeDialogue=null;return;}
             if(gameEvents.activeStoryEvent){completeStoryEvent();}
             if(gameEvents.pendingMeetingTeleport) {

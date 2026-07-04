@@ -147,14 +147,16 @@ function syncActiveRoFromQuest() {
     }
     const o = findDmsOrder(gameEvents.dmsActiveRoId);
     if (!o) return;
-    /* Story ROs (Fred / story arcs) stay open until their story completes */
+    /* Story ROs (Fred / story arcs) stay open until their story completes;
+       daily ROs stay open while they still need Mike's dispatch */
     const storyOpen = typeof isStoryRoStillOpen === 'function' && isStoryRoStillOpen(o);
+    const holdOpen = storyOpen || !!gameEvents.pendingDispatch;
     if (questState.step >= 3 && questState.step < 5 && o.status === 'checked_in') setDmsOrderStatus(o.id, 'open');
     if (questState.talkedToMike && questState.assignedTo && o.status === 'open') {
         setDmsOrderStatus(o.id, 'dispatched', { tech: questState.assignedTo });
     }
-    if (questState.step >= 5 && o.status === 'dispatched' && !storyOpen) setDmsOrderStatus(o.id, 'in_shop');
-    if (questState.step >= 5 && o.status !== 'closed' && !storyOpen) setDmsOrderStatus(o.id, 'closed');
+    if (questState.step >= 5 && o.status === 'dispatched' && !holdOpen) setDmsOrderStatus(o.id, 'in_shop');
+    if (questState.step >= 5 && o.status !== 'closed' && !holdOpen) setDmsOrderStatus(o.id, 'closed');
 }
 
 function onRepairOrderPrinted(source) {

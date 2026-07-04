@@ -318,7 +318,38 @@ function testMain() {
     handled = resolveStoryNpcDialogue(maps.office.npcs.find(n => n.id === 'mike'));
     check('day 2: Fred dispatch works via office Mike', handled && gameEvents.fredStoryPhase === 'at_vinnie');
 
-    /* ——— TEST 12: save/load round-trip with new fields ——— */
+    /* ——— TEST 12: daily loop with Mike dispatch ——— */
+    setupWorkDay(20);
+    probation.storyArcsDone = STORY_ARCS.map(a => a.id); /* all arcs done → plain daily loop */
+    generateDailyCustomerSchedule();
+    check('daily: no arc on day 20', !gameEvents.storyArc || gameEvents.storyArc.day !== 20);
+    gameEvents.timeMinutes = 460;
+    tickScheduledAppointments();
+    const dGuest = maps.drive.npcs.find(n => n.id === 'angry_customer');
+    check('daily: morning guest spawned', !dGuest.hidden);
+    const dGuestName = dGuest.name;
+    currentChoiceType = 'CHECKIN_DAILY';
+    makeChoice('YES', { stopPropagation() {} });
+    check('daily: checked in', gameEvents.carWaitingForRO === 'daily');
+    currentChoiceType = 'PC_MAIN';
+    makeChoice('DO_CHECKIN', { stopPropagation() {} });
+    check('daily: RO printed, dispatch pending', gameEvents.pendingDispatch === 'daily' && /Mike/.test(activeDialogue.join('|')));
+    const dailyOrder = gameEvents.dmsOrders[gameEvents.dmsOrders.length - 1];
+    syncActiveRoFromQuest();
+    check('daily: RO stays open while pending dispatch', dailyOrder.status === 'open', dailyOrder.status);
+    tickScheduledAppointments();
+    check('daily: guest waits during pending dispatch', !dGuest.hidden && dGuest.name === dGuestName);
+    check('daily: Mike offers dispatch dialogue', tryMikeDailyDispatchDialogue() === true && /Send it to/.test(activeDialogue[1]));
+    const dTech = questState.assignedTo;
+    check('daily: tech assigned', dTech === 'VINNIE' || dTech === 'BRONSON', dTech);
+    check('daily: dispatch completes after dialogue', completeMikeDailyDispatchIfNeeded() === true);
+    check('daily: appointment counted after dispatch', gameEvents.dailyAptsCompleted === 1);
+    check('daily: RO records tech', dailyOrder.tech === dTech, dailyOrder.tech);
+    syncActiveRoFromQuest();
+    check('daily: RO closes after dispatch', dailyOrder.status === 'closed', dailyOrder.status);
+    check('daily: pendingDispatch cleared', gameEvents.pendingDispatch === false);
+
+    /* ——— TEST 13: save/load round-trip with new fields ——— */
     setupWorkDay(4);
     generateDailyCustomerSchedule();
     persistGame();

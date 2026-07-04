@@ -22,6 +22,11 @@ function cloneCustomer(c) {
 
 function generateProceduralCustomer(excludeIds) {
     const vehicle = buildVehicle();
+    const isGirl = Math.random() < 0.45;
+    const hairColors = isGirl
+        ? ['#f6c944', '#d4a017', '#222', '#4a3121', '#a06540', '#888']
+        : ['#222', '#4a3121', '#888', '#cc3300', '#cc5500', null];
+    const shirts = PROC_SHIRTS.filter(c => c !== '#cc2222');
     return {
         id: 'proc_' + Date.now() + '_' + Math.floor(Math.random() * 9999),
         isProcedural: true,
@@ -36,9 +41,14 @@ function generateProceduralCustomer(excludeIds) {
         ],
         portrait: {
             skin: PROC_SKINS[Math.floor(Math.random() * PROC_SKINS.length)],
-            shirt: PROC_SHIRTS[Math.floor(Math.random() * PROC_SHIRTS.length)],
+            shirt: shirts[Math.floor(Math.random() * shirts.length)],
             sleeves: Math.random() < 0.5 ? 'short' : 'long',
-            hair: Math.random() < 0.7 ? '#222' : '#4a3121'
+            hair: hairColors[Math.floor(Math.random() * hairColors.length)],
+            acc: {
+                isGirl: isGirl,
+                glasses: !isGirl && Math.random() < 0.2,
+                beard: !isGirl && Math.random() < 0.15 ? '#4a3121' : undefined
+            }
         },
         vehicle: vehicle,
         carNote: 'Unfamiliar vehicle on the drive.'

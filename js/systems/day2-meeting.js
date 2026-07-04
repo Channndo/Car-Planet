@@ -107,6 +107,8 @@ function applyEndOfShiftDayRollover() {
     gameEvents.zackComeback = false;
     gameEvents.lightsOut = false;
     gameEvents.carWaitingForRO = false;
+    gameEvents.pendingDispatch = false;
+    gameEvents._mikeDispatchDialogueActive = false;
     gameEvents.fredStoryActive = false;
     gameEvents.fredStoryComplete = false;
     gameEvents.fredStoryPhase = 'idle';

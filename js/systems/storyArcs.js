@@ -325,7 +325,7 @@ function tickStoryArcs() {
 /** Spawn scheduled guests (morning 7:30, noon, 3 PM) as their time arrives — any day. */
 function tickScheduledAppointments() {
     if (questState.step < 8 || gameEvents.isAfterHours || !gameEvents.dailySchedule) return;
-    if (gameEvents.carWaitingForRO) return;
+    if (gameEvents.carWaitingForRO || gameEvents.pendingDispatch) return;
     const visit = typeof resolveActiveVisit === 'function' ? resolveActiveVisit() : null;
     if (!visit || !visit.customer) return;
     const cust = maps.drive.npcs.find(function (n) { return n.id === 'angry_customer'; });
