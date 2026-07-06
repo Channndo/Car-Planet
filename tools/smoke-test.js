@@ -373,6 +373,9 @@ function testMain() {
     check('Mike interact: staff code resolves to MIKE', portraitCodeForNpc(mikeNpc) === 'MIKE');
     check('EJ parts portrait uses staff code', portraitCodeForNpc(maps.parts.npcs.find(n => n.id === 'ej')) === 'EJ');
     check('Guest code draws from customer data not staff', isGuestPortraitCode('APPOINTMENT'));
+    check('Mike is staff portrait code', isStaffPortraitCode('MIKE'));
+    check('Whitney is staff portrait code', isStaffPortraitCode('WHITNEY'));
+    check('Only John Hughes gets angry guest brows', isAngryJohnHughesGuest({ name: 'JOHN HUGHES' }) && !isAngryJohnHughesGuest({ name: 'TIFFANY BROOKS', acc: {} }));
 
     /* ——— TEST 15: save/load round-trip with new fields ——— */
     setupWorkDay(4);

@@ -54,6 +54,32 @@ function isGuestPortraitCode(c) {
     return c === 'CUSTOMER' || c === 'APPOINTMENT' || c === 'WALK-IN' || c === 'FRED_NANDERS';
 }
 
+function isStaffPortraitCode(c) {
+    return c && c !== 'NONE' && c !== 'OBJ' && c !== 'PLAYER' && c !== 'CUST' && !isGuestPortraitCode(c);
+}
+
+/** Only the tutorial guest John Hughes gets the furrowed angry look. */
+function isAngryJohnHughesGuest(npc) {
+    if (!npc) return true;
+    if (npc.name === 'JOHN HUGHES') return true;
+    const acc = npc.acc || {};
+    return !!acc.angry;
+}
+
+function drawAngryGuestBrows() {
+    pCtx.strokeStyle = '#222';
+    pCtx.lineWidth = 1;
+    pCtx.beginPath();
+    pCtx.moveTo(24, 28);
+    pCtx.lineTo(30, 30);
+    pCtx.stroke();
+    pCtx.beginPath();
+    pCtx.moveTo(40, 28);
+    pCtx.lineTo(34, 30);
+    pCtx.stroke();
+    pR(29, 42, 6, 4, '#222');
+}
+
 /** Drive guests only — pulls colors/hair from angry_customer NPC data. */
 function drawGuestPortrait(npc) {
     pCtx.clearRect(0, 0, 64, 64);
@@ -64,17 +90,7 @@ function drawGuestPortrait(npc) {
         pR(26, 32, 2, 2, '#111');
         pR(36, 32, 2, 2, '#111');
         pR(20, 16, 24, 8, '#222');
-        pCtx.strokeStyle = '#222';
-        pCtx.lineWidth = 1;
-        pCtx.beginPath();
-        pCtx.moveTo(24, 28);
-        pCtx.lineTo(30, 30);
-        pCtx.stroke();
-        pCtx.beginPath();
-        pCtx.moveTo(40, 28);
-        pCtx.lineTo(34, 30);
-        pCtx.stroke();
-        pR(29, 42, 6, 4, '#222');
+        drawAngryGuestBrows();
         return;
     }
     const skin = npc.color || '#ffccaa';
@@ -111,24 +127,21 @@ function drawGuestPortrait(npc) {
         pR(20, 26, 10, 6, 'rgba(80,55,30,0.45)');
         pR(34, 38, 8, 4, 'rgba(70,50,25,0.5)');
         pR(24, 40, 16, 3, 'rgba(50,35,20,0.65)');
-    } else if (!acc.beard && !isGirl) {
-        pCtx.strokeStyle = '#222';
-        pCtx.lineWidth = 1;
-        pCtx.beginPath();
-        pCtx.moveTo(24, 28);
-        pCtx.lineTo(30, 30);
-        pCtx.stroke();
-        pCtx.beginPath();
-        pCtx.moveTo(40, 28);
-        pCtx.lineTo(34, 30);
-        pCtx.stroke();
-        pR(29, 42, 6, 4, '#222');
+    } else if (isAngryJohnHughesGuest(npc)) {
+        drawAngryGuestBrows();
+    } else if (!isGirl) {
+        pR(28, 42, 8, 1, '#222');
     }
 }
 
 function drawPortrait(c) {
     if (isGuestPortraitCode(c)) {
         drawGuestPortrait(getDriveGuestNpc());
+        return;
+    }
+    if (!isStaffPortraitCode(c) && c !== 'NONE' && c !== 'OBJ' && c !== 'PLAYER' && c !== 'CUST') {
+        pCtx.clearRect(0, 0, 64, 64);
+        pR(0, 0, 64, 64, '#111');
         return;
     }
     pCtx.clearRect(0,0,64,64); pR(0,0,64,64,'#6d8fa8');
@@ -488,6 +501,8 @@ window.drawPortrait = drawPortrait;
 window.drawGuestPortrait = drawGuestPortrait;
 window.getDriveGuestNpc = getDriveGuestNpc;
 window.isGuestPortraitCode = isGuestPortraitCode;
+window.isStaffPortraitCode = isStaffPortraitCode;
+window.isAngryJohnHughesGuest = isAngryJohnHughesGuest;
 window.resetChoices = resetChoices;
 window.checkChoiceTrigger = checkChoiceTrigger;
 window.makeChoice = makeChoice;
