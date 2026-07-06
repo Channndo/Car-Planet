@@ -405,6 +405,12 @@ function testMain() {
     applyCustomerToDriveNpc(guestNpc, tiffany, { type: 'appointment', attitude: 'neutral', customer: tiffany });
     check('portrait: guest skin from customer data', guestNpc.color === tiffany.portrait.skin, guestNpc.color);
     check('portrait: guest shirt from customer data', guestNpc.shirt === '#ff69b4', guestNpc.shirt);
+    drawCustomerPortraitById(3);
+    check('Tiffany portrait: hardcoded pink shirt', pCtx.getImageData(20, 50, 1, 1).data[0] === 0xff && pCtx.getImageData(20, 50, 1, 1).data[1] === 0x69);
+    drawCustomerPortraitById(6);
+    check('Buck portrait: hardcoded green shirt', pCtx.getImageData(18, 50, 1, 1).data[0] === 0x22 && pCtx.getImageData(18, 50, 1, 1).data[1] === 0x88);
+    drawCustomerPortraitById('proc_test_walkin');
+    check('Walk-in portrait: not angry John red shirt', pCtx.getImageData(20, 50, 1, 1).data[0] !== 0xcc || pCtx.getImageData(20, 50, 1, 1).data[1] !== 0x22);
     drawPortrait('APPOINTMENT');
     triggerCutscene(guestNpc);
     check('cutscene: uses guest name in dialogue box', dName.innerText === 'TIFFANY BROOKS');

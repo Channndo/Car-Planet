@@ -33,6 +33,7 @@ function generateProceduralCustomer(excludeIds) {
         name: randomProceduralName(),
         dexEntry: 'Walk-in guest. Not on the roster yet.',
         personalityLine: 'I just need someone to look at it.',
+        signatureLine: 'I just need someone to look at it.',
         complaintPool: [
             'Something sounds wrong when I accelerate.',
             'Fluid spot under the car.',

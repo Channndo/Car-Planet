@@ -137,58 +137,19 @@ function drawAngryGuestBrows() {
     pR(29, 42, 6, 4, '#222');
 }
 
-/** Drive guests only — pulls colors/hair from angry_customer NPC data. */
+/** Drive guests only — hardcoded portrait per customer id. */
 function drawGuestPortrait(npc) {
-    pCtx.clearRect(0, 0, 64, 64);
-    pR(0, 0, 64, 64, '#6d8fa8');
-    if (!npc) {
-        pR(18, 48, 28, 16, '#cc2222');
-        pR(22, 22, 20, 24, '#ffccaa');
-        pR(26, 32, 2, 2, '#111');
-        pR(36, 32, 2, 2, '#111');
-        pR(20, 16, 24, 8, '#222');
-        drawAngryGuestBrows();
+    if (typeof drawCustomerPortraitForNpc === 'function') {
+        drawCustomerPortraitForNpc(npc);
         return;
     }
-    const skin = npc.color || '#ffccaa';
-    const shirt = npc.shirt || '#cc2222';
-    const hair = npc.hair || '#222';
-    const acc = npc.acc || {};
-    const isFred = npc._portraitCode === 'FRED_NANDERS' ||
-        (typeof isFredAppointmentActive === 'function' && isFredAppointmentActive());
-    const isGirl = !!acc.isGirl;
-    pR(18, 48, 28, 16, shirt);
-    pR(22, 22, 20, 24, skin);
+    pCtx.clearRect(0, 0, 64, 64);
+    pR(0, 0, 64, 64, '#6d8fa8');
+    pR(18, 48, 28, 16, '#cc2222');
+    pR(22, 22, 20, 24, '#ffccaa');
     pR(26, 32, 2, 2, '#111');
     pR(36, 32, 2, 2, '#111');
-    if (isGirl) {
-        pR(18, 16, 28, 10, hair);
-        pR(18, 26, 6, 18, hair);
-        pR(40, 26, 6, 18, hair);
-    } else if (hair) {
-        pR(20, 16, 24, 8, hair);
-        pR(18, 20, 4, 10, hair);
-        pR(42, 20, 4, 10, hair);
-    }
-    if (acc.glasses) {
-        pR(24, 30, 6, 4, 'rgba(255,255,255,0.4)');
-        pR(34, 30, 6, 4, 'rgba(255,255,255,0.4)');
-        pR(24, 31, 16, 1, '#111');
-    }
-    if (acc.beard) {
-        pR(24, 40, 16, 4, acc.beard);
-    }
-    if (isFred) {
-        pR(18, 20, 4, 8, 'rgba(60,45,30,0.55)');
-        pR(42, 20, 4, 8, 'rgba(60,45,30,0.55)');
-        pR(20, 26, 10, 6, 'rgba(80,55,30,0.45)');
-        pR(34, 38, 8, 4, 'rgba(70,50,25,0.5)');
-        pR(24, 40, 16, 3, 'rgba(50,35,20,0.65)');
-    } else if (isAngryJohnHughesGuest(npc)) {
-        drawAngryGuestBrows();
-    } else if (!isGirl) {
-        pR(28, 42, 8, 1, '#222');
-    }
+    drawAngryGuestBrows();
 }
 
 /** Original hardcoded employee art — never uses guest skin/shirt template. */

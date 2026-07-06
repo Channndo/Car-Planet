@@ -40,12 +40,14 @@ function pickAttitudeOpener(attitude) {
 
 function buildCustomerDialogue(customer, attitude, context) {
     const lines = [];
-    lines.push(pickAttitudeOpener(attitude));
-    if (customer.personalityLine) lines.push(customer.personalityLine);
+    lines.push(customer.signatureLine || customer.personalityLine || pickAttitudeOpener(attitude));
+    if (customer.signatureLine && customer.personalityLine && customer.signatureLine !== customer.personalityLine) {
+        lines.push(customer.personalityLine);
+    }
     const complaint = customer.complaintPool[Math.floor(Math.random() * customer.complaintPool.length)];
     lines.push(complaint);
     if (context === 'appointment') {
-        lines.push("Are you going to check me in?");
+        lines.push('Are you going to check me in?');
     } else if (context === 'walkin') {
         lines.push("I don't have an appointment.\nCan you squeeze me in?");
     }
