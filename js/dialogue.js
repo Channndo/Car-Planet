@@ -58,6 +58,63 @@ function isStaffPortraitCode(c) {
     return c && c !== 'NONE' && c !== 'OBJ' && c !== 'PLAYER' && c !== 'CUST' && !isGuestPortraitCode(c);
 }
 
+/** Staff portrait codes keyed by npc.id — never derived from map color/shirt/hair. */
+const STAFF_PORTRAIT_BY_ID = {
+    mike: 'MIKE',
+    whitney: 'WHITNEY',
+    ryan: 'RYAN',
+    office_ryan: 'RYAN',
+    zack: 'ZACK',
+    office_zack: 'ZACK',
+    office_whitney: 'WHITNEY',
+    rival: 'RIVAL',
+    joe: 'JOE',
+    vinnie: 'VINNIE',
+    bronson: 'BRONSON',
+    ej: 'EJ',
+    little_mike: 'LITTLE_MIKE',
+    jake: 'JAKE',
+    adam: 'ADAM',
+    jerry: 'JERRY',
+    coolant_joe: 'COOLANT_JOE',
+    bri: 'BRI',
+    damone: 'DAMONE',
+    gus: 'GUS',
+    paint_stan: 'PAINT_TECH',
+    dave: 'DAVE',
+    brad: 'BRAD',
+    john: 'JOHN',
+    troy: 'TROY',
+    nick: 'NICK',
+    stall_guy: 'STALL_GUY'
+};
+
+function staffPortraitCodeFromName(name) {
+    if (!name) return null;
+    if (name === 'LITTLE MIKE') return 'LITTLE_MIKE';
+    if (name === 'COOLANT JOE') return 'COOLANT_JOE';
+    if (name === 'FRED NANDERS') return 'FRED_NANDERS';
+    if (name === playerDetails.rivalName || name === 'KASEY') return 'RIVAL';
+    if (STAFF_PORTRAIT_BY_ID[name.toLowerCase()]) return STAFF_PORTRAIT_BY_ID[name.toLowerCase()];
+    if (isStaffPortraitCode(name)) return name;
+    return null;
+}
+
+function portraitCodeForNpc(npc) {
+    if (!npc) return 'NONE';
+    if (npc.id === 'angry_customer') {
+        if (typeof isFredAppointmentActive === 'function' && isFredAppointmentActive()) return 'FRED_NANDERS';
+        return npc.charCode || 'CUSTOMER';
+    }
+    if (npc.id === 'desk' || npc.id === 'customer_car') return 'NONE';
+    if (STAFF_PORTRAIT_BY_ID[npc.id]) return STAFF_PORTRAIT_BY_ID[npc.id];
+    return npc.charCode || 'NONE';
+}
+
+function isDealershipStaffNpc(npc) {
+    return !!(npc && npc.id && STAFF_PORTRAIT_BY_ID[npc.id]);
+}
+
 /** Only the tutorial guest John Hughes gets the furrowed angry look. */
 function isAngryJohnHughesGuest(npc) {
     if (!npc) return true;
@@ -134,11 +191,8 @@ function drawGuestPortrait(npc) {
     }
 }
 
-function drawPortrait(c) {
-    if (isGuestPortraitCode(c)) {
-        drawGuestPortrait(getDriveGuestNpc());
-        return;
-    }
+/** Original hardcoded employee art — never uses guest skin/shirt template. */
+function drawStaffPortrait(c) {
     if (!isStaffPortraitCode(c) && c !== 'NONE' && c !== 'OBJ' && c !== 'PLAYER' && c !== 'CUST') {
         pCtx.clearRect(0, 0, 64, 64);
         pR(0, 0, 64, 64, '#111');
@@ -176,6 +230,32 @@ function drawPortrait(c) {
     else if(c==='RITA'){pR(18,48,28,16,'#4c1d95');pR(22,22,20,24,'#e5c4a8');pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(20,16,24,8,'#222');pR(24,30,6,4,'rgba(255,255,255,0.4)');pR(34,30,6,4,'rgba(255,255,255,0.4)');}
     else if(c==='CUST'){pR(18,48,28,16,'#1e3a8a');pR(22,22,20,24,'#dcb');pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(20,16,24,8,'#555');}
     else {pR(0,0,64,64,'#111');}
+}
+
+function drawStaffPortraitForNpc(npc) {
+    if (!npc) {
+        drawStaffPortrait('NONE');
+        return;
+    }
+    if (npc.id === 'angry_customer') {
+        drawPortrait(isFredAppointmentActive && isFredAppointmentActive() ? 'FRED_NANDERS' : (npc.charCode || 'CUSTOMER'));
+        return;
+    }
+    const code = STAFF_PORTRAIT_BY_ID[npc.id] || portraitCodeForNpc(npc);
+    drawStaffPortrait(code);
+}
+
+function drawPortrait(c) {
+    if (isGuestPortraitCode(c)) {
+        drawGuestPortrait(getDriveGuestNpc());
+        return;
+    }
+    drawStaffPortrait(c);
+}
+
+function refreshStaffPortraitForDialogueName() {
+    const code = staffPortraitCodeFromName(dName.innerText);
+    if (code && !isGuestPortraitCode(code)) drawStaffPortrait(code);
 }
 function resetChoices() { cBox.innerHTML = '<button class="choice-btn" onclick="makeChoice(\'YES\', event)">YES</button><button class="choice-btn" onclick="makeChoice(\'NO\', event)">NO</button>'; }
 
@@ -487,6 +567,7 @@ function advanceDialogue(){
         }else{
             dText.innerText=activeDialogue[activeLine];
             applyDialogueSpeakerPortrait(activeDialogue[activeLine]);
+            refreshStaffPortraitForDialogueName();
             checkChoiceTrigger();
         }
     }
@@ -498,11 +579,16 @@ window.continueGameFromTitle = continueGameFromTitle;
 window.startNewGameFromTitle = startNewGameFromTitle;
 window.triggerPAAnnouncement = triggerPAAnnouncement;
 window.drawPortrait = drawPortrait;
+window.drawStaffPortrait = drawStaffPortrait;
+window.drawStaffPortraitForNpc = drawStaffPortraitForNpc;
 window.drawGuestPortrait = drawGuestPortrait;
 window.getDriveGuestNpc = getDriveGuestNpc;
+window.portraitCodeForNpc = portraitCodeForNpc;
 window.isGuestPortraitCode = isGuestPortraitCode;
 window.isStaffPortraitCode = isStaffPortraitCode;
+window.isDealershipStaffNpc = isDealershipStaffNpc;
 window.isAngryJohnHughesGuest = isAngryJohnHughesGuest;
+window.refreshStaffPortraitForDialogueName = refreshStaffPortraitForDialogueName;
 window.resetChoices = resetChoices;
 window.checkChoiceTrigger = checkChoiceTrigger;
 window.makeChoice = makeChoice;

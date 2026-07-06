@@ -129,15 +129,15 @@ function applyDialogueSpeakerPortrait(line) {
         const s = speakers[i];
         if (line.indexOf(s + ':') === 0) {
             dName.innerText = s;
-            if (s === 'LITTLE MIKE') drawPortrait('LITTLE_MIKE');
-            else if (s === 'COOLANT JOE') drawPortrait('COOLANT_JOE');
-            else drawPortrait(s);
+            if (s === 'LITTLE MIKE') drawStaffPortrait('LITTLE_MIKE');
+            else if (s === 'COOLANT JOE') drawStaffPortrait('COOLANT_JOE');
+            else drawStaffPortrait(s);
             return;
         }
     }
     if (line.indexOf(playerDetails.rivalName + ':') === 0 || line.indexOf('KASEY:') === 0) {
         dName.innerText = playerDetails.rivalName;
-        drawPortrait('RIVAL');
+        drawStaffPortrait('RIVAL');
         return;
     }
     if (line.indexOf('FRED:') === 0 || line.indexOf('FRED NANDERS:') === 0) {

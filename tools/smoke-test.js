@@ -9,15 +9,54 @@ const vm = require('vm');
 const ROOT = path.join(__dirname, '..');
 
 /* ——— DOM stubs ——— */
-function makeCtxStub() {
-    return new Proxy({}, {
-        get(t, k) {
-            if (k === 'canvas') return {};
-            if (!(k in t)) t[k] = function () {};
-            return t[k];
+function parseHexColor(c) {
+    if (!c || typeof c !== 'string') return [0, 0, 0, 255];
+    if (c.indexOf('rgba') === 0) {
+        const m = c.match(/[\d.]+/g);
+        return [+m[0], +m[1], +m[2], Math.round((+m[3] || 1) * 255)];
+    }
+    if (c[0] === '#') {
+        const h = c.slice(1);
+        if (h.length === 3) return [parseInt(h[0] + h[0], 16), parseInt(h[1] + h[1], 16), parseInt(h[2] + h[2], 16), 255];
+        return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), 255];
+    }
+    return [0, 0, 0, 255];
+}
+
+function makeCtxStub(w, h) {
+    const W = w || 64, H = h || 64;
+    const pixels = new Uint8ClampedArray(W * H * 4);
+    const ctx = {
+        canvas: { width: W, height: H },
+        fillStyle: '#000',
+        strokeStyle: '#000',
+        lineWidth: 1,
+        clearRect(x, y, cw, ch) {
+            for (let py = y; py < y + ch; py++) for (let px = x; px < x + cw; px++) {
+                const i = (py * W + px) * 4;
+                pixels[i] = pixels[i + 1] = pixels[i + 2] = pixels[i + 3] = 0;
+            }
         },
-        set(t, k, v) { t[k] = v; return true; }
-    });
+        fillRect(x, y, fw, fh) {
+            const [r, g, b, a] = parseHexColor(ctx.fillStyle);
+            for (let py = y; py < y + fh; py++) for (let px = x; px < x + fw; px++) {
+                if (px < 0 || py < 0 || px >= W || py >= H) continue;
+                const i = (py * W + px) * 4;
+                pixels[i] = r; pixels[i + 1] = g; pixels[i + 2] = b; pixels[i + 3] = a;
+            }
+        },
+        getImageData(x, y, iw, ih) {
+            const out = new Uint8ClampedArray(iw * ih * 4);
+            for (let py = 0; py < ih; py++) for (let px = 0; px < iw; px++) {
+                const sx = x + px, sy = y + py;
+                const si = (sy * W + sx) * 4, oi = (py * iw + px) * 4;
+                out[oi] = pixels[si]; out[oi + 1] = pixels[si + 1]; out[oi + 2] = pixels[si + 2]; out[oi + 3] = pixels[si + 3];
+            }
+            return { data: out, width: iw, height: ih };
+        },
+        beginPath() {}, moveTo() {}, lineTo() {}, stroke() {}, strokeRect() {}, fill() {}
+    };
+    return ctx;
 }
 
 function makeEl(id) {
@@ -33,7 +72,12 @@ function makeEl(id) {
         appendChild(c) { this.children.push(c); },
         querySelector() { return makeEl('q'); },
         querySelectorAll() { return []; },
-        getContext() { return makeCtxStub(); },
+        getContext(type) {
+            if (this.id === 'portrait-canvas') {
+                return makeCtxStub(64, 64);
+            }
+            return makeCtxStub(this.width || 320, this.height || 240);
+        },
         focus() {},
         value: '',
         width: 320,
@@ -43,7 +87,11 @@ function makeEl(id) {
 
 const elements = {};
 function getEl(id) {
-    if (!elements[id]) elements[id] = makeEl(id);
+    if (!elements[id]) {
+        const el = makeEl(id);
+        if (id === 'portrait-canvas') { el.width = 64; el.height = 64; }
+        elements[id] = el;
+    }
     return elements[id];
 }
 
@@ -369,8 +417,12 @@ function testMain() {
     check('Mike dispatch: name stays MIKE', dName.innerText === 'MIKE');
     check('Mike code is not a guest code', !isGuestPortraitCode('MIKE'));
     const mikeNpc = maps.drive.npcs.find(n => n.id === 'mike');
-    drawPortrait(portraitCodeForNpc(mikeNpc));
+    drawStaffPortraitForNpc(mikeNpc);
     check('Mike interact: staff code resolves to MIKE', portraitCodeForNpc(mikeNpc) === 'MIKE');
+    check('Mike portrait: hardcoded blue shirt not guest template', pCtx.getImageData(17, 50, 1, 1).data[0] === 0x2c && pCtx.getImageData(17, 50, 1, 1).data[1] === 0x5a);
+    check('Mike portrait: has beard pixels', pCtx.getImageData(22, 40, 1, 1).data[0] === 0x11);
+    drawStaffPortrait('WHITNEY');
+    check('Whitney portrait: long hair side pixels', pCtx.getImageData(16, 24, 1, 1).data[0] === 0x11);
     check('EJ parts portrait uses staff code', portraitCodeForNpc(maps.parts.npcs.find(n => n.id === 'ej')) === 'EJ');
     check('Guest code draws from customer data not staff', isGuestPortraitCode('APPOINTMENT'));
     check('Mike is staff portrait code', isStaffPortraitCode('MIKE'));
