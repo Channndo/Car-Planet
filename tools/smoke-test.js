@@ -349,7 +349,32 @@ function testMain() {
     check('daily: RO closes after dispatch', dailyOrder.status === 'closed', dailyOrder.status);
     check('daily: pendingDispatch cleared', gameEvents.pendingDispatch === false);
 
-    /* ——— TEST 13: save/load round-trip with new fields ——— */
+    /* ——— TEST 13: per-guest portraits (not generic John Hughes) ——— */
+    setupWorkDay(20);
+    generateDailyCustomerSchedule();
+    const guestNpc = maps.drive.npcs.find(n => n.id === 'angry_customer');
+    const tiffany = getCoreCustomerById(3);
+    applyCustomerToDriveNpc(guestNpc, tiffany, { type: 'appointment', attitude: 'neutral', customer: tiffany });
+    check('portrait: guest skin from customer data', guestNpc.color === tiffany.portrait.skin, guestNpc.color);
+    check('portrait: guest shirt from customer data', guestNpc.shirt === '#ff69b4', guestNpc.shirt);
+    drawPortrait('APPOINTMENT');
+    triggerCutscene(guestNpc);
+    check('cutscene: uses guest name in dialogue box', dName.innerText === 'TIFFANY BROOKS');
+    activeDialogue = null;
+    gameState = 'PLAYING';
+
+    /* ——— TEST 14: staff portraits are not overwritten by guest ——— */
+    applyCustomerToDriveNpc(guestNpc, tiffany, { type: 'appointment', attitude: 'neutral', customer: tiffany });
+    applyDialogueSpeakerPortrait('MIKE: Send it to Bronson\'s bay.');
+    check('Mike dispatch: name stays MIKE', dName.innerText === 'MIKE');
+    check('Mike code is not a guest code', !isGuestPortraitCode('MIKE'));
+    const mikeNpc = maps.drive.npcs.find(n => n.id === 'mike');
+    drawPortrait(portraitCodeForNpc(mikeNpc));
+    check('Mike interact: staff code resolves to MIKE', portraitCodeForNpc(mikeNpc) === 'MIKE');
+    check('EJ parts portrait uses staff code', portraitCodeForNpc(maps.parts.npcs.find(n => n.id === 'ej')) === 'EJ');
+    check('Guest code draws from customer data not staff', isGuestPortraitCode('APPOINTMENT'));
+
+    /* ——— TEST 15: save/load round-trip with new fields ——— */
     setupWorkDay(4);
     generateDailyCustomerSchedule();
     persistGame();

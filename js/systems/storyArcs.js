@@ -287,8 +287,7 @@ function completeActiveArc(arc, state) {
     activeLine = 0;
     dName.innerText = guestName;
     dText.innerText = activeDialogue[0];
-    if (typeof setPortraitSubject === 'function') setPortraitSubject(cust);
-    if (typeof drawGuestPortrait === 'function') drawGuestPortrait(cust);
+    drawPortrait(cust ? (cust.charCode || 'CUSTOMER') : 'CUSTOMER');
     dContainer.style.display = 'flex';
 }
 

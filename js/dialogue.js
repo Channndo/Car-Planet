@@ -44,22 +44,17 @@ function triggerPAAnnouncement(){
     drawPortrait('NONE'); dContainer.style.display='flex';
 }
 function pR(x,y,w,h,c){pCtx.fillStyle=c;pCtx.fillRect(x,y,w,h);}
-let portraitSubjectNpc = null;
-
-function isGuestPortraitCode(code) {
-    return code === 'CUSTOMER' || code === 'APPOINTMENT' || code === 'WALK-IN' || code === 'FRED_NANDERS';
-}
 
 function getDriveGuestNpc() {
     if (!maps.drive || !maps.drive.npcs) return null;
-    const c = maps.drive.npcs.find(n => n.id === 'angry_customer' && !n.hidden);
-    return c || null;
+    return maps.drive.npcs.find(n => n.id === 'angry_customer' && !n.hidden) || null;
 }
 
-function setPortraitSubject(npc) {
-    portraitSubjectNpc = npc || null;
+function isGuestPortraitCode(c) {
+    return c === 'CUSTOMER' || c === 'APPOINTMENT' || c === 'WALK-IN' || c === 'FRED_NANDERS';
 }
 
+/** Drive guests only — pulls colors/hair from angry_customer NPC data. */
 function drawGuestPortrait(npc) {
     pCtx.clearRect(0, 0, 64, 64);
     pR(0, 0, 64, 64, '#6d8fa8');
@@ -69,14 +64,26 @@ function drawGuestPortrait(npc) {
         pR(26, 32, 2, 2, '#111');
         pR(36, 32, 2, 2, '#111');
         pR(20, 16, 24, 8, '#222');
+        pCtx.strokeStyle = '#222';
+        pCtx.lineWidth = 1;
+        pCtx.beginPath();
+        pCtx.moveTo(24, 28);
+        pCtx.lineTo(30, 30);
+        pCtx.stroke();
+        pCtx.beginPath();
+        pCtx.moveTo(40, 28);
+        pCtx.lineTo(34, 30);
+        pCtx.stroke();
+        pR(29, 42, 6, 4, '#222');
         return;
     }
     const skin = npc.color || '#ffccaa';
     const shirt = npc.shirt || '#cc2222';
     const hair = npc.hair || '#222';
+    const acc = npc.acc || {};
     const isFred = npc._portraitCode === 'FRED_NANDERS' ||
         (typeof isFredAppointmentActive === 'function' && isFredAppointmentActive());
-    const isGirl = npc.acc && npc.acc.isGirl;
+    const isGirl = !!acc.isGirl;
     pR(18, 48, 28, 16, shirt);
     pR(22, 22, 20, 24, skin);
     pR(26, 32, 2, 2, '#111');
@@ -87,10 +94,16 @@ function drawGuestPortrait(npc) {
         pR(40, 26, 6, 18, hair);
     } else if (hair) {
         pR(20, 16, 24, 8, hair);
-        if (npc.sleeves === 'long') {
-            pR(18, 20, 4, 10, hair);
-            pR(42, 20, 4, 10, hair);
-        }
+        pR(18, 20, 4, 10, hair);
+        pR(42, 20, 4, 10, hair);
+    }
+    if (acc.glasses) {
+        pR(24, 30, 6, 4, 'rgba(255,255,255,0.4)');
+        pR(34, 30, 6, 4, 'rgba(255,255,255,0.4)');
+        pR(24, 31, 16, 1, '#111');
+    }
+    if (acc.beard) {
+        pR(24, 40, 16, 4, acc.beard);
     }
     if (isFred) {
         pR(18, 20, 4, 8, 'rgba(60,45,30,0.55)');
@@ -98,7 +111,7 @@ function drawGuestPortrait(npc) {
         pR(20, 26, 10, 6, 'rgba(80,55,30,0.45)');
         pR(34, 38, 8, 4, 'rgba(70,50,25,0.5)');
         pR(24, 40, 16, 3, 'rgba(50,35,20,0.65)');
-    } else {
+    } else if (!acc.beard && !isGirl) {
         pCtx.strokeStyle = '#222';
         pCtx.lineWidth = 1;
         pCtx.beginPath();
@@ -114,12 +127,7 @@ function drawGuestPortrait(npc) {
 }
 
 function drawPortrait(c) {
-    const guest = portraitSubjectNpc || (isGuestPortraitCode(c) ? getDriveGuestNpc() : null);
-    if (guest && (isGuestPortraitCode(c) || c === guest.charCode || c === guest._portraitCode)) {
-        drawGuestPortrait(guest);
-        return;
-    }
-    if (c === 'FRED_NANDERS') {
+    if (isGuestPortraitCode(c)) {
         drawGuestPortrait(getDriveGuestNpc());
         return;
     }
@@ -146,8 +154,7 @@ function drawPortrait(c) {
     else if(c==='BRAD'){pR(16,48,32,16,'#c2b280');pR(22,22,20,24,'#ffccaa');pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(20,14,24,8,'#cc3300');pR(20,16,24,8,'#ccc');pR(18,20,4,10,'#ccc');pR(42,20,4,10,'#ccc');}
     else if(c==='JOHN'){pR(16,48,32,16,'#fff');pR(20,48,24,16,'#222');pR(22,22,20,24,'#ffdbac');pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(20,14,24,8,'#6b4c3a');pR(22,38,20,8,'#6b4c3a');pR(20,16,24,8,'#fff');pR(18,20,4,10,'#fff');pR(42,20,4,10,'#fff');pR(20,16,24,8,'#222');pR(24,30,6,4,'rgba(255,255,255,0.4)');pR(34,30,6,4,'rgba(255,255,255,0.4)');}
     else if(c==='TROY'){pR(16,48,32,16,'#111');pR(22,22,20,24,'#e8b898');pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(22,38,20,8,'#222');pR(20,16,24,8,'#111');pR(18,20,4,6,'#111');pR(42,20,4,6,'#111');pR(24,30,6,4,'rgba(255,255,255,0.4)');pR(34,30,6,4,'rgba(255,255,255,0.4)');}
-    else if(c==='CUSTOMER'||c==='APPOINTMENT'||c==='WALK-IN'){drawGuestPortrait(getDriveGuestNpc());}
-    else if(c==='FRED_NANDERS'){drawGuestPortrait(getDriveGuestNpc());}
+    else if(c==='NONE'||c==='OBJ'){/* blank system portrait */ }
     else if(c==='BRI'){pR(18,48,28,16,'#222');pR(22,22,20,24,'#fff0f0');pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');pR(20,16,24,8,'#cc0000');pR(16,24,6,20,'#cc0000');pR(42,24,6,20,'#cc0000');pR(28,42,8,2,'#fff');}
     else if(c==='PLAYER'){let skin=playerDetails.gender==='Boy'?'#ffccaa':'#ffdbac';let hair=playerDetails.gender==='Boy'?'#4a3121':'#f6c944';pR(18,48,28,16,playerDetails.inUniform?'#111':'#fff');pR(22,22,20,24,skin);pR(26,32,2,2,'#111');pR(36,32,2,2,'#111');if(playerDetails.gender==='Boy'){pR(20,16,24,8,hair);pR(18,20,4,10,hair);}else{pR(18,16,28,10,hair);pR(18,26,6,18,hair);pR(40,26,6,18,hair);}}
     else if(c==='GUS'){ pR(16,48,32,16,'#111'); pR(22,18,20,26,'#ffdbac'); pR(26,28,2,2,'#111');pR(36,28,2,2,'#111'); pR(29,38,6,1,'#111'); pR(18,16,6,14,'#d4a017');pR(40,16,6,14,'#d4a017');pR(22,14,20,4,'#d4a017'); }
@@ -463,13 +470,10 @@ function advanceDialogue(){
                 activeDialogue=null;
                 return;
             }
-            if(typeof setPortraitSubject==='function')setPortraitSubject(null);
             dContainer.style.display='none';activeDialogue=null;
         }else{
             dText.innerText=activeDialogue[activeLine];
             applyDialogueSpeakerPortrait(activeDialogue[activeLine]);
-            const guest=getDriveGuestNpc();
-            if(guest&&portraitSubjectNpc&&isGuestPortraitCode(portraitSubjectNpc.charCode))drawGuestPortrait(guest);
             checkChoiceTrigger();
         }
     }
@@ -482,7 +486,6 @@ window.startNewGameFromTitle = startNewGameFromTitle;
 window.triggerPAAnnouncement = triggerPAAnnouncement;
 window.drawPortrait = drawPortrait;
 window.drawGuestPortrait = drawGuestPortrait;
-window.setPortraitSubject = setPortraitSubject;
 window.getDriveGuestNpc = getDriveGuestNpc;
 window.isGuestPortraitCode = isGuestPortraitCode;
 window.resetChoices = resetChoices;

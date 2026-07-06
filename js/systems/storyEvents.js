@@ -122,13 +122,16 @@ function applyDialogueSpeakerPortrait(line) {
     }
     const speakers = [
         'MIKE', 'WHITNEY', 'RYAN', 'ZACK', 'BRONSON', 'VINNIE', 'JOE', 'JAKE', 'ADAM',
-        'EJ', 'GUS', 'DAVE', 'JERRY', 'TROY', 'NICK', 'BRAD', 'JOHN', 'DAMONE'
+        'EJ', 'GUS', 'DAVE', 'JERRY', 'TROY', 'NICK', 'BRAD', 'JOHN', 'DAMONE', 'BRI',
+        'LITTLE MIKE', 'COOLANT JOE'
     ];
     for (let i = 0; i < speakers.length; i++) {
         const s = speakers[i];
         if (line.indexOf(s + ':') === 0) {
             dName.innerText = s;
-            drawPortrait(s);
+            if (s === 'LITTLE MIKE') drawPortrait('LITTLE_MIKE');
+            else if (s === 'COOLANT JOE') drawPortrait('COOLANT_JOE');
+            else drawPortrait(s);
             return;
         }
     }
@@ -139,30 +142,18 @@ function applyDialogueSpeakerPortrait(line) {
     }
     if (line.indexOf('FRED:') === 0 || line.indexOf('FRED NANDERS:') === 0) {
         dName.innerText = 'FRED NANDERS';
-        const guest = typeof getDriveGuestNpc === 'function' ? getDriveGuestNpc() : null;
-        if (typeof setPortraitSubject === 'function') setPortraitSubject(guest);
-        if (typeof drawGuestPortrait === 'function') drawGuestPortrait(guest);
-        else drawPortrait('FRED_NANDERS');
+        drawPortrait('FRED_NANDERS');
         return;
     }
     const driveGuest = typeof getDriveGuestNpc === 'function' ? getDriveGuestNpc() : null;
     if (driveGuest && line.indexOf(driveGuest.name + ':') === 0) {
         dName.innerText = driveGuest.name;
-        if (typeof setPortraitSubject === 'function') setPortraitSubject(driveGuest);
-        if (typeof drawGuestPortrait === 'function') drawGuestPortrait(driveGuest);
+        drawPortrait(driveGuest.charCode || 'CUSTOMER');
         return;
     }
     if (line.indexOf('SHIFT REPORT') === 0 || line.indexOf('FINAL PROBATION') === 0 || line.indexOf('Day ') === 0) {
         dName.innerText = 'SYSTEM';
         drawPortrait('NONE');
-        return;
-    }
-    const driveCust = typeof getDriveGuestNpc === 'function' ? getDriveGuestNpc() : null;
-    if (driveCust && (dName.innerText === driveCust.name || line.indexOf(driveCust.name + ':') === 0)) {
-        if (line.indexOf(driveCust.name + ':') === 0) {
-            dName.innerText = driveCust.name;
-        }
-        if (typeof drawGuestPortrait === 'function') drawGuestPortrait(driveCust);
     }
 }
 

@@ -35,6 +35,7 @@ function tryMikeDailyDispatchDialogue() {
         'MIKE: Good. Keep the lane moving.'
     ];
     dName.innerText = 'MIKE';
+    if (typeof drawPortrait === 'function') drawPortrait('MIKE');
     return true;
 }
 
